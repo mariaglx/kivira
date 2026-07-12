@@ -5,7 +5,7 @@ function embaralhar(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-export function useJogoController() {
+export function useJogo() {
   const perguntasIniciais = [
     {
       id: 1,
@@ -188,6 +188,15 @@ export function useJogoController() {
     setPecaDraggin(null);
   };
 
+  const reiniciarJogo = () => {
+    setTabuleiro({});
+    setResultados({});
+    setPecaSelecionada(null);
+    setPecaDraggin(null);
+    setFase("jogando");
+    setPecasSoltas(embaralhar(perguntasIniciais));
+  };
+
   return {
     perguntas,
     pecasSoltas,
@@ -202,5 +211,6 @@ export function useJogoController() {
     corrigirRespostas,
     iniciarDrag,
     dropNoTabuleiro,
+    reiniciarJogo,
   };
 }
