@@ -2,7 +2,8 @@ import React from "react";
 import { useJogo } from "../../controllers/useJogo";
 import BordaLateral from "../../components/ui/BordaLateral";
 import confetti from "canvas-confetti";
-import { useEffect } from "react"; //
+import { useEffect } from "react"; 
+import { LogoKivira } from "../../components/LogoKivira";
 
 export function JogoAndamento() {
   const {
@@ -54,10 +55,11 @@ export function JogoAndamento() {
   return (
     <div className="min-h-screen bg-bege text-white flex flex-col">
       <header className="flex justify-between bg-branco items-center border-b border-white/10 py-2 px-3">
-        <h1 className="text-xl font-bold tracking-wider text-coral">KIVIRA</h1>
-        <span className="text-sm text-azul">Sons dos Animais</span>
-        <span className="text-sm text-gray-500">
+        <LogoKivira className="h-11 w-auto" />
+        <span className="text-md font-bold text-azul">Sons dos Animais</span>
+        <span className="font-bold text-start text-gray-500">
           {Object.keys(tabuleiro).length}/12
+          <div className="text-xs text-gray-400">peças colocadas</div>
         </span>
       </header>
 
@@ -67,17 +69,18 @@ export function JogoAndamento() {
           <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
             Perguntas
           </h2>
-          <div className="flex flex-col gap-3">
+          <ul className="flex flex-col bg-azul/5 rounded-box gap-2 p-2">
             {perguntas.map((q) => (
-              <div
-                key={q.id}
-                className="text-xs text-azul bg-azul/5 p-2 rounded border-l-2 border-transparent"
-              >
-                <span className="text-azul font-bold mr-1">{q.id}.</span>
-                {q.texto_questao}
-              </div>
+              <li key={q.id}>
+                <div className="flex items-center gap-4 text-md text-azul bg-azul/10 hover:bg-azul/20 py-2.5 px-3 p rounded-lg">
+                  <span className="font-bold text-coral">{q.id}.</span>
+                  <span className="font-medium text-left">
+                    {q.texto_questao}
+                  </span>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </BordaLateral>
 
         {/* Área Principal do Jogo */}

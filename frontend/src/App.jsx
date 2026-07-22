@@ -2,7 +2,9 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Cadastro from "./pages/auth/Cadastro";
 import {JogoAndamento} from "./pages/jogo/JogoAndamento";
-import KiviraGame from "./pages/jogo/KiviraGame";
+import { Home } from "./pages/Home";
+import { Dashboard } from "./pages/professor/Dashboard";
+import { Turmas } from "./pages/professor/Turmas";
 
 function App() {
   return (
@@ -10,7 +12,9 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/jogo" element={<JogoAndamento />} />
-      <Route path="/kivira" element={<KiviraGame />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/professor/dashboard" element={<Dashboard />} />
+      <Route path="/professor/turmas" element={<Turmas />} />
     </Routes>
   );
 }
