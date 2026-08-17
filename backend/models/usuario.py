@@ -8,8 +8,10 @@ from sqlalchemy import func
 class Usuario(Base):
     __tablename__ = "usuario"
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    email = Column("email", String(255), nullable=False, unique=True)
+    email = Column("email", String(255), nullable=True, unique=True)
     senha_hash = Column("senha_hash", String(255), nullable=False)
     tipo = Column("tipo", Enum("admin", "professor", "estudante", name="tipo_usuario_enum"),nullable=False, default="estudante")
     data_criacao = Column("data_criacao", DateTime, server_default=func.now())
     data_ultima_atualizacao = Column("data_ultima_atualizacao", DateTime, server_default=func.now(), onupdate=func.now())
+    primeiro_acesso = Column("primeiro_acesso", Boolean, nullable=False, default=True)
+    

@@ -10,8 +10,26 @@ import secrets # Gerar o código de acesso de forma automática | Nativo Python
 turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
 
 @turma_router.get("/")
-async def turma():
-    return{"mensagem": "Você acessou a rota de turma"}
+async def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+    if usuario.tipo == "admin":
+        turmas = session.query(Turma).all()
+    else: 
+        turmas = session.query(Turma).filter(Turma.professor_id == professor.id).all()
+
+
+    return[
+        {
+            "id": turma.id, 
+            "nome": turma.nome,
+            "ano_escolar": turma.ano_escolar,
+            "ano_letivo": turma.ano_letivo, 
+            "descricao": turma.descricao,
+            "ativo": turma.ativo,
+            "professor_id": turma.professor_id
+        }
+        for turma in turmas
+    ]
 
 
 @turma_router.post("/criar")

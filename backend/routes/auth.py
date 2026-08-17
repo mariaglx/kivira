@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from models.usuario import Usuario
+from models.aluno import Aluno
 from dependecies import pegar_sessao_kivira
 import bcrypt
 from sqlalchemy.orm import Session
-from schemas.auth import LoginSchema
+from schemas.auth import LoginSchema, LoginAlunoSchema
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from main import SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
@@ -60,5 +61,37 @@ async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), se
         access_token = criar_token(usuario.id)
         return {
             "access_token": access_token,
+            "token_type": "Bearer"
+        }
+
+
+# Autenticação do Aluno
+
+def autenticar_aluno_kivira(username, senha, session):
+    aluno = session.query(Aluno).filter(Aluno.username == username).first()
+    if not aluno:
+        return False
+
+    usuario = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
+    if not usuario:
+        return False
+    elif not bcrypt.checkpw(senha.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
+        return False
+    return usuario
+
+# Login do aluno 
+@kivira_auth_router.post("/login_aluno")
+async def login_aluno(login_schema: LoginAlunoSchema, session: Session = Depends(pegar_sessao_kivira)):
+
+    usuario = autenticar_aluno_kivira(login_schema.username, login_schema.senha, session)
+
+    if not usuario: 
+        raise HTTPException(status_code=400, detail="Usuário inexistente ou Login/Senha incorretos")
+    else: 
+        access_token = criar_token(usuario.id)
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        return{
+            "access_token": access_token, 
+            "refresh_token": refresh_token, 
             "token_type": "Bearer"
         }

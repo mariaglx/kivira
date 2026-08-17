@@ -18,6 +18,7 @@ class Aluno(Base):
     nivel_atual = Column("nivel_atual", Integer, default=1)
     data_criacao = Column("data_criacao", DateTime, server_default=func.now())
     data_ultima_atualizacao = Column("data_ultima_atualizacao", DateTime, server_default=func.now(), onupdate=func.now())
+    username = Column("username", String(100), unique=True)
 
     def __init__(self, nome_completo, apelido, data_nascimento):
         self.nome_completo = nome_completo 

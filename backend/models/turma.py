@@ -1,3 +1,4 @@
+# É onde criamos as classes do nosso banco de dados 
 from sqlalchemy import create_engine , Column, String, Date, DateTime, SmallInteger, Boolean, Float, ForeignKey, Integer, Text, Enum
 from database import Base
 from sqlalchemy import func
