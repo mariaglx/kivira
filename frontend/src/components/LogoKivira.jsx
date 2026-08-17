@@ -1,4 +1,4 @@
-export function LogoKivira({ className = "h-12 w-auto" }) {
+export function LogoKivira({ className = "h-auto w-auto" }) {
   return (
     <img src="/assets/logo.svg" alt="Kivira Logo" className={className} />
   );

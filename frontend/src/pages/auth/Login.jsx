@@ -1,12 +1,16 @@
 import {Link} from 'react-router-dom'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
+import { LogoKivira } from "../../components/LogoKivira";
 
 function Login() {
     return (
         <div className="min-h-screen bg-bege flex items-center justify-center">
-            <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
-                <h1 className="text-coral text-3xl font-bold text-center mb-6 tracking-widest">KIVIRA</h1>
+            <div className="bg-white pt-4 pb-8 px-8 rounded-2xl shadow-md w-full max-w-sm">
+                <div className="flex justify-center mb-4">
+                    <LogoKivira className="h-16 md:h-20 w-auto" />
+                </div>
+                
                 <form className="flex flex-col gap-4">
                     <Input
                         type="email"

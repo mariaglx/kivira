@@ -1,15 +1,50 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* 1. Mapeamento para os utilitários diretos do Tailwind v4 (ex: bg-azul, text-coral) */
 @theme {
   --color-cinza-claro: #ececec;
-  --color-azul: #214a5a; 
+  --color-azul: #214a5a;
   --color-coral: #eb7561;
   --color-laranja: #eeb37f;
   --color-laranja-claro: #f0c6a1;
   --color-bege: #f5e6d3;
   --color-branco: #ffffff;
-  --color-misteriosa: #e85d75;
+
   --font-sans: InterVariable, sans-serif;
-  --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 2. Configuração Semântica do Tema "kivira" no daisyUI */
+@plugin "daisyui/theme" {
+  name: "kivira";
+  default: true;
+  color-scheme: "light";
+
+  /* Ações Principais (Botões Primários, Destaques) */
+  --color-primary: #eb7561; /* Coral: Cor vibrante e principal de ação */
+  --color-primary-content: #ffffff; /* Texto branco sobre o Coral */
+
+  /* Ações Secundárias / Elementos Complementares */
+  --color-secondary: #214a5a; /* Azul: Excelente contraste para botões secundários */
+  --color-secondary-content: #ffffff; /* Texto branco sobre o Azul */
+
+  /* Acessórios, Badges e Destacadores */
+  --color-accent: #eeb37f; /* Laranja: Para avisos leves, bordas e detalhes */
+  --color-accent-content: #214a5a; /* Texto escuro/azul sobre o Laranja */
+
+  /* Elementos Neutros */
+  --color-neutral: #ececec; /* Cinza Claro: Usado para elementos neutros */
+  --color-neutral-content: #214a5a; /* Texto escuro/azul sobre o Cinza Claro */
+
+  /* Superfícies, Fundos e Camadas do App */
+  --color-base-100: #ffffff; /* Branco: Fundo base de telas/cards principais */
+  --color-base-200: #f5e6d3; /* Bege: Fundo leve de containers e seções secundárias */
+  --color-base-300: #ececec; /* Cinza Claro: Para divisores, bordas e desabilitados */
+  --color-base-content: #214a5a; /* Azul: Cor padrão para todos os textos do sistema */
+
+  /* Raio de arredondamento padrão dos botões e campos */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
 }

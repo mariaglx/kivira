@@ -54,7 +54,7 @@ export function Dashboard() {
 
         {/* Perfil do Professor (Rodapé da Sidebar) */}
         <div className="flex items-center gap-3 border-t border-branco/10 pt-4 cursor-pointer hover:opacity-90 transition-opacity">
-          <div className="w-10 h-10 rounded-full bg-coral/80 flex items-center justify-center font-bold text-branco shadow-md">
+          <div className="avatar avatar-placeholder w-10 h-10 rounded-full bg-coral/80 flex items-center justify-center font-bold text-branco shadow-md">
             P
           </div>
           <div className="flex flex-col">
