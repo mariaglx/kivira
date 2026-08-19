@@ -1,0 +1,25 @@
+{
+  "name": "kivira",
+  "version": "1.0.0",
+  "description": "Este repositório contém o frontend do **Projeto Kivira** (anteriormente LUK), uma plataforma educacional gamificada voltada para o auxílio no aprendizado infantil, desenvolvida como Trabalho de Conclusão de Curso (TCC) para a graduação em Ciência da Computação.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "cd backend && uvicorn main:app --reload",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariaglx/kivira.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mariaglx/kivira/issues"
+  },
+  "homepage": "https://github.com/mariaglx/kivira#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
