@@ -30,3 +30,6 @@ backend/__pycache__
 backend/**/__pycache__
 backend/.env
 *.pyc
+
+# Frontend 
+frontend/.env
