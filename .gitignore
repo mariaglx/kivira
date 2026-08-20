@@ -31,5 +31,5 @@ backend/**/__pycache__
 backend/.env
 *.pyc
 
-# Frontend 
+# Frontend
 frontend/.env
