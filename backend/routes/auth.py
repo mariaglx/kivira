@@ -8,13 +8,13 @@ from sqlalchemy.orm import Session
 from schemas.auth import LoginSchema, LoginAlunoSchema
 from datetime import datetime, timedelta, timezone
 from jose import jwt
-from main import SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
+from main import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 
 
 kivira_auth_router = APIRouter(prefix="/auth_kivira", tags=["auth"])
 
 # Processo de criação de token para o usuário se manter logado
-def criar_token(id_usuario, duracao_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)):
+def criar_token(id_usuario, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
     data_expiracao = datetime.now(timezone.utc) + duracao_token
     dict_info = {"sub": str(id_usuario), "exp": data_expiracao}
     jwt_codificado = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
