@@ -17,6 +17,7 @@ class Atividade(Base):
     tipo_atividade = Column("tipo_atividade", Enum("multipla_escolha", "associacao", "arrastar_soltar", name="tipo_atividade_enum"), nullable=False)
     dificuldade = Column("dificuldade", Enum("facil", "medio", "dificil", name="dificuldade_enum"), default="facil", nullable=False)
     imagem_atividade_url = Column("imagem_atividade_url", String(500))
+    codigo_atividade = Column("codigo_atividade", String(8), nullable=False, unique=True)
     quantidade_blocos = Column("quantidade_blocos", Integer, default=12)
     tempo_limite_seg = Column("tempo_limite_seg", Integer)
     gerado_por_ia = Column("gerado_por_ia", Boolean, default=False)

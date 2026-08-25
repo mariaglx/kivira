@@ -32,7 +32,7 @@ async def criar_questao(questao_schema: QuestaoSchema, session = Depends(pegar_s
     session.add(nova_questao)
     session.commit()
 
-    return {"mensagem": "Questão cadastrada com sucesso"}
+    return {"mensagem": "Questão cadastrada com sucesso", "id": nova_questao.id}
 
 
 @questao_router.get("/{id_questao}")

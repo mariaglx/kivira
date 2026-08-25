@@ -30,7 +30,7 @@ async def criar_opcao_questao(opcao_questao_schema: OpcaoQuestaoSchema, session 
     session.add(nova_opcao_questao)
     session.commit()
 
-    return{"mensagem":"Opção de questão cadastrada com sucesso"}
+    return{"mensagem":"Opção de questão cadastrada com sucesso", "id": nova_opcao_questao.id}
 
 
 @opcao_questao_router.get("/{id_opcao_questao}")
