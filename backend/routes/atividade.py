@@ -1,11 +1,12 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado a atividade.
 
-from fastapi import APIRouter, Depends, HTTPException 
-from models.atividade import Atividade 
+from fastapi import APIRouter, Depends, HTTPException
+from models.atividade import Atividade
 from models.professor import Professor
 from models.usuario import Usuario
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema
+import secrets # Gerar o código da atividade de forma automática | Nativo Python
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
 
@@ -24,16 +25,23 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
         atividade_schema.disciplina, 
         atividade_schema.dificuldade
     )
-    nova_atividade.professor_id = atividade_schema.professor_id 
+    nova_atividade.professor_id = atividade_schema.professor_id
     nova_atividade.turma_id = atividade_schema.turma_id
-    nova_atividade.imagem_atividade_url = atividade_schema.imagem_atividade_url 
-    nova_atividade.quantidade_blocos = atividade_schema.quantidade_blocos 
-    nova_atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg 
+    nova_atividade.imagem_atividade_url = atividade_schema.imagem_atividade_url
+    nova_atividade.quantidade_blocos = atividade_schema.quantidade_blocos
+    nova_atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
+
+    while True:
+        codigo = secrets.token_hex(4)
+        existe = session.query(Atividade).filter(Atividade.codigo_atividade == codigo).first() # Verifica se o código gerado já não foi usado
+        if not existe:                                                                          # anteriormente
+            break
+    nova_atividade.codigo_atividade = codigo
 
     session.add(nova_atividade)
     session.commit()
 
-    return{"mensagem": f"atividade '{nova_atividade.titulo}' cadastrada com sucesso"}
+    return{"mensagem": f"atividade '{nova_atividade.titulo}' cadastrada com sucesso", "id": nova_atividade.id, "codigo_atividade": codigo}
 
 # Retorna os dados de uma atividade a partir do ID dela
 
@@ -51,6 +59,7 @@ async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kiv
         "tipo_atividade": atividade.tipo_atividade,
         "dificuldade": atividade.dificuldade,
         "imagem_atividade_url": atividade.imagem_atividade_url,
+        "codigo_atividade": atividade.codigo_atividade,
         "quantidade_blocos": atividade.quantidade_blocos,
         "tempo_limite_seg": atividade.tempo_limite_seg,
         "professor_id": atividade.professor_id,

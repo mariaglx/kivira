@@ -48,3 +48,16 @@
   --radius-field: 0.5rem;
   --radius-box: 0.75rem;
 }
+
+/* Tremida leve pra avisos de validação (ex: questão em branco) — só um balanço horizontal, sem rotação */
+@keyframes tremida-leve {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(1px); }
+}
+
+.animate-tremida-leve {
+  animation: tremida-leve 0.35s ease-in-out;
+}
