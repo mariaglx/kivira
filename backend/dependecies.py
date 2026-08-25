@@ -3,8 +3,7 @@ from database import engine
 from models.usuario import Usuario
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
-from core.config import SECRET_KEY, ALGORITHM
-from main import oauth2_schema
+from main import SECRET_KEY, ALGORITHM, oauth2_schema
 
 
 # Conexão com o Kivira || Aqui nós vamos criar a conexão com o bd.

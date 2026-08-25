@@ -1,13 +1,6 @@
-# backend/database.py
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine 
 from sqlalchemy.orm import declarative_base
-from core.config import DATABASE_URL
+DATABASE_URL = "mysql+pymysql://root:kivira123@localhost:3306/kivira_db"
 
-# Configuração com suporte ao SSL exigido pelo Aiven
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"ssl": {"check_hostname": False, "verify_mode": False}},
-    pool_pre_ping=True,  # Evita que conexões inativas na nuvem caiam
-)
-
+engine = create_engine(DATABASE_URL)
 Base = declarative_base()
