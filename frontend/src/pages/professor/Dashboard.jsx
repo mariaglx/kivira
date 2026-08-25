@@ -1,176 +1,251 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Button from "../../components/ui/Button";
+import { apiRequest } from "../../services/api";
+import LogoKiviraRosa from "../../components/LogoKiviraRosa";
 
-export function Dashboard() {
-  // Dados mockados para popular a tabela de turmas
-  const turmasRecentes = [
-    { id: 1, nome: "3º Ano A — Matemática", ano: "3º Ano", alunos: 18, atividades: 5, status: "Ativa" },
-    { id: 2, nome: "4º Ano B — Português", ano: "4º Ano", alunos: 15, atividades: 3, status: "Ativa" },
-    { id: 3, nome: "2º Ano A — Ciências", ano: "2º Ano", alunos: 14, atividades: 4, status: "Pausada" },
-  ];
+function Dashboard() {
+  const navigate = useNavigate();
+  const [carregando, setCarregando] = useState(true);
+  const [dados, setDados] = useState({
+    professor: { nome: "Professor(a)" },
+    metricas: { total_turmas: 0, total_atividades: 0, total_alunos: 0 },
+    turmas_recentes: [],
+  });
+
+  useEffect(() => {
+    async function carregarDashboard() {
+      try {
+        const response = await apiRequest("/professor/dashboard/resumo");
+        setDados(response);
+      } catch (err) {
+        console.error("Erro ao carregar dados do dashboard:", err.message);
+        if (
+          err.message?.includes("Token") ||
+          err.message?.includes("401") ||
+          err.message?.includes("autorização")
+        ) {
+          localStorage.removeItem("access_token");
+          navigate("/login");
+        }
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    carregarDashboard();
+  }, [navigate]);
+
+  const dataHoje = new Date().toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      
-      {/* 1. SIDEBAR (Barra Lateral Esquerda) */}
-      <aside className="w-64 bg-[#1e2a38] text-branco flex flex-col justify-between p-6">
-        <div className="flex flex-col gap-8">
-          {/* Logo e Nome */}
-          <div className="flex items-center gap-3">
-            <img
-                src="/img/logo.png" alt="Logo" className="w-7 h-7"></img>
-            <span className="font-extrabold tracking-widest text-lg text-branco">KIVIRA</span>
+    <div className="min-h-screen bg-bege flex">
+      {/* Sidebar Lateral */}
+      <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg">
+        <div>
+          <div className="flex items-center mb-3 px-1">
+            <LogoKiviraRosa className="w-36 h-auto" />
           </div>
 
-          {/* Menu de Navegação */}
-          <nav className="flex flex-col gap-6">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Menu</span>
-            <ul className="flex flex-col gap-2">
-              {/* Item Ativo */}
-              <li>
-                <a href="#dashboard" className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-branco/10 text-branco font-medium transition-all relative">
-                  <span className="w-2 h-2 rounded-full bg-coral absolute left-2"></span>
-                  <span className="pl-2">Dashboard</span>
-                </a>
-              </li>
-              {/* Outros Itens */}
-              <li>
-                <a href="#turmas" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
-                  • Turmas
-                </a>
-              </li>
-              <li>
-                <a href="#atividades" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
-                  • Atividades
-                </a>
-              </li>
-              <li>
-                <a href="#configuracoes" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
-                  • Configurações
-                </a>
-              </li>
-            </ul>
+          <p className="text-xs font-bold text-laranja-claro tracking-widest uppercase mb-4">
+            Menu
+          </p>
+          <nav className="flex flex-col gap-2">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-branco/10 text-branco font-semibold transition"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-coral"></span>
+              Dashboard
+            </Link>
+            <Link
+              to="/turmas"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
+            >
+              Turmas
+            </Link>
+            <Link
+              to="/atividades"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
+            >
+              Atividades
+            </Link>
+            <Link
+              to="/configuracoes"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
+            >
+              Configurações
+            </Link>
           </nav>
         </div>
 
-        {/* Perfil do Professor (Rodapé da Sidebar) */}
-        <div className="flex items-center gap-3 border-t border-branco/10 pt-4 cursor-pointer hover:opacity-90 transition-opacity">
-          <div className="avatar avatar-placeholder w-10 h-10 rounded-full bg-coral/80 flex items-center justify-center font-bold text-branco shadow-md">
-            P
+        {/* Perfil na base do Menu */}
+        <div className="pt-4 border-t border-branco/15 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-coral flex items-center justify-center font-bold text-branco uppercase shadow-sm">
+            {dados.professor.nome?.[0] || "P"}
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-sm text-branco">Professor(a)</span>
-            <span className="text-xs text-gray-400">Ver perfil →</span>
+          <div className="overflow-hidden">
+            <p className="text-sm font-semibold truncate text-branco">
+              {dados.professor.nome}
+            </p>
+            <Link to="/perfil" className="text-xs text-laranja hover:underline">
+              Ver perfil &rarr;
+            </Link>
           </div>
         </div>
       </aside>
 
-      {/* 2. ÁREA PRINCIPAL DO DASHBOARD */}
-      <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
-        
-        {/* Cabeçalho do Painel */}
-        <header className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          {/* Pill de Data do seu Mockup */}
-          <div className="bg-branco/80 border border-cinza-claro/20 text-azul/80 px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm">
-            18 de maio de 2026
+      {/* Conteúdo Principal */}
+      <main className="flex-1 px-10 py-3 overflow-y-auto">
+        {/* Cabeçalho */}
+        <div className="flex justify-between items-start mt-5 mb-8">
+          <div>
+            <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
+              Dashboard
+            </h1>
+            <h2 className="text-3xl font-extrabold text-azul mt-1">
+              Bom dia, {dados.professor.nome}!
+            </h2>
+            <p className="text-azul/70 text-sm mt-1">
+              Veja o resumo das suas turmas e atividades
+            </p>
           </div>
-        </header>
-
-        {/* Boas-vindas */}
-        <div>
-          <h3 className="text-3xl font-extrabold flex items-center gap-2">
-            Bom dia, Professor(a)!
-          </h3>
-          <p className="text-sm text-azul/60 mt-1">Veja o resumo das suas turmas e atividades</p>
-        </div>
-
-        {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Turmas */}
-          <div className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 relative overflow-hidden flex flex-col gap-1">
-            <div className="w-10 h-1 bg-coral rounded-full absolute top-4 left-6"></div>
-            <span className="text-4xl font-extrabold text-azul mt-2">3</span>
-            <span className="text-xs font-medium text-azul/50">Turmas ativas</span>
-          </div>
-
-          {/* Card 2: Atividades */}
-          <div className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 relative overflow-hidden flex flex-col gap-1">
-            <div className="w-10 h-1 bg-laranja rounded-full absolute top-4 left-6"></div>
-            <span className="text-4xl font-extrabold text-azul mt-2">12</span>
-            <span className="text-xs font-medium text-azul/50">Atividades criadas</span>
-          </div>
-
-          {/* Card 3: Alunos */}
-          <div className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 relative overflow-hidden flex flex-col gap-1">
-            <div className="w-10 h-1 bg-green-500 rounded-full absolute top-4 left-6"></div>
-            <span className="text-4xl font-extrabold text-azul mt-2">47</span>
-            <span className="text-xs font-medium text-azul/50">Alunos</span>
+          <div className="bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
+            {dataHoje}
           </div>
         </div>
 
-        {/* Seção de Ações Rápidas */}
-        <div className="flex flex-col gap-3">
-          <h4 className="text-sm uppercase tracking-wider font-bold text-azul/60">Ações rápidas</h4>
+        {/* Cards de Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+            <div className="w-10 h-1.5 bg-coral rounded-full mb-3"></div>
+            <p className="text-4xl font-extrabold text-azul">
+              {carregando ? "..." : dados.metricas.total_turmas}
+            </p>
+            <p className="text-sm text-azul/70 font-medium mt-1">
+              Turmas ativas
+            </p>
+          </div>
+
+          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+            <div className="w-10 h-1.5 bg-azul rounded-full mb-3"></div>
+            <p className="text-4xl font-extrabold text-azul">
+              {carregando ? "..." : dados.metricas.total_atividades}
+            </p>
+            <p className="text-sm text-azul/70 font-medium mt-1">
+              Atividades criadas
+            </p>
+          </div>
+
+          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+            <div className="w-10 h-1.5 bg-laranja rounded-full mb-3"></div>
+            <p className="text-4xl font-extrabold text-azul">
+              {carregando ? "..." : dados.metricas.total_alunos}
+            </p>
+            <p className="text-sm text-azul/70 font-medium mt-1">
+              Alunos participantes
+            </p>
+          </div>
+        </div>
+
+        {/* Ações Rápidas */}
+        <div className="mb-8">
+          <p className="text-xs font-bold text-azul uppercase tracking-wider mb-4 opacity-80">
+            Ações Rápidas
+          </p>
           <div className="flex gap-4">
-            <button className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-3 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95">
-              + Criar Sala
-            </button>
-            <button className="btn bg-[#1e2a38] hover:bg-[#28384b] text-branco border-none rounded-xl px-6 py-3 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95">
+            <Button
+              onClick={() => navigate("/turmas/nova")}
+              className="bg-coral hover:brightness-95 text-branco font-semibold px-6 py-2.5 rounded-xl shadow-sm"
+            >
+              + Criar Turma
+            </Button>
+            <button
+              type="button"
+              onClick={() => navigate("/atividades/nova")}
+              className="bg-branco text-azul border border-azul hover:bg-azul hover:text-branco font-semibold px-6 py-2.5 rounded-xl transition duration-150 shadow-sm"
+            >
               + Criar Atividade
             </button>
           </div>
         </div>
 
         {/* Tabela de Turmas Recentes */}
-        <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-center">
-            <h4 className="text-sm uppercase tracking-wider font-bold text-azul/60">Turmas recentes</h4>
-            <a href="#todas-turmas" className="text-xs font-bold text-coral hover:underline flex items-center gap-1">
-              Ver todas →
-            </a>
+        <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
+              Turmas Recentes
+            </h3>
+            <Link
+              to="/turmas"
+              className="text-sm font-semibold text-coral hover:underline"
+            >
+              Ver todas &rarr;
+            </Link>
           </div>
 
-          {/* Tabela DaisyUI customizada */}
-          <div className="overflow-x-auto bg-branco rounded-2xl shadow-sm border border-cinza-claro/10">
-            <table className="table w-full text-left">
-              <thead>
-                <tr className="border-b border-cinza-claro/30 text-azul/40 text-xs uppercase">
-                  <th className="py-4 px-6 font-semibold">Turma</th>
-                  <th className="py-4 px-6 font-semibold">Ano</th>
-                  <th className="py-4 px-6 font-semibold">Alunos</th>
-                  <th className="py-4 px-6 font-semibold">Atividades</th>
-                  <th className="py-4 px-6 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm text-azul/80">
-                {turmasRecentes.map((turma, i) => (
-                  <tr 
-                    key={turma.id} 
-                    className={`hover:bg-bege/10 transition-colors border-b border-cinza-claro/20 last:border-none`}
-                  >
-                    <td className="py-4 px-6 font-semibold">{turma.nome}</td>
-                    <td className="py-4 px-6">{turma.ano}</td>
-                    <td className="py-4 px-6 font-medium">{turma.alunos}</td>
-                    <td className="py-4 px-6 font-medium">{turma.atividades}</td>
-                    <td className="py-4 px-6">
-                      {turma.status === "Ativa" ? (
-                        <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-xs font-bold">
-                          Ativa
-                        </span>
-                      ) : (
-                        <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-xs font-bold">
-                          Pausada
-                        </span>
-                      )}
-                    </td>
+          {dados.turmas_recentes.length === 0 && !carregando ? (
+            <div className="text-center py-10">
+              <p className="text-azul/60 text-sm">
+                Você ainda não possui turmas cadastradas.
+              </p>
+              <Button
+                onClick={() => navigate("/turmas/nova")}
+                className="mt-4 bg-coral text-branco text-xs px-4 py-2 rounded-xl"
+              >
+                Criar minha primeira turma
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-cinza-claro text-xs text-azul/60 font-bold uppercase tracking-wider">
+                    <th className="pb-3">Turma</th>
+                    <th className="pb-3">Ano</th>
+                    <th className="pb-3">Alunos</th>
+                    <th className="pb-3">Atividades</th>
+                    <th className="pb-3">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-cinza-claro text-sm">
+                  {dados.turmas_recentes.map((turma) => (
+                    <tr key={turma.id} className="hover:bg-bege/20 transition">
+                      <td className="py-4 font-semibold text-azul">
+                        {turma.nome}
+                      </td>
+                      <td className="py-4 text-azul/70">{turma.ano_escolar}</td>
+                      <td className="py-4 font-medium text-azul">
+                        {turma.alunos_count}
+                      </td>
+                      <td className="py-4 font-medium text-azul">
+                        {turma.atividades_count}
+                      </td>
+                      <td className="py-4">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full font-bold ${
+                            turma.status === "Ativa"
+                              ? "bg-laranja-claro/40 text-azul border border-laranja"
+                              : "bg-cinza-claro text-azul/60"
+                          }`}
+                        >
+                          {turma.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-
       </main>
     </div>
   );
 }
+
+export default Dashboard;

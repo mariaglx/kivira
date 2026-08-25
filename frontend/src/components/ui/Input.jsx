@@ -1,9 +1,10 @@
-function Input({ type = "text", placeholder }) {
+function Input({ type = "text", placeholder, className = "", ...props }) {
     return (
         <input 
-        placeholder={placeholder} 
-        type={type} 
-        className="border border-cinza-claro rounded-xl p-3 outline-none focus:border-azul" 
+            type={type} 
+            placeholder={placeholder} 
+            className={`border border-cinza-claro rounded-xl p-3 outline-none focus:border-azul ${className}`} 
+            {...props} 
         />
     )
 }
