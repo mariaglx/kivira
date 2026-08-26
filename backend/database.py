@@ -1,6 +1,10 @@
-from sqlalchemy import create_engine 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
-DATABASE_URL = "mysql+pymysql://root:kivira123@localhost:3306/kivira_db"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 Base = declarative_base()

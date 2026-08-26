@@ -9,7 +9,7 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACESS_TOKEN_EXPIRE_MINUTES = int (os.getenv("ACESS_TOKEN_EXPIRE_MINUTES"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int (os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 app = FastAPI()
 
@@ -28,6 +28,7 @@ from routes.auth import kivira_auth_router
 from routes.questao import questao_router
 from routes.opcao_questao import opcao_questao_router
 from routes.aluno_turma import aluno_turma_router
+# from routes.materia import materia_router
 
 app.include_router(professor_router)
 app.include_router(aluno_router)
@@ -37,6 +38,7 @@ app.include_router(kivira_auth_router)
 app.include_router(questao_router)
 app.include_router(opcao_questao_router)
 app.include_router(aluno_turma_router)
+# app.include_router(materia_router)
 
 app.add_middleware (
     CORSMiddleware,
