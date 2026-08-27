@@ -1,6 +1,6 @@
 import React from "react";
 import { useJogo } from "../../controllers/useJogo";
-import BordaLateral from "../../components/ui/BordaLateral";
+import {BordaLateral} from "../../components/ui/BordaLateral";
 import confetti from "canvas-confetti";
 import { useEffect } from "react"; 
 import { LogoKivira } from "../../components/LogoKivira";

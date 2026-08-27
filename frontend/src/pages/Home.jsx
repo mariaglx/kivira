@@ -42,10 +42,10 @@ export function Home() {
       // Regra do primeiro acesso:
       if (sessionData.isFirstLogin) {
         // Envia para o LoginAluno (primeiro acesso) levando o código no state
-        navigate("/login-aluno", { state: { sessionCode: cleanCode } });
+        navigate("/login_aluno", { state: { sessionCode: cleanCode } });
       } else {
         // Se já cadastrou o perfil no primeiro acesso, vai para a seleção/login com emojis
-        navigate("/login-emoji", { state: { sessionCode: cleanCode } });
+        navigate("/login_emoji", { state: { sessionCode: cleanCode } });
       }
     } catch (err) {
       setError("Ocorreu um erro ao validar o código. Tente novamente.");
@@ -86,7 +86,7 @@ export function Home() {
             Área do Professor
           </Link>
           <Link
-            to="/login-aluno"
+            to="/login_aluno"
             className="btn btn-primary rounded-full px-6 shadow-sm hover:scale-105 transition-all text-sm font-bold"
           >
             Entrar

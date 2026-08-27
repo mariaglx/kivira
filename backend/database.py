@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
-from dotenv import load_dotenv
-import os
+from core.config import DATABASE_URL
 
-load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Configuração com suporte ao SSL exigido pelo Aiven
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"ssl": {"check_hostname": False, "verify_mode": False}},
+    pool_pre_ping=True,  # Evita que conexões inativas na nuvem caiam
+)
 
-engine = create_engine(DATABASE_URL)
 Base = declarative_base()

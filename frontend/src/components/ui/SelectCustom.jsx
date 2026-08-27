@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 
-function SelectCustom({ label, name, value, onChange, options, placeholder = "Selecione" }) {
+export function SelectCustom({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  placeholder = "Selecione",
+}) {
   const [aberto, setAberto] = useState(false);
   const containerRef = useRef(null);
 
@@ -24,7 +31,9 @@ function SelectCustom({ label, name, value, onChange, options, placeholder = "Se
   return (
     <div className="flex flex-col gap-1.5" ref={containerRef}>
       {label && (
-        <label className="text-xs font-bold uppercase tracking-wider text-azul/50">{label}</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+          {label}
+        </label>
       )}
 
       <div className="relative">
@@ -36,7 +45,9 @@ function SelectCustom({ label, name, value, onChange, options, placeholder = "Se
           <span className={opcaoSelecionada ? "text-azul" : "text-azul/40"}>
             {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
           </span>
-          <span className={`text-azul/40 text-xs transition-transform ${aberto ? "rotate-180" : ""}`}>
+          <span
+            className={`text-azul/40 text-xs transition-transform ${aberto ? "rotate-180" : ""}`}
+          >
             ▾
           </span>
         </button>
@@ -62,5 +73,3 @@ function SelectCustom({ label, name, value, onChange, options, placeholder = "Se
     </div>
   );
 }
-
-export default SelectCustom;

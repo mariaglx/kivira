@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "animate.css";
-import SelectCustom from "../../components/ui/SelectCustom";
+import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 
 const API_URL = "http://localhost:8000"; // Temporário, apenas para teste das atividades
 
-const TOKEN_TEMPORARIO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NCIsImV4cCI6MTc4ODEyNjQzNn0.rdtRcy1OTN768SmvMmihnYTOloU9buH7w-L9pmu9N1A"; // usuario_id=54, professor_id=32 — válido por 7 dias a partir de 23/08/2026
+const TOKEN_TEMPORARIO =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NCIsImV4cCI6MTc4ODEyNjQzNn0.rdtRcy1OTN768SmvMmihnYTOloU9buH7w-L9pmu9N1A"; // usuario_id=54, professor_id=32 — válido por 7 dias a partir de 23/08/2026
 
 // TODO: Fazer puxar das turmas cadastradas posteriormente
 const TURMAS_MOCK = [
@@ -57,7 +58,8 @@ export function CriarAtividade() {
     handleChangeBloco(index, campo, valor);
 
     const questao = questoes[index];
-    if (!questao || !questoesInvalidas[questao.localId] || !valor.trim()) return;
+    if (!questao || !questoesInvalidas[questao.localId] || !valor.trim())
+      return;
 
     const campoErro = campo === "texto_questao" ? "texto" : "resposta";
     setQuestoesInvalidas((atual) => {
@@ -136,7 +138,9 @@ export function CriarAtividade() {
     if (!cardOriginal) return;
 
     const rect = cardOriginal.getBoundingClientRect();
-    const origemIndex = questoes.findIndex((q) => q.localId === questao.localId);
+    const origemIndex = questoes.findIndex(
+      (q) => q.localId === questao.localId,
+    );
 
     setArrastandoId(questao.localId);
     indiceAlvoRef.current = origemIndex; // o "buraco" começa exatamente onde o card estava
@@ -239,7 +243,10 @@ export function CriarAtividade() {
       const semTexto = !questao.texto_questao.trim();
       const semResposta = !questao.resposta_certa.trim();
       if (semTexto || semResposta) {
-        novasInvalidas[questao.localId] = { texto: semTexto, resposta: semResposta };
+        novasInvalidas[questao.localId] = {
+          texto: semTexto,
+          resposta: semResposta,
+        };
       }
     });
 
@@ -250,20 +257,20 @@ export function CriarAtividade() {
     }
 
     const urlAtividade = idAtividadeCriada
-    ? `${API_URL}/atividade/${idAtividadeCriada}`
-    : `${API_URL}/atividade/criar_atividade`; 
+      ? `${API_URL}/atividade/${idAtividadeCriada}`
+      : `${API_URL}/atividade/criar_atividade`;
 
     const metodoAtividade = idAtividadeCriada ? "PATCH" : "POST";
 
     const corpoAtividade = {
-      titulo: formData.titulo, 
+      titulo: formData.titulo,
       tipo_atividade: formData.tipo_atividade,
-      turma_id: formData.turma_id || null, 
-      descricao: formData.descricao, 
-      disciplina: formData.disciplina, 
-      dificuldade: formData.dificuldade, 
-      imagem_atividade_url: formData.imagem_atividade_url || null, 
-      quantidade_blocos: formData.quantidade_blocos, 
+      turma_id: formData.turma_id || null,
+      descricao: formData.descricao,
+      disciplina: formData.disciplina,
+      dificuldade: formData.dificuldade,
+      imagem_atividade_url: formData.imagem_atividade_url || null,
+      quantidade_blocos: formData.quantidade_blocos,
       tempo_limite_seg: formData.tempo_limite_seg || null,
     };
 
@@ -272,7 +279,7 @@ export function CriarAtividade() {
     }
 
     const respostaAtividade = await fetch(urlAtividade, {
-      method: metodoAtividade, 
+      method: metodoAtividade,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
@@ -281,9 +288,8 @@ export function CriarAtividade() {
     });
 
     const dadosAtividade = await respostaAtividade.json();
-    
 
-    if(!respostaAtividade.ok){
+    if (!respostaAtividade.ok) {
       setMensagemErro(dadosAtividade.detail || "Erro ao criar atividade");
       return;
     }
@@ -295,44 +301,45 @@ export function CriarAtividade() {
 
     for (const questao of questoes) {
       const urlQuestao = questao.questaoId
-  ? `${API_URL}/questao/${questao.questaoId}`
-  : `${API_URL}/questao/criar`;
+        ? `${API_URL}/questao/${questao.questaoId}`
+        : `${API_URL}/questao/criar`;
 
-  const metodoQuestao = questao.questaoId ? "PATCH" : "POST";
+      const metodoQuestao = questao.questaoId ? "PATCH" : "POST";
 
-  const corpoQuestao = {
-    texto_questao: questao.texto_questao, 
-    tipo_questao: formData.tipo_atividade, 
-    ordem: questao.ordem,
-    pontos: 10,
-  };
+      const corpoQuestao = {
+        texto_questao: questao.texto_questao,
+        tipo_questao: formData.tipo_atividade,
+        ordem: questao.ordem,
+        pontos: 10,
+      };
 
-if (!questao.questaoId) {
-  corpoQuestao.atividade_id = atividadeId;
-}
+      if (!questao.questaoId) {
+        corpoQuestao.atividade_id = atividadeId;
+      }
 
-const respostaQuestao = await fetch(urlQuestao, {
-  method: metodoQuestao,
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
-  },
-  body: JSON.stringify(corpoQuestao),
-});
+      const respostaQuestao = await fetch(urlQuestao, {
+        method: metodoQuestao,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
+        },
+        body: JSON.stringify(corpoQuestao),
+      });
 
       const dadosQuestao = await respostaQuestao.json();
 
       if (!respostaQuestao.ok) {
-        setMensagemErro(`Erro na questão ${questao.ordem}: ${dadosQuestao.detail}`);
-        return; 
+        setMensagemErro(
+          `Erro na questão ${questao.ordem}: ${dadosQuestao.detail}`,
+        );
+        return;
       }
-
 
       const questaoID = questao.questaoId || dadosQuestao.id;
 
       const urlOpcao = questao.opcaoId
-      ? `${API_URL}/opcao_questao/${questao.opcaoId}`
-      : `${API_URL}/opcao_questao/criar`;
+        ? `${API_URL}/opcao_questao/${questao.opcaoId}`
+        : `${API_URL}/opcao_questao/criar`;
 
       const metodoOpcao = questao.opcaoId ? "PATCH" : "POST";
 
@@ -340,13 +347,13 @@ const respostaQuestao = await fetch(urlQuestao, {
         texto_opcao: questao.resposta_certa,
       };
 
-      if (!questao.opcaoId){
+      if (!questao.opcaoId) {
         corpoOpcao.questao_id = questaoID;
         corpoOpcao.correta = 1;
       }
 
       const respostaOpcao = await fetch(urlOpcao, {
-        method: metodoOpcao, 
+        method: metodoOpcao,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
@@ -356,34 +363,45 @@ const respostaQuestao = await fetch(urlQuestao, {
 
       const dadosOpcao = await respostaOpcao.json();
 
-      if(!respostaOpcao.ok) {
-        setMensagemErro(`Erro na resposta da questão ${questao.ordem}: ${dadosOpcao.detail}`);
-        return; 
+      if (!respostaOpcao.ok) {
+        setMensagemErro(
+          `Erro na resposta da questão ${questao.ordem}: ${dadosOpcao.detail}`,
+        );
+        return;
       }
 
-      setQuestoes((atual) => 
-      atual.map((q) => 
-        q.ordem === questao.ordem ? { ...q, questaoId: questaoID, opcaoId: questao.opcaoId || dadosOpcao.id } : q
-        )
-      ); 
+      setQuestoes((atual) =>
+        atual.map((q) =>
+          q.ordem === questao.ordem
+            ? {
+                ...q,
+                questaoId: questaoID,
+                opcaoId: questao.opcaoId || dadosOpcao.id,
+              }
+            : q,
+        ),
+      );
     }
 
     for (const idParaRemover of questoesParaRemover) {
-  const respostaDelete = await fetch(`${API_URL}/questao/${idParaRemover}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
-    },
-  });
+      const respostaDelete = await fetch(
+        `${API_URL}/questao/${idParaRemover}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
+          },
+        },
+      );
 
-  if (!respostaDelete.ok) {
-    const dadosDelete = await respostaDelete.json();
-    setMensagemErro(`Erro ao remover uma questão: ${dadosDelete.detail}`);
-    return;
-  }
-  }
+      if (!respostaDelete.ok) {
+        const dadosDelete = await respostaDelete.json();
+        setMensagemErro(`Erro ao remover uma questão: ${dadosDelete.detail}`);
+        return;
+      }
+    }
 
-setQuestoesParaRemover([]);
+    setQuestoesParaRemover([]);
 
     setFoiCriacao(metodoAtividade === "POST");
     setIdAtividadeCriada(atividadeId);
@@ -413,7 +431,9 @@ setQuestoesParaRemover([]);
             cardRefs.current[questao.localId] = el;
           }}
           className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
-            erro ? "border-red-300 animate-tremida-leve" : "border-cinza-claro/10"
+            erro
+              ? "border-red-300 animate-tremida-leve"
+              : "border-cinza-claro/10"
           }`}
         >
           <div className="flex items-center justify-between">
@@ -426,7 +446,11 @@ setQuestoesParaRemover([]);
                 title="Arraste para reordenar"
                 className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/60 transition-colors select-none"
               >
-                <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="w-3.5 h-3.5"
+                >
                   <circle cx="5" cy="3" r="1.3" />
                   <circle cx="11" cy="3" r="1.3" />
                   <circle cx="5" cy="8" r="1.3" />
@@ -447,18 +471,24 @@ setQuestoesParaRemover([]);
           </div>
 
           {erro && (
-            <p className="text-xs font-bold text-red-500 -mt-1.5">Questão não pode estar em branco</p>
+            <p className="text-xs font-bold text-red-500 -mt-1.5">
+              Questão não pode estar em branco
+            </p>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Texto da pergunta</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              Texto da pergunta
+            </label>
             <input
               ref={(el) => {
                 inputRefs.current[`${questao.localId}-texto`] = el;
               }}
               type="text"
               value={questao.texto_questao}
-              onChange={(e) => aoMudarBloco(index, "texto_questao", e.target.value)}
+              onChange={(e) =>
+                aoMudarBloco(index, "texto_questao", e.target.value)
+              }
               placeholder="Ex: Qual o som que a vaca faz?"
               className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
                 erro?.texto
@@ -469,14 +499,18 @@ setQuestoesParaRemover([]);
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Resposta certa</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              Resposta certa
+            </label>
             <input
               ref={(el) => {
                 inputRefs.current[`${questao.localId}-resposta`] = el;
               }}
               type="text"
               value={questao.resposta_certa}
-              onChange={(e) => aoMudarBloco(index, "resposta_certa", e.target.value)}
+              onChange={(e) =>
+                aoMudarBloco(index, "resposta_certa", e.target.value)
+              }
               placeholder="Ex: Muuuu"
               className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
                 erro?.resposta
@@ -492,36 +526,51 @@ setQuestoesParaRemover([]);
 
   return (
     <div className="flex min-h-screen bg-bege text-azul font-sans">
-
       {/* 1. SIDEBAR (Barra Lateral Esquerda) */}
       <aside className="w-64 bg-[#1e2a38] text-branco flex flex-col justify-between p-6 sticky top-0 h-screen self-start">
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-3">
             <img src="/img/logo.png" alt="Logo" className="w-7 h-7" />
-            <span className="font-extrabold tracking-widest text-lg text-branco">KIVIRA</span>
+            <span className="font-extrabold tracking-widest text-lg text-branco">
+              KIVIRA
+            </span>
           </div>
 
           <nav className="flex flex-col gap-6">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Menu</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
+              Menu
+            </span>
             <ul className="flex flex-col gap-2">
               <li>
-                <a href="/professor" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
+                <a
+                  href="/professor"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
+                >
                   • Dashboard
                 </a>
               </li>
               <li>
-                <a href="/professor/turmas" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
+                <a
+                  href="/professor/turmas"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
+                >
                   • Turmas
                 </a>
               </li>
               <li>
-                <a href="/professor/atividades" className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-branco/10 text-branco font-medium transition-all relative">
+                <a
+                  href="/professor/atividades"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-branco/10 text-branco font-medium transition-all relative"
+                >
                   <span className="w-2 h-2 rounded-full bg-coral absolute left-2"></span>
                   <span className="pl-2">Atividades</span>
                 </a>
               </li>
               <li>
-                <a href="/professor/configuracoes" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium">
+                <a
+                  href="/professor/configuracoes"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
+                >
                   • Configurações
                 </a>
               </li>
@@ -542,7 +591,6 @@ setQuestoesParaRemover([]);
 
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-6">
-
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
@@ -554,17 +602,19 @@ setQuestoesParaRemover([]);
 
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
-            {idAtividadeCriada ? `Atividade: ${formData.titulo}` : "Nova Atividade"}
+            {idAtividadeCriada
+              ? `Atividade: ${formData.titulo}`
+              : "Nova Atividade"}
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-6 items-start">
-
           {/* COLUNA ESQUERDA — dados da atividade */}
           <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 sticky top-8 mt-7">
-
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Título</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                Título
+              </label>
               <input
                 type="text"
                 name="titulo"
@@ -576,7 +626,9 @@ setQuestoesParaRemover([]);
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Disciplina</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                Disciplina
+              </label>
               <input
                 type="text"
                 name="disciplina"
@@ -593,7 +645,10 @@ setQuestoesParaRemover([]);
               value={formData.turma_id}
               onChange={handleChange}
               placeholder="Nenhuma (opcional)"
-              options={TURMAS_MOCK.map((turma) => ({ value: String(turma.id), label: turma.nome }))}
+              options={TURMAS_MOCK.map((turma) => ({
+                value: String(turma.id),
+                label: turma.nome,
+              }))}
             />
 
             <SelectCustom
@@ -621,7 +676,9 @@ setQuestoesParaRemover([]);
             />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Descrição</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                Descrição
+              </label>
               <textarea
                 name="descricao"
                 value={formData.descricao}
@@ -633,7 +690,9 @@ setQuestoesParaRemover([]);
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Imagem (URL)</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                Imagem (URL)
+              </label>
               <input
                 type="text"
                 name="imagem_atividade_url"
@@ -645,20 +704,28 @@ setQuestoesParaRemover([]);
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Código da atividade</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                Código da atividade
+              </label>
               {codigoAtividade ? (
                 <button
                   type="button"
                   onClick={copiarCodigo}
                   className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 hover:bg-bege/70 shadow-sm transition-all"
                 >
-                  <span className="font-mono font-extrabold tracking-widest text-azul text-sm">{codigoAtividade}</span>
-                  <span className="text-xs font-bold text-coral">{codigoCopiado ? "Copiado!" : "Copiar"}</span>
+                  <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
+                    {codigoAtividade}
+                  </span>
+                  <span className="text-xs font-bold text-coral">
+                    {codigoCopiado ? "Copiado!" : "Copiar"}
+                  </span>
                 </button>
               ) : (
                 <div className="relative group">
                   <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
-                    <span className="font-mono font-extrabold tracking-widest text-sm">••••••••</span>
+                    <span className="font-mono font-extrabold tracking-widest text-sm">
+                      ••••••••
+                    </span>
                     <span className="text-xs font-bold">Copiar</span>
                   </div>
                   <div className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover:block whitespace-nowrap rounded-lg bg-azul text-branco text-xs font-medium px-3 py-2 shadow-lg z-10">
@@ -671,7 +738,9 @@ setQuestoesParaRemover([]);
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Blocos</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  Blocos
+                </label>
                 <input
                   type="number"
                   name="quantidade_blocos"
@@ -683,7 +752,9 @@ setQuestoesParaRemover([]);
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Tempo (seg)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  Tempo (seg)
+                </label>
                 <input
                   type="number"
                   name="tempo_limite_seg"
@@ -699,10 +770,10 @@ setQuestoesParaRemover([]);
 
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
           <div className="flex-1 flex flex-col gap-4">
-
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Questões ({questoes.length} {questoes.length === 1 ? "bloco" : "blocos"})
+                Questões ({questoes.length}{" "}
+                {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
 
               <div className="relative group">
@@ -711,7 +782,11 @@ setQuestoesParaRemover([]);
                     to="/jogo"
                     className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
                   >
-                    <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="w-3.5 h-3.5"
+                    >
                       <path d="M4 2.5v11l10-5.5-10-5.5z" />
                     </svg>
                     Pré-visualizar atividade
@@ -722,7 +797,11 @@ setQuestoesParaRemover([]);
                     disabled
                     className="rounded-xl px-5 py-2.5 font-bold text-sm text-azul/30 bg-cinza-claro/10 border-none cursor-not-allowed inline-flex items-center gap-2"
                   >
-                    <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="w-3.5 h-3.5"
+                    >
                       <path d="M4 2.5v11l10-5.5-10-5.5z" />
                     </svg>
                     Pré-visualizar atividade
@@ -746,8 +825,11 @@ setQuestoesParaRemover([]);
 
                 // Enquanto arrasta: mostra a lista sem o card de origem (ele vira o card flutuante)
                 // e insere um "buraco" no lugar onde ele cairia se você soltar agora
-                const semOrigem = questoes.filter((q) => q.localId !== arrastandoId);
-                const alvo = indiceAlvo === null ? semOrigem.length : indiceAlvo;
+                const semOrigem = questoes.filter(
+                  (q) => q.localId !== arrastandoId,
+                );
+                const alvo =
+                  indiceAlvo === null ? semOrigem.length : indiceAlvo;
 
                 const buraco = (
                   <div
@@ -760,7 +842,9 @@ setQuestoesParaRemover([]);
                   />
                 );
 
-                const itens = semOrigem.map((questao) => renderCardQuestao(questao));
+                const itens = semOrigem.map((questao) =>
+                  renderCardQuestao(questao),
+                );
                 itens.splice(alvo, 0, buraco);
                 return itens;
               })()}
@@ -789,49 +873,60 @@ setQuestoesParaRemover([]);
               </button>
             </div>
           </div>
-
         </form>
-
       </main>
 
       {/* Card "levantado" da lista enquanto está sendo arrastado — segue o mouse */}
-      {arrastandoId && (() => {
-        const questaoArrastada = questoes.find((q) => q.localId === arrastandoId);
-        if (!questaoArrastada) return null;
+      {arrastandoId &&
+        (() => {
+          const questaoArrastada = questoes.find(
+            (q) => q.localId === arrastandoId,
+          );
+          if (!questaoArrastada) return null;
 
-        return (
-          <div
-            className="fixed z-50 pointer-events-none rotate-1"
-            style={{
-              left: posicaoPointer.x - offsetPointer.x,
-              top: posicaoPointer.y - offsetPointer.y,
-              width: larguraCard,
-            }}
-          >
-            <div className="bg-branco rounded-2xl p-5 shadow-2xl border border-cinza-claro/10 flex flex-col gap-3 scale-105">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-azul/40">
-                  Questão {questaoArrastada.ordem}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Texto da pergunta</label>
-                <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
-                  {questaoArrastada.texto_questao || <span className="text-azul/40">Ex: Qual o som que a vaca faz?</span>}
+          return (
+            <div
+              className="fixed z-50 pointer-events-none rotate-1"
+              style={{
+                left: posicaoPointer.x - offsetPointer.x,
+                top: posicaoPointer.y - offsetPointer.y,
+                width: larguraCard,
+              }}
+            >
+              <div className="bg-branco rounded-2xl p-5 shadow-2xl border border-cinza-claro/10 flex flex-col gap-3 scale-105">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-azul/40">
+                    Questão {questaoArrastada.ordem}
+                  </span>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">Resposta certa</label>
-                <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
-                  {questaoArrastada.resposta_certa || <span className="text-azul/40">Ex: Muuuu</span>}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Texto da pergunta
+                  </label>
+                  <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
+                    {questaoArrastada.texto_questao || (
+                      <span className="text-azul/40">
+                        Ex: Qual o som que a vaca faz?
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Resposta certa
+                  </label>
+                  <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
+                    {questaoArrastada.resposta_certa || (
+                      <span className="text-azul/40">Ex: Muuuu</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
@@ -841,27 +936,38 @@ setQuestoesParaRemover([]);
               ✅
             </div>
             <h3 className="text-xl font-extrabold text-azul">
-              {foiCriacao ? "Atividade criada com sucesso!" : "Atividade atualizada com sucesso!"}
+              {foiCriacao
+                ? "Atividade criada com sucesso!"
+                : "Atividade atualizada com sucesso!"}
             </h3>
             <p className="text-sm text-azul/60">
-              "{formData.titulo}" já está salva e pronta pra ser ajustada quando você quiser.
+              "{formData.titulo}" já está salva e pronta pra ser ajustada quando
+              você quiser.
             </p>
 
             {codigoAtividade && (
               <div className="w-full flex flex-col gap-1.5 mt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/50">Código da atividade</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  Código da atividade
+                </span>
                 <button
                   type="button"
                   onClick={copiarCodigo}
                   className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 hover:bg-bege/70 transition-all group"
                 >
-                  <span className="font-mono font-extrabold text-lg tracking-widest text-azul">{codigoAtividade}</span>
+                  <span className="font-mono font-extrabold text-lg tracking-widest text-azul">
+                    {codigoAtividade}
+                  </span>
                   <span className="text-xs font-bold text-coral flex items-center gap-1">
                     {codigoCopiado ? (
                       "Copiado!"
                     ) : (
                       <>
-                        <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+                        <svg
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          className="w-3.5 h-3.5"
+                        >
                           <path d="M4 2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1V3h6a1 1 0 0 0-1-1H4zm3 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H7z" />
                         </svg>
                         Copiar
@@ -890,7 +996,9 @@ setQuestoesParaRemover([]);
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
-            <h3 className="text-xl font-extrabold text-azul">Ops, algo deu errado</h3>
+            <h3 className="text-xl font-extrabold text-azul">
+              Ops, algo deu errado
+            </h3>
             <p className="text-sm text-azul/60">{mensagemErro}</p>
             <button
               type="button"
