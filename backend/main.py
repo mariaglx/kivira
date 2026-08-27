@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="Kivira API")
 
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login")
+# oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth_kivira/login-form")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +29,8 @@ from routes.questao import questao_router
 from routes.opcao_questao import opcao_questao_router
 from routes.aluno_turma import aluno_turma_router
 
+# from routes.materia import materia_router
+
 app.include_router(professor_router)
 app.include_router(aluno_router)
 app.include_router(atividade_router)
@@ -36,3 +39,4 @@ app.include_router(kivira_auth_router)
 app.include_router(questao_router)
 app.include_router(opcao_questao_router)
 app.include_router(aluno_turma_router)
+# app.include_router(materia_router)

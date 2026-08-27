@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
 
-function Cadastro() {
+export function Cadastro() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -43,7 +43,7 @@ function Cadastro() {
     setCarregando(true);
 
     try {
-      await apiRequest('/professor/criar_conta', {
+      await apiRequest("/professor/criar_conta", {
         method: "POST",
         data: {
           nome_completo: formData.nome_completo,

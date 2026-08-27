@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
+import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import LogoKiviraRosa from "../../components/LogoKiviraRosa";
+import { LogoKiviraRosa } from "../../components/LogoKiviraRosa";
 
-function Dashboard() {
+export function Dashboard() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
   const [dados, setDados] = useState({
@@ -56,26 +56,26 @@ function Dashboard() {
           </p>
           <nav className="flex flex-col gap-2">
             <Link
-              to="/dashboard"
+              to="/professor"
               className="flex items-center gap-3 px-4 py-3 rounded-xl bg-branco/10 text-branco font-semibold transition"
             >
               <span className="w-2.5 h-2.5 rounded-full bg-coral"></span>
               Dashboard
             </Link>
             <Link
-              to="/turmas"
+              to="/professor/turmas"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
             >
               Turmas
             </Link>
             <Link
-              to="/atividades"
+              to="/professor/atividades"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
             >
               Atividades
             </Link>
             <Link
-              to="/configuracoes"
+              to="/professor/configuracoes"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
             >
               Configurações
@@ -166,7 +166,7 @@ function Dashboard() {
             </Button>
             <button
               type="button"
-              onClick={() => navigate("/atividades/nova")}
+              onClick={() => navigate("/professor/atividades/criar")}
               className="bg-branco text-azul border border-azul hover:bg-azul hover:text-branco font-semibold px-6 py-2.5 rounded-xl transition duration-150 shadow-sm"
             >
               + Criar Atividade
@@ -247,5 +247,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
 
-function Login() {
+export function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -44,10 +44,10 @@ function Login() {
         localStorage.setItem("refresh_token", data.refresh_token);
       }
 
-      console.log('Resposta do backend:', data);
+      console.log("Resposta do backend:", data);
       // Se for professor, navega para a rota do dashboard/professor
       if (data.tipo_usuario === "professor") {
-        navigate("/dashboard"); // ou a rota que você configurou no App.jsx (ex: '/professor')
+        navigate("/professor"); // ou a rota que você configurou no App.jsx (ex: '/professor')
       } else {
         navigate("/");
       }
@@ -108,5 +108,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;
