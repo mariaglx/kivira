@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 
-function LoginAluno() {
-//   const location = useLocation();
-//   const sessionCode = location.state?.sessionCode || "";
+export function LoginAluno() {
+  //   const location = useLocation();
+  //   const sessionCode = location.state?.sessionCode || "";
   return (
     <div className="min-h-screen bg-bege flex items-center justify-center p-4">
       <div className="bg-white py-10 px-10 rounded-3xl shadow-lg w-full max-w-md md:max-w-lg">
