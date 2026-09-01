@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import { LogoKiviraRosa } from "../../components/LogoKiviraRosa";
+import { Sidebar } from "../../components/professor/Sidebar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
@@ -56,65 +57,7 @@ export function Turmas() {
 
   return (
     <div className="flex min-h-screen bg-bege text-azul font-sans">
-      {/* 1. SIDEBAR */}
-      <div className="min-h-screen bg-bege flex">
-        <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg">
-          <div>
-            <div className="flex items-center mb-3 px-1">
-              <LogoKiviraRosa className="w-36 h-auto" />
-            </div>
-
-            <p className="text-xs font-bold text-laranja-claro tracking-widest uppercase mb-4">
-              Menu
-            </p>
-            <nav className="flex flex-col gap-2">
-              <Link
-                to="/professor"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/professor/turmas"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-branco/10 text-branco font-semibold transition"
-              >
-                <span className="w-2.5 h-2.5 rounded-full bg-coral"></span>
-                Turmas
-              </Link>
-              <Link
-                to="/professor/atividades"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Atividades
-              </Link>
-              <Link
-                to="/professor/configuracoes"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Configurações
-              </Link>
-            </nav>
-          </div>
-
-          {/* Perfil na base do Menu */}
-          <div className="pt-4 border-t border-branco/15 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-coral flex items-center justify-center font-bold text-branco uppercase shadow-sm">
-              {dadosTurmas.professor?.nome?.[0] || "P"}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold truncate text-branco">
-                {dadosTurmas.professor?.nome || "Professor(a)"}
-              </p>
-              <Link
-                to="/perfil"
-                className="text-xs text-laranja hover:underline"
-              >
-                Ver perfil &rarr;
-              </Link>
-            </div>
-          </div>
-        </aside>
-      </div>
+      <Sidebar ativo="turmas" />
 
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
@@ -131,7 +74,7 @@ export function Turmas() {
         {/* Barra de Pesquisa */}
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            🔍
+             <FontAwesomeIcon icon={["fas", "magnifying-glass"]} />
           </span>
           <input
             type="text"

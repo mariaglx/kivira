@@ -8,6 +8,7 @@ import { Dashboard } from "./pages/professor/Dashboard";
 import { Turmas } from "./pages/professor/Turmas";
 import { Atividades } from "./pages/professor/Atividades";
 import { CriarAtividade } from "./pages/professor/CriarAtividade";
+import { Configuracoes } from "./pages/professor/Configuracoes";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/professor/turmas" element={<Turmas />} />
       <Route path="/professor/atividades" element={<Atividades />} />
       <Route path="/professor/atividades/criar" element={<CriarAtividade />} />
+      <Route path="/professor/configuracoes" element={<Configuracoes />} />
     </Routes>
   );
 }
