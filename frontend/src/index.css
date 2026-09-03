@@ -10,6 +10,7 @@
   --color-laranja-claro: #f0c6a1;
   --color-bege: #f5e6d3;
   --color-branco: #ffffff;
+  --color-vermelho: #c0392b; /* ações destrutivas — excluir conta, turma, atividade */
 
   --font-sans: InterVariable, sans-serif;
   --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";

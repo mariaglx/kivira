@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
+import { Sidebar } from "../../components/professor/Sidebar";
 
 const API_URL = "http://localhost:8000"; // Temporário, apenas para teste das atividades
 
@@ -526,68 +527,7 @@ export function CriarAtividade() {
 
   return (
     <div className="flex min-h-screen bg-bege text-azul font-sans">
-      {/* 1. SIDEBAR (Barra Lateral Esquerda) */}
-      <aside className="w-64 bg-[#1e2a38] text-branco flex flex-col justify-between p-6 sticky top-0 h-screen self-start">
-        <div className="flex flex-col gap-8">
-          <div className="flex items-center gap-3">
-            <img src="/img/logo.png" alt="Logo" className="w-7 h-7" />
-            <span className="font-extrabold tracking-widest text-lg text-branco">
-              KIVIRA
-            </span>
-          </div>
-
-          <nav className="flex flex-col gap-6">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
-              Menu
-            </span>
-            <ul className="flex flex-col gap-2">
-              <li>
-                <a
-                  href="/professor"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Dashboard
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/turmas"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Turmas
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/atividades"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-branco/10 text-branco font-medium transition-all relative"
-                >
-                  <span className="w-2 h-2 rounded-full bg-coral absolute left-2"></span>
-                  <span className="pl-2">Atividades</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/configuracoes"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Configurações
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3 border-t border-branco/10 pt-4 cursor-pointer hover:opacity-90 transition-opacity">
-          <div className="w-10 h-10 rounded-full bg-coral/80 flex items-center justify-center font-bold text-branco shadow-md">
-            P
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-sm text-branco">Professor(a)</span>
-            <span className="text-xs text-gray-400">Ver perfil →</span>
-          </div>
-        </div>
-      </aside>
+      <Sidebar ativo="atividades" />
 
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-6">

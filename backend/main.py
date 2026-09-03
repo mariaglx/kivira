@@ -28,6 +28,7 @@ from routes.auth import kivira_auth_router
 from routes.questao import questao_router
 from routes.opcao_questao import opcao_questao_router
 from routes.aluno_turma import aluno_turma_router
+from routes.avatar import avatar_router
 
 # from routes.materia import materia_router
 
@@ -39,4 +40,5 @@ app.include_router(kivira_auth_router)
 app.include_router(questao_router)
 app.include_router(opcao_questao_router)
 app.include_router(aluno_turma_router)
+app.include_router(avatar_router)
 # app.include_router(materia_router)
