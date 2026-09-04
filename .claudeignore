@@ -1,0 +1,8 @@
+# .claudeignore na raiz do projeto
+.env
+.env.*
+*.env
+*.pem
+*.key
+backend/.env
+frontend/.env

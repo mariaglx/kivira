@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Sidebar } from "../../components/professor/Sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { SearchIcon } from "../../components/icons/search";
+import { XIcon } from "../../components/icons/x";
+import { apiRequest } from "../../services/api";
 
 const TIPO_LABEL = {
   multipla_escolha: "Múltipla escolha",
@@ -17,44 +18,54 @@ const DIFICULDADE_STYLE = {
 
 export function Atividades() {
   const [busca, setBusca] = useState("");
+  const [listaAtividades, setListaAtividades] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [modalQuestoes, setModalQuestoes] = useState(null);
+  const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
+  const [erroQuestoes, setErroQuestoes] = useState(null);
+  const navigate = useNavigate();
 
-  const listaAtividades = [
-    {
-      id: 1,
-      titulo: "Sons dos Animais",
-      disciplina: "Ciências",
-      tipo_atividade: "arrastar_soltar",
-      dificuldade: "facil",
-      turma: "3º Ano A",
-      quantidade_blocos: 12,
-      publicado: true,
-    },
-    {
-      id: 2,
-      titulo: "Tabuada do 3",
-      disciplina: "Matemática",
-      tipo_atividade: "multipla_escolha",
-      dificuldade: "medio",
-      turma: "4º Ano B",
-      quantidade_blocos: 8,
-      publicado: true,
-    },
-    {
-      id: 3,
-      titulo: "Capitais e Países",
-      disciplina: "Geografia",
-      tipo_atividade: "associacao",
-      dificuldade: "dificil",
-      turma: null,
-      quantidade_blocos: 10,
-      publicado: false,
-    },
-  ];
+  async function abrirModalQuestoes(atividadeId) {
+    setModalQuestoes({ questoes: [] });
+    setCarregandoQuestoes(true);
+    setErroQuestoes(null);
+    try {
+      const dados = await apiRequest(`/atividade/${atividadeId}/questoes`);
+      setModalQuestoes(dados);
+    } catch (erro) {
+      setErroQuestoes(erro.message || "Não foi possível carregar as questões.");
+    } finally {
+      setCarregandoQuestoes(false);
+    }
+  }
+
+  useEffect(() => {
+    async function carregarAtividades() {
+      try {
+        const response = await apiRequest("/atividade/professor/minhas");
+        setListaAtividades(Array.isArray(response) ? response : []);
+      } catch (err) {
+        console.error("Erro ao carregar atividades:", err.message);
+        if (
+          err.message?.includes("Token") ||
+          err.message?.includes("401") ||
+          err.message?.includes("autorização")
+        ) {
+          localStorage.removeItem("access_token");
+          navigate("/login");
+        }
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    carregarAtividades();
+  }, [navigate]);
 
   const atividadesFiltradas = listaAtividades.filter(
     (atividade) =>
       atividade.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      atividade.disciplina.toLowerCase().includes(busca.toLowerCase()),
+      atividade.disciplina?.toLowerCase().includes(busca.toLowerCase()),
   );
 
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
@@ -64,9 +75,7 @@ export function Atividades() {
   });
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar ativo="atividades" />
-
+    <>
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
         <header className="flex justify-between items-start">
@@ -95,7 +104,7 @@ export function Atividades() {
 
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            <FontAwesomeIcon icon={["fas", "magnifying-glass"]} />
+            <SearchIcon size={16} isAnimated={false} />
           </span>
           <input
             type="text"
@@ -106,6 +115,9 @@ export function Atividades() {
           />
         </div>
 
+        {carregando ? (
+          <p className="text-azul/60">Carregando atividades...</p>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {atividadesFiltradas.map((atividade) => (
             <div
@@ -158,7 +170,7 @@ export function Atividades() {
                     Turma
                   </span>
                   <span className="text-azul font-semibold">
-                    {atividade.turma ?? "Nenhuma"}
+                    {atividade.turma_nome ?? "Nenhuma"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -172,10 +184,16 @@ export function Atividades() {
               </div>
 
               <div className="flex gap-2 w-full">
-                <button className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95">
+                <button
+                  onClick={() => abrirModalQuestoes(atividade.id)}
+                  className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95"
+                >
                   Ver questões
                 </button>
-                <button className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95">
+                <button
+                  onClick={() => navigate(`/professor/atividades/${atividade.id}/editar`)}
+                  className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95"
+                >
                   Editar
                 </button>
               </div>
@@ -192,7 +210,82 @@ export function Atividades() {
             </span>
           </Link>
         </div>
+        )}
       </main>
-    </div>
+
+      {modalQuestoes && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
+          <div className="bg-branco rounded-3xl shadow-lg max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <p className="font-extrabold text-azul">Questões</p>
+                {modalQuestoes.titulo && (
+                  <p className="text-xs text-azul/50">{modalQuestoes.titulo}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setModalQuestoes(null)}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                <XIcon size={16} isAnimated={false} />
+              </button>
+            </div>
+
+            {carregandoQuestoes && (
+              <p className="text-sm text-azul/60">Carregando questões...</p>
+            )}
+
+            {erroQuestoes && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+                {erroQuestoes}
+              </div>
+            )}
+
+            {!carregandoQuestoes && !erroQuestoes && modalQuestoes.questoes?.length === 0 && (
+              <p className="text-sm text-azul/60">
+                Essa atividade ainda não tem nenhuma questão cadastrada.
+              </p>
+            )}
+
+            {!carregandoQuestoes && modalQuestoes.questoes?.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {modalQuestoes.questoes.map((questao) => (
+                  <div
+                    key={questao.id}
+                    className="bg-bege/40 border border-bege rounded-2xl p-4 flex flex-col gap-2"
+                  >
+                    <span className="text-xs font-bold text-azul/40">
+                      Questão {questao.ordem}
+                    </span>
+                    <p className="text-sm font-semibold text-azul">
+                      {questao.texto_questao}
+                    </p>
+                    {questao.opcoes?.length > 0 && (
+                      <div className="flex flex-col gap-1 mt-1">
+                        {questao.opcoes.map((opcao) => (
+                          <span
+                            key={opcao.id}
+                            className={`text-xs px-3 py-1.5 rounded-lg ${
+                              opcao.correta
+                                ? "bg-green-100 text-green-700 font-bold"
+                                : "bg-branco text-azul/60"
+                            }`}
+                          >
+                            {opcao.correta ? "✓ " : ""}
+                            {opcao.texto_opcao}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

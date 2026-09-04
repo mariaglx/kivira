@@ -5,7 +5,7 @@ function embaralhar(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-export function useJogo() {
+export function useJogo(imagemAtividadeUrl = "/img/resultado.png") {
   const perguntasIniciais = [
     {
       id: 1,
@@ -205,6 +205,7 @@ export function useJogo() {
     fase,
     resultados,
     todosSlotsPreenchidos,
+    imagemAtividadeUrl,
     selecionarPeca,
     encaixarNoTabuleiro,
     virarTabuleiro,

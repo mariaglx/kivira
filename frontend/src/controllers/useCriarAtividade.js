@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "../services/api";
 
 export function useCriarAtividade() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ export function useCriarAtividade() {
     imagem_atividade_url: "",
     quantidade_blocos: 12,
     tempo_limite_seg: "",
+    serie_ano: "", // usado só como contexto pra IA, não é persistido na atividade
   });
 
   // Uma questão por bloco — a lista sempre tem o mesmo tamanho de formData.quantidade_blocos
@@ -96,6 +98,63 @@ export function useCriarAtividade() {
     });
   };
 
+  const [gerandoIA, setGerandoIA] = useState(false);
+  const [erroIA, setErroIA] = useState(null);
+
+  // Chama a IA (Ollama/llama3) só para preencher os blocos ainda vazios, respeitando
+  // o que o professor já escreveu manualmente como padrão/contexto
+  const gerarQuestoesComIA = async () => {
+    setErroIA(null);
+
+    const questoesPreenchidas = questoes.filter(
+      (q) => q.texto_questao.trim() && q.resposta_certa.trim()
+    );
+    const indicesVazios = questoes
+      .map((q, i) => (q.texto_questao.trim() || q.resposta_certa.trim() ? null : i))
+      .filter((i) => i !== null);
+
+    if (indicesVazios.length === 0) {
+      setErroIA("Todos os blocos já estão preenchidos.");
+      return;
+    }
+
+    setGerandoIA(true);
+    try {
+      const resposta = await apiRequest("/ia/gerar_questoes", {
+        method: "POST",
+        data: {
+          serie_ano: formData.serie_ano,
+          disciplina: formData.disciplina,
+          titulo: formData.titulo,
+          dificuldade: formData.dificuldade,
+          descricao: formData.descricao || null,
+          quantidade_total: questoes.length,
+          questoes_existentes: questoesPreenchidas.map((q) => ({
+            texto_questao: q.texto_questao,
+            resposta_certa: q.resposta_certa,
+          })),
+        },
+      });
+
+      const geradas = resposta.questoes_geradas || [];
+      setQuestoes((atual) =>
+        atual.map((questao, i) => {
+          const posicao = indicesVazios.indexOf(i);
+          if (posicao === -1 || posicao >= geradas.length) return questao;
+          return {
+            ...questao,
+            texto_questao: geradas[posicao].texto_questao,
+            resposta_certa: geradas[posicao].resposta_certa,
+          };
+        })
+      );
+    } catch (erro) {
+      setErroIA(erro.message || "Erro ao gerar questões com IA");
+    } finally {
+      setGerandoIA(false);
+    }
+  };
+
   return {
     formData,
     setFormData,
@@ -108,5 +167,9 @@ export function useCriarAtividade() {
     adicionarQuestao,
     removerQuestao,
     moverQuestao,
+    gerandoIA,
+    erroIA,
+    setErroIA,
+    gerarQuestoesComIA,
   };
 }

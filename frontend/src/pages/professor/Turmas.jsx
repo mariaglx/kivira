@@ -1,31 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import { Sidebar } from "../../components/professor/Sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { SearchIcon } from "../../components/icons/search";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
-
-  // Armazena a resposta completa da API ou inicia com fallback seguro
-  const [dadosTurmas, setDadosTurmas] = useState({
-    professor: { nome: "Professor(a)" },
-    turmas: [],
-  });
+  const [listaTurmas, setListaTurmas] = useState([]);
 
   useEffect(() => {
     async function carregarTurmas() {
       try {
-        const response = await apiRequest("/professor/turmas");
-        // Ajuste conforme o retorno da sua API (se retornar array direto ou objeto com a lista)
-        if (Array.isArray(response)) {
-          setDadosTurmas((prev) => ({ ...prev, turmas: response }));
-        } else {
-          setDadosTurmas(response);
-        }
+        const response = await apiRequest("/turma/");
+        setListaTurmas(Array.isArray(response) ? response : []);
       } catch (err) {
         console.error("Erro ao carregar turmas:", err.message);
         if (
@@ -44,27 +32,21 @@ export function Turmas() {
     carregarTurmas();
   }, [navigate]);
 
-  // Garantia de que trabalharemos sempre com um Array para evitar crash
-  const listaTurmas = Array.isArray(dadosTurmas.turmas) ? dadosTurmas.turmas : [];
-
   // Filtra as turmas com base no input de pesquisa
   const turmasFiltradas = listaTurmas.filter(
     (turma) =>
       turma.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-      turma.materia?.toLowerCase().includes(busca.toLowerCase()) ||
       turma.ano_escolar?.toLowerCase().includes(busca.toLowerCase())
   );
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar ativo="turmas" />
-
+    <>
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
         <header className="flex justify-between items-center">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
-          <button 
-            onClick={() => navigate("/turmas/nova")}
+          <button
+            onClick={() => navigate("/professor/turmas/nova")}
             className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95"
           >
             + Nova Turma
@@ -74,7 +56,7 @@ export function Turmas() {
         {/* Barra de Pesquisa */}
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-             <FontAwesomeIcon icon={["fas", "magnifying-glass"]} />
+             <SearchIcon size={16} isAnimated={false} />
           </span>
           <input
             type="text"
@@ -99,10 +81,10 @@ export function Turmas() {
                   <div>
                     <h3 className="text-lg font-bold text-azul">{turma.nome}</h3>
                     <span className="text-xs text-azul/50 font-medium">
-                      {turma.materia || turma.ano_escolar}
+                      {turma.ano_escolar}
                     </span>
                   </div>
-                  {turma.status === "Ativa" ? (
+                  {turma.ativo ? (
                     <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                       Ativa
                     </span>
@@ -118,7 +100,7 @@ export function Turmas() {
                 <div className="flex gap-8">
                   <div>
                     <div className="text-xl font-extrabold text-azul">
-                      {turma.alunos_count ?? turma.alunos ?? 0}
+                      {turma.alunos_count ?? 0}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
                       Alunos
@@ -126,7 +108,7 @@ export function Turmas() {
                   </div>
                   <div>
                     <div className="text-xl font-extrabold text-azul">
-                      {turma.atividades_count ?? turma.atividades ?? 0}
+                      {turma.atividades_count ?? 0}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
                       Atividades
@@ -141,7 +123,10 @@ export function Turmas() {
                   >
                     Ver turma
                   </button>
-                  <button className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95">
+                  <button
+                    onClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
+                    className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95"
+                  >
                     Editar
                   </button>
                 </div>
@@ -149,8 +134,8 @@ export function Turmas() {
             ))}
 
             {/* Card Pontilhado "Criar nova turma" */}
-            <button 
-              onClick={() => navigate("/turmas/nova")}
+            <button
+              onClick={() => navigate("/professor/turmas/nova")}
               className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-95"
             >
               <span className="text-3xl text-coral font-bold">+</span>
@@ -161,6 +146,6 @@ export function Turmas() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }

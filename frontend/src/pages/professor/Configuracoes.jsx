@@ -1,16 +1,40 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "../../components/professor/Sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { apiRequest } from "../../services/api";
+import { useConfiguracoesProfessor } from "../../controllers/useConfiguracoesProfessor";
+import { PencilIcon } from "../../components/icons/pencil";
+import { Trash2Icon } from "../../components/icons/trash-2";
+import { XIcon } from "../../components/icons/x";
+import { UserIcon } from "../../components/icons/user";
+import { SparklesIcon } from "../../components/icons/sparkles";
+import { MapPinIcon } from "../../components/icons/map-pin";
+import { MailIcon } from "../../components/icons/mail";
+import { MessageSquareIcon } from "../../components/icons/message-square";
+import { LockIcon } from "../../components/icons/lock";
+import { KeyIcon } from "../../components/icons/key";
+import { CheckIcon } from "../../components/icons/check";
+import { TriangleAlertIcon } from "../../components/icons/triangle-alert";
 
 export function Configuracoes() {
   const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
+
+  const {
+    professor,
+    metricas,
+    carregando,
+    erro,
+    salvando,
+    salvarPerfil,
+    salvarAvatar,
+    alterarSenha,
+    excluirConta,
+  } = useConfiguracoesProfessor();
 
   const [modalAvatarAberto, setModalAvatarAberto] = useState(false);
   const [modalPerfilAberto, setModalPerfilAberto] = useState(false);
   const [modalSegurancaAberto, setModalSegurancaAberto] = useState(false);
   const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
   const [textoConfirmacaoExclusao, setTextoConfirmacaoExclusao] = useState("");
+  const [erroSenha, setErroSenha] = useState("");
 
   const exclusaoConfirmada =
     textoConfirmacaoExclusao.trim().toLowerCase() ===
@@ -26,42 +50,38 @@ export function Configuracoes() {
     setTextoConfirmacaoExclusao("");
   }
 
+  async function confirmarExclusao() {
+    if (await excluirConta()) fecharExclusao();
+  }
+
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  const professor = {
-    nome_completo: "Vinícius Andrei Wille",
-    apelido: "Vinícius",
-    escola: "Escola Estadual Trancoso",
-    email: "viniciusProfessor@gmail.com",
-    biografia: "Professor dos anos iniciais.",
-  };
-
   const estatisticas = [
-    { rotulo: "Turmas", valor: 3 },
-    { rotulo: "Alunos", valor: 68 },
-    { rotulo: "Atividades", valor: 12 },
+    { rotulo: "Turmas", valor: metricas.total_turmas },
+    { rotulo: "Alunos", valor: metricas.total_alunos },
+    { rotulo: "Atividades", valor: metricas.total_atividades },
   ];
 
-  const dadosPerfil = [
-    { icone: "user", rotulo: "Nome completo", valor: professor.nome_completo },
-    { icone: "face-smile", rotulo: "Apelido", valor: professor.apelido },
-    { icone: "school", rotulo: "Onde você dá aula", valor: professor.escola },
-    { icone: "envelope", rotulo: "E-mail da conta", valor: professor.email },
-  ];
+  const dadosPerfil = professor
+    ? [
+        { Icone: UserIcon, rotulo: "Nome completo", valor: professor.nome_completo },
+        { Icone: SparklesIcon, rotulo: "Apelido", valor: professor.apelido },
+        { Icone: MapPinIcon, rotulo: "Onde você dá aula", valor: professor.escola },
+        { Icone: MailIcon, rotulo: "E-mail da conta", valor: professor.email },
+      ]
+    : [];
 
   const [avatares, setAvatares] = useState([]);
   const [categoriaAtiva, setCategoriaAtiva] = useState(null);
-  const [avatar, setAvatar] = useState(null);
 
   useEffect(() => {
     apiRequest("/avatar/")
       .then((dados) => {
         setAvatares(dados);
-        setAvatar((atual) => atual ?? dados[0]?.arquivo);
         setCategoriaAtiva((atual) => atual ?? "todos");
       })
       .catch((erro) => console.error("Erro ao buscar avatares:", erro));
@@ -73,10 +93,53 @@ export function Configuracoes() {
       ? avatares
       : avatares.filter((a) => a.categoria === categoriaAtiva);
 
-  return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar ativo="configuracoes" professor={{ apelido: professor.apelido, avatar }} />
+  async function handleEscolherAvatar(arquivo) {
+    await salvarAvatar(arquivo);
+  }
 
+  async function handleSalvarPerfil(e) {
+    e.preventDefault();
+    const dados = Object.fromEntries(new FormData(e.target).entries());
+    if (await salvarPerfil(dados)) setModalPerfilAberto(false);
+  }
+
+  async function handleAlterarSenha(e) {
+    e.preventDefault();
+    setErroSenha("");
+    const dados = Object.fromEntries(new FormData(e.target).entries());
+
+    if (dados.senha_nova !== dados.confirmar_senha) {
+      setErroSenha("As senhas novas não coincidem.");
+      return;
+    }
+    if (dados.senha_nova.length < 6) {
+      setErroSenha("A nova senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    if (
+      await alterarSenha({
+        senhaAtual: dados.senha_atual,
+        senhaNova: dados.senha_nova,
+      })
+    ) {
+      setModalSegurancaAberto(false);
+      e.target.reset();
+    } else {
+      setErroSenha(erro);
+    }
+  }
+
+  if (carregando || !professor) {
+    return (
+      <main className="flex-1 p-8">
+        <p className="text-azul/60">Carregando...</p>
+      </main>
+    );
+  }
+
+  return (
+    <>
       <main className="flex-1 p-8 flex flex-col gap-8">
         <header className="flex justify-between items-start">
           <div>
@@ -84,7 +147,7 @@ export function Configuracoes() {
               Configurações
             </h1>
             <h2 className="text-3xl font-extrabold text-azul mt-1">
-              Configurações, {professor.apelido}
+              Configurações, {professor.apelido || professor.nome_completo}
             </h2>
             <p className="text-azul/70 text-sm mt-1">
               Atualize suas informações
@@ -96,6 +159,12 @@ export function Configuracoes() {
           </div>
         </header>
 
+        {erro && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+            {erro}
+          </div>
+        )}
+
         {/* Lado Esquerdo */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-1 bg-branco border border-cinza-claro rounded-3xl shadow-sm flex flex-col">
@@ -105,9 +174,9 @@ export function Configuracoes() {
                 <div className="absolute -inset-2 rounded-3xl border-2 border-dashed border-azul/25 opacity-0 group-hover:opacity-100 transition"></div>
 
                 <div className="w-20 h-20 rounded-2xl bg-coral overflow-hidden shadow-lg shadow-coral/40 transition group-hover:-rotate-3 group-hover:scale-[1.02]">
-                  {avatar && (
+                  {professor.avatar_url && (
                     <img
-                      src={`/avatares/${avatar}`}
+                      src={`/avatares/${professor.avatar_url}`}
                       alt="Seu avatar"
                       className="w-full h-full object-cover"
                     />
@@ -120,7 +189,7 @@ export function Configuracoes() {
                   onClick={() => setModalAvatarAberto(true)}
                   className="absolute -right-2 -bottom-2 w-8 h-8 rounded-xl bg-azul text-branco border-4 border-branco flex items-center justify-center text-xs hover:bg-azul/90 transition cursor-pointer"
                 >
-                  <FontAwesomeIcon icon={["fas", "pen"]} />
+                  <PencilIcon size={14} isAnimated={false} />
                 </button>
               </div>
 
@@ -163,7 +232,7 @@ export function Configuracoes() {
                 onClick={abrirExclusao}
                 className="btn btn-ghost btn-sm w-full rounded-xl text-vermelho hover:bg-vermelho/10 transition"
               >
-                <FontAwesomeIcon icon={["fas", "trash"]} />
+                <Trash2Icon size={16} isAnimated={false} />
                 Excluir minha conta
               </button>
             </div>
@@ -180,7 +249,7 @@ export function Configuracoes() {
                 onClick={() => setModalPerfilAberto(true)}
                 className="btn btn-primary btn-sm rounded-xl gap-2"
               >
-                <FontAwesomeIcon icon={["fas", "pen"]} />
+                <PencilIcon size={14} isAnimated={false} />
                 Editar perfil
               </button>
             </div>
@@ -189,14 +258,11 @@ export function Configuracoes() {
               {dadosPerfil.map((item) => (
                 <div key={item.rotulo} className="flex flex-col gap-1">
                   <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <FontAwesomeIcon
-                      icon={["fas", item.icone]}
-                      className="text-coral"
-                    />
+                    <item.Icone size={14} isAnimated={false} className="text-coral" />
                     {item.rotulo}
                   </span>
                   <span className="text-sm font-semibold text-azul">
-                    {item.valor}
+                    {item.valor || "—"}
                   </span>
                 </div>
               ))}
@@ -205,13 +271,12 @@ export function Configuracoes() {
             {/* Biografia */}
             <div className="flex flex-col gap-1">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                <FontAwesomeIcon
-                  icon={["fas", "comment-dots"]}
-                  className="text-coral"
-                />
+                <MessageSquareIcon size={14} isAnimated={false} className="text-coral" />
                 Conte um pouco de você
               </span>
-              <p className="text-sm text-azul/80">{professor.biografia}</p>
+              <p className="text-sm text-azul/80">
+                {professor.biografia || "—"}
+              </p>
             </div>
 
             {/* Senha */}
@@ -222,10 +287,13 @@ export function Configuracoes() {
               </div>
               <button
                 type="button"
-                onClick={() => setModalSegurancaAberto(true)}
+                onClick={() => {
+                  setErroSenha("");
+                  setModalSegurancaAberto(true);
+                }}
                 className="btn btn-ghost btn-sm rounded-xl gap-2"
               >
-                <FontAwesomeIcon icon={["fas", "lock"]} />
+                <LockIcon size={14} isAnimated={false} />
                 Alterar senha
               </button>
             </div>
@@ -244,7 +312,7 @@ export function Configuracoes() {
                 onClick={() => setModalAvatarAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <FontAwesomeIcon icon={["fas", "xmark"]} />
+                <XIcon size={16} isAnimated={false} />
               </button>
             </div>
 
@@ -270,11 +338,11 @@ export function Configuracoes() {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setAvatar(item.arquivo)}
+                  onClick={() => handleEscolherAvatar(item.arquivo)}
                   aria-label={`Escolher ${item.nome}`}
-                  aria-pressed={avatar === item.arquivo}
+                  aria-pressed={professor.avatar_url === item.arquivo}
                   className={`aspect-square rounded-xl overflow-hidden transition ${
-                    avatar === item.arquivo
+                    professor.avatar_url === item.arquivo
                       ? "ring-4 ring-coral"
                       : "ring-2 ring-transparent hover:ring-coral/40"
                   }`}
@@ -302,27 +370,19 @@ export function Configuracoes() {
                 onClick={() => setModalPerfilAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <FontAwesomeIcon icon={["fas", "xmark"]} />
+                <XIcon size={16} isAnimated={false} />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setModalPerfilAberto(false);
-              }}
-              className="flex flex-col gap-5"
-            >
+            <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "user"]}
-                    className="text-coral"
-                  />
+                  <UserIcon size={14} isAnimated={false} className="text-coral" />
                   Nome completo
                 </label>
                 <input
                   type="text"
+                  name="nome_completo"
                   className="input w-full rounded-xl"
                   defaultValue={professor.nome_completo}
                 />
@@ -330,14 +390,12 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "face-smile"]}
-                    className="text-coral"
-                  />
+                  <SparklesIcon size={14} isAnimated={false} className="text-coral" />
                   Apelido
                 </label>
                 <input
                   type="text"
+                  name="apelido"
                   className="input w-full rounded-xl"
                   defaultValue={professor.apelido}
                 />
@@ -348,14 +406,12 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "school"]}
-                    className="text-coral"
-                  />
+                  <MapPinIcon size={14} isAnimated={false} className="text-coral" />
                   Onde você dá aula
                 </label>
                 <input
                   type="text"
+                  name="escola"
                   className="input w-full rounded-xl"
                   defaultValue={professor.escola}
                 />
@@ -363,13 +419,11 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "comment-dots"]}
-                    className="text-coral"
-                  />
+                  <MessageSquareIcon size={14} isAnimated={false} className="text-coral" />
                   Conte um pouco de você
                 </label>
                 <textarea
+                  name="biografia"
                   rows={4}
                   className="textarea w-full rounded-xl"
                   defaultValue={professor.biografia}
@@ -379,9 +433,10 @@ export function Configuracoes() {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
+                  disabled={salvando}
                   className="btn btn-primary rounded-xl px-8"
                 >
-                  Salvar alterações
+                  {salvando ? "Salvando..." : "Salvar alterações"}
                 </button>
               </div>
             </form>
@@ -400,23 +455,20 @@ export function Configuracoes() {
                 onClick={() => setModalSegurancaAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <FontAwesomeIcon icon={["fas", "xmark"]} />
+                <XIcon size={16} isAnimated={false} />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setModalSegurancaAberto(false);
-              }}
-              className="flex flex-col gap-5"
-            >
+            <form onSubmit={handleAlterarSenha} className="flex flex-col gap-5">
+              {erroSenha && (
+                <div className="p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                  {erroSenha}
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "envelope"]}
-                    className="text-coral"
-                  />
+                  <MailIcon size={14} isAnimated={false} className="text-coral" />
                   E-mail da conta
                 </label>
                 <input
@@ -432,14 +484,13 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <FontAwesomeIcon
-                    icon={["fas", "lock"]}
-                    className="text-coral"
-                  />
+                  <LockIcon size={14} isAnimated={false} className="text-coral" />
                   Senha atual
                 </label>
                 <input
                   type="password"
+                  name="senha_atual"
+                  required
                   className="input w-full rounded-xl"
                   placeholder="A senha que você usa hoje"
                 />
@@ -448,14 +499,14 @@ export function Configuracoes() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <FontAwesomeIcon
-                      icon={["fas", "key"]}
-                      className="text-coral"
-                    />
+                    <KeyIcon size={14} isAnimated={false} className="text-coral" />
                     Senha nova
                   </label>
                   <input
                     type="password"
+                    name="senha_nova"
+                    required
+                    minLength={6}
                     className="input w-full rounded-xl"
                     placeholder="Mínimo 6 caracteres"
                   />
@@ -463,14 +514,13 @@ export function Configuracoes() {
 
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <FontAwesomeIcon
-                      icon={["fas", "check"]}
-                      className="text-coral"
-                    />
+                    <CheckIcon size={14} isAnimated={false} className="text-coral" />
                     Repita a senha nova
                   </label>
                   <input
                     type="password"
+                    name="confirmar_senha"
+                    required
                     className="input w-full rounded-xl"
                     placeholder="As senhas devem ser iguais"
                   />
@@ -478,10 +528,7 @@ export function Configuracoes() {
               </div>
 
               <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  className="btn btn-primary rounded-xl px-8"
-                >
+                <button type="submit" className="btn btn-primary rounded-xl px-8">
                   Atualizar senha
                 </button>
               </div>
@@ -494,7 +541,7 @@ export function Configuracoes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
           <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6">
             <div className="w-12 h-12 rounded-2xl bg-vermelho/10 text-vermelho flex items-center justify-center text-xl mb-4">
-              <FontAwesomeIcon icon={["fas", "triangle-exclamation"]} />
+              <TriangleAlertIcon size={20} isAnimated={false} />
             </div>
             <h3 className="text-lg font-extrabold text-azul">
               Excluir sua conta?
@@ -533,7 +580,7 @@ export function Configuracoes() {
               <button
                 type="button"
                 disabled={!exclusaoConfirmada}
-                onClick={fecharExclusao}
+                onClick={confirmarExclusao}
                 className={`btn rounded-xl flex-1 border-none text-branco transition ${
                   exclusaoConfirmada
                     ? "bg-vermelho hover:bg-vermelho/90"
@@ -546,6 +593,6 @@ export function Configuracoes() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

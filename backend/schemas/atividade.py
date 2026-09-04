@@ -2,9 +2,11 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class AtividadeSchema(BaseModel):
-    professor_id: int
     titulo: str
     tipo_atividade: str
+    # Só é considerado quando quem está criando é admin (professores comuns têm o professor_id
+    # derivado do próprio token, não do que o cliente manda)
+    professor_id: Optional[int] = None
     turma_id: Optional[int] = None
     descricao: Optional[str] = None
     disciplina: Optional[str] = None

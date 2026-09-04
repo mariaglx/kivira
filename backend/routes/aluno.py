@@ -3,6 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.usuario import Usuario
 from models.aluno import Aluno
+from models.turma import Turma
+from models.aluno_turma import AlunoTurma
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, ResetarSenhaSchema
@@ -12,6 +14,54 @@ aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 @aluno_router.get("/")
 async def aluno():
     return{"mensagem": "Você acessou a rota de aluno"}
+
+# Perfil do aluno autenticado (usado pelo front pra saber quem é o "eu" sem precisar guardar o id manualmente)
+# Precisa vir ANTES de "/{id_aluno}" pra não ser capturado por aquela rota
+
+@aluno_router.get("/me")
+async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    return {
+        "id": aluno.id,
+        "nome_completo": aluno.nome_completo,
+        "apelido": aluno.apelido,
+        "avatar_url": aluno.avatar_url,
+        "xp_total": aluno.xp_total,
+        "nivel_atual": aluno.nivel_atual,
+        "username": aluno.username,
+    }
+
+# Usado na Home pública: depois que o código da turma foi validado, o front pede o username
+# do aluno e essa rota diz se ele precisa passar pelo primeiro acesso ou não.
+# Também precisa vir ANTES de "/{id_aluno}"
+
+@aluno_router.get("/status-acesso")
+async def status_acesso_aluno(username: str, codigo_turma: str, session = Depends(pegar_sessao_kivira)):
+    aluno = session.query(Aluno).filter(Aluno.username == username).first()
+    turma = session.query(Turma).filter(Turma.codigo_acesso == codigo_turma.strip().lower()).first()
+
+    matricula = None
+    if aluno and turma:
+        matricula = session.query(AlunoTurma).filter(
+            AlunoTurma.aluno_id == aluno.id,
+            AlunoTurma.turma_id == turma.id,
+            AlunoTurma.ativo == 1,
+        ).first()
+
+    # Mensagem genérica de propósito: evita confirmar pra quem está tentando adivinhar
+    # se um username existe sem saber o código certo da turma
+    if not aluno or not turma or not matricula:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado nessa turma")
+
+    usuario = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
+
+    return {
+        "primeiro_acesso": usuario.primeiro_acesso,
+        "avatar_url": aluno.avatar_url,
+    }
 
 # Remoção de acentuação para criação do Username
 

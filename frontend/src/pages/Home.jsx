@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { apiRequest } from "../services/api";
+import { BookOpenIcon } from "../components/icons/book-open";
+import { UsersIcon } from "../components/icons/users";
 
 export function Home() {
   const [sessionCode, setSessionCode] = useState("");
@@ -12,15 +14,10 @@ export function Home() {
 
   const handleJoinSession = async (e) => {
     e.preventDefault();
-    const cleanCode = sessionCode.trim().toUpperCase();
+    const cleanCode = sessionCode.trim();
 
     if (!cleanCode) {
       setError("Por favor, digite o código fornecido pelo professor.");
-      return;
-    }
-
-    if (cleanCode.length < 6) {
-      setError("O código deve ter 6 caracteres.");
       return;
     }
 
@@ -28,48 +25,25 @@ export function Home() {
     setIsLoading(true);
 
     try {
-      // TODO: Substituir por sua chamada real de API (ex: await api.get(`/sessoes/validar/${cleanCode}`))
-      // Exemplo simulado:
-      const sessionData = await validarCodigoSessaoAPI(cleanCode);
+      const resultado = await apiRequest(
+        `/turma/verificar-codigo/${encodeURIComponent(cleanCode.toLowerCase())}`
+      );
 
-      if (!sessionData || !sessionData.exists) {
-        // MENSAGEM DE RETORNO QUANDO O CÓDIGO NÃO FOR VÁLIDO:
+      if (!resultado?.existe) {
         setError("Código não encontrado! Verifique com seu professor.");
-        setIsLoading(false);
         return;
       }
 
-      // Regra do primeiro acesso:
-      if (sessionData.isFirstLogin) {
-        // Envia para o LoginAluno (primeiro acesso) levando o código no state
-        navigate("/login_aluno", { state: { sessionCode: cleanCode } });
-      } else {
-        // Se já cadastrou o perfil no primeiro acesso, vai para a seleção/login com emojis
-        navigate("/login_emoji", { state: { sessionCode: cleanCode } });
-      }
+      // A turma existe, mas ainda não sabemos QUAL aluno está entrando —
+      // isso só é possível depois que ele informar o usuário na próxima tela.
+      navigate("/login_aluno", {
+        state: { turmaCodigo: cleanCode.toLowerCase(), turmaNome: resultado.nome },
+      });
     } catch (err) {
-      setError("Ocorreu um erro ao validar o código. Tente novamente.");
+      setError(err.message || "Ocorreu um erro ao validar o código. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Função mock/simulada (remova quando integrar seu axios/fetch real)
-  const validarCodigoSessaoAPI = async (code) => {
-    // Simula atraso da rede
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    // Exemplo de teste: CÓDIGO "ABC123" simula primeiro login
-    if (code === "ABC123") {
-      return { exists: true, isFirstLogin: true };
-    }
-    // Exemplo de teste: CÓDIGO "XYZ999" simula aluno que já configurou a conta
-    if (code === "XYZ999") {
-      return { exists: true, isFirstLogin: false };
-    }
-
-    // Qualquer outro código por enquanto simula código válido com primeiro acesso
-    return { exists: true, isFirstLogin: true };
   };
 
   return (
@@ -128,7 +102,7 @@ export function Home() {
                   }`}
                 >
                   <span>Sou Aluno </span>
-                  <FontAwesomeIcon icon={["fas", "user-graduate"]} />
+                  <BookOpenIcon size={16} className="inline-block align-[-2px]" />
                 </button>
                 <button
                   type="button"
@@ -143,7 +117,7 @@ export function Home() {
                   }`}
                 >
                   <span>Sou Professor </span>
-                  <FontAwesomeIcon icon={["fas", "chalkboard-user"]} />
+                  <UsersIcon size={16} className="inline-block align-[-2px]" />
                 </button>
               </div>
 
@@ -162,7 +136,7 @@ export function Home() {
                         setSessionCode(e.target.value.toUpperCase());
                         if (error) setError("");
                       }}
-                      maxLength={6}
+                      maxLength={8}
                       disabled={isLoading}
                       className={`w-full bg-bege/40 border-2 ${
                         error

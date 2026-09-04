@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import { Sidebar } from "../../components/professor/Sidebar";
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -43,9 +42,7 @@ export function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-bege flex">
-      <Sidebar ativo="dashboard" />
-
+    <>
       {/* Conteúdo Principal */}
       <main className="flex-1 px-10 py-3 overflow-y-auto">
         {/* Cabeçalho */}
@@ -106,7 +103,7 @@ export function Dashboard() {
           </p>
           <div className="flex gap-4">
             <Button
-              onClick={() => navigate("/turmas/nova")}
+              onClick={() => navigate("/professor/turmas/nova")}
               className="bg-coral hover:brightness-95 text-branco font-semibold px-6 py-2.5 rounded-xl shadow-sm"
             >
               + Criar Turma
@@ -128,7 +125,7 @@ export function Dashboard() {
               Turmas Recentes
             </h3>
             <Link
-              to="/turmas"
+              to="/professor/turmas"
               className="text-sm font-semibold text-coral hover:underline"
             >
               Ver todas &rarr;
@@ -141,7 +138,7 @@ export function Dashboard() {
                 Você ainda não possui turmas cadastradas.
               </p>
               <Button
-                onClick={() => navigate("/turmas/nova")}
+                onClick={() => navigate("/professor/turmas/nova")}
                 className="mt-4 bg-coral text-branco text-xs px-4 py-2 rounded-xl"
               >
                 Criar minha primeira turma
@@ -191,6 +188,6 @@ export function Dashboard() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }

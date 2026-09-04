@@ -23,22 +23,27 @@ app.add_middleware(
 from routes.professor import professor_router
 from routes.aluno import aluno_router
 from routes.atividade import atividade_router
-from routes.turma import turma_router
+from routes.turma import turma_router, turma_publico_router
 from routes.auth import kivira_auth_router
 from routes.questao import questao_router
 from routes.opcao_questao import opcao_questao_router
 from routes.aluno_turma import aluno_turma_router
+from routes.ia import ia_router
 from routes.avatar import avatar_router
-
 # from routes.materia import materia_router
 
 app.include_router(professor_router)
 app.include_router(aluno_router)
 app.include_router(atividade_router)
+# turma_publico_router precisa vir ANTES do turma_router: ambos usam o prefixo "/turma" e,
+# como "/{id_turma}" casa com qualquer segmento único, se ele for registrado primeiro
+# "/turma/verificar-codigo/..." seria capturado por ele e falharia com 422.
+app.include_router(turma_publico_router)
 app.include_router(turma_router)
 app.include_router(kivira_auth_router)
 app.include_router(questao_router)
 app.include_router(opcao_questao_router)
 app.include_router(aluno_turma_router)
+app.include_router(ia_router)
 app.include_router(avatar_router)
 # app.include_router(materia_router)
