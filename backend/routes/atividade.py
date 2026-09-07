@@ -1,6 +1,7 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado a atividade.
 
-from fastapi import APIRouter, Depends, HTTPException
+import secrets
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from models.atividade import Atividade
 from models.professor import Professor
 from models.usuario import Usuario
@@ -11,6 +12,7 @@ from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema
+from services.cloudinary_service import enviar_imagem_atividade
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
 
@@ -101,6 +103,12 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
     else:
         raise HTTPException(status_code=401, detail="Você não tem autorização para criar atividades")
 
+    while True:
+        codigo = secrets.token_hex(4)
+        existe = session.query(Atividade).filter(Atividade.codigo_atividade == codigo).first()
+        if not existe:
+            break
+
     nova_atividade = Atividade(
         atividade_schema.titulo,
         atividade_schema.tipo_atividade,
@@ -113,11 +121,32 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
     nova_atividade.imagem_atividade_url = atividade_schema.imagem_atividade_url
     nova_atividade.quantidade_blocos = atividade_schema.quantidade_blocos
     nova_atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
+    nova_atividade.codigo_atividade = codigo
 
     session.add(nova_atividade)
     session.commit()
 
-    return{"id": nova_atividade.id, "mensagem": f"atividade '{nova_atividade.titulo}' cadastrada com sucesso"}
+    return{
+        "id": nova_atividade.id,
+        "codigo_atividade": codigo,
+        "mensagem": f"atividade '{nova_atividade.titulo}' cadastrada com sucesso",
+    }
+
+# Upload de imagem do computador do professor para usar na atividade (alternativa
+# à busca no Pixabay) — precisa vir ANTES de "/{id_atividade}" abaixo, senão o
+# FastAPI tentaria casar "upload_imagem" como id e devolveria 422.
+
+@atividade_router.post("/upload_imagem")
+async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
+    if not arquivo.content_type or not arquivo.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Envie um arquivo de imagem")
+
+    conteudo = await arquivo.read()
+    if not conteudo:
+        raise HTTPException(status_code=400, detail="Arquivo vazio")
+
+    url = await enviar_imagem_atividade(conteudo)
+    return {"url": url}
 
 # Retorna os dados de uma atividade a partir do ID dela
 
@@ -139,7 +168,8 @@ async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kiv
         "tempo_limite_seg": atividade.tempo_limite_seg,
         "professor_id": atividade.professor_id,
         "turma_id": atividade.turma_id,
-        "publicado": atividade.publicado
+        "publicado": atividade.publicado,
+        "codigo_atividade": atividade.codigo_atividade
     }
 
 # Lista as questões (com as opções) de uma atividade específica — usado pelo
@@ -221,9 +251,22 @@ async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateS
     if atividade_schema.publicado is not None:
         atividade.publicado = atividade_schema.publicado
 
+    # Atividades criadas antes desse campo existir não têm código ainda —
+    # gera um na primeira edição em vez de deixar travado pra sempre
+    if not atividade.codigo_atividade:
+        while True:
+            codigo = secrets.token_hex(4)
+            existe = session.query(Atividade).filter(Atividade.codigo_atividade == codigo).first()
+            if not existe:
+                break
+        atividade.codigo_atividade = codigo
+
     session.commit()
 
-    return {"mensagem": f"Atividade '{atividade.titulo}' atualizada com sucesso"}
+    return {
+        "mensagem": f"Atividade '{atividade.titulo}' atualizada com sucesso",
+        "codigo_atividade": atividade.codigo_atividade,
+    }
 
 # Deleta uma atividade a partir do id dela
 

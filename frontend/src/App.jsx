@@ -9,7 +9,6 @@ import { ProfessorLayout } from "./components/professor/ProfessorLayout";
 import { Dashboard } from "./pages/professor/Dashboard";
 import { Turmas } from "./pages/professor/Turmas";
 import { TurmaForm } from "./pages/professor/TurmaForm";
-import { TurmaDetalhe } from "./pages/professor/TurmaDetalhe";
 import { Atividades } from "./pages/professor/Atividades";
 import { CriarAtividade } from "./pages/professor/CriarAtividade";
 import { Configuracoes } from "./pages/professor/Configuracoes";
@@ -34,7 +33,6 @@ function App() {
         <Route path="/professor" element={<Dashboard />} />
         <Route path="/professor/turmas" element={<Turmas />} />
         <Route path="/professor/turmas/nova" element={<TurmaForm />} />
-        <Route path="/professor/turmas/:id" element={<TurmaDetalhe />} />
         <Route path="/professor/turmas/:id/editar" element={<TurmaForm />} />
         <Route path="/professor/atividades" element={<Atividades />} />
         <Route path="/professor/atividades/criar" element={<CriarAtividade />} />

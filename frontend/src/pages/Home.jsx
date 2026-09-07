@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
@@ -11,6 +11,19 @@ export function Home() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const cardAcaoRef = useRef(null);
+  const sessionCodeInputRef = useRef(null);
+
+  // O botão "Entrar" do topo não pode ir direto pra /login_aluno: essa tela
+  // exige um código de turma já validado (location.state.turmaCodigo) e,
+  // sem ele, ela mesma manda de volta pra "/" — virando um link que não fazia
+  // nada. Em vez disso, leva até o card "Sou Aluno" que já faz esse trabalho.
+  const irParaLoginAluno = () => {
+    setActiveTab("aluno");
+    setError("");
+    cardAcaoRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => sessionCodeInputRef.current?.focus(), 300);
+  };
 
   const handleJoinSession = async (e) => {
     e.preventDefault();
@@ -59,12 +72,13 @@ export function Home() {
           >
             Área do Professor
           </Link>
-          <Link
-            to="/login_aluno"
+          <button
+            type="button"
+            onClick={irParaLoginAluno}
             className="btn btn-primary rounded-full px-6 shadow-sm hover:scale-105 transition-all text-sm font-bold"
           >
             Entrar
-          </Link>
+          </button>
         </div>
       </header>
 
@@ -86,7 +100,7 @@ export function Home() {
             </p>
 
             {/* CARD DE AÇÃO */}
-            <div className="w-full max-w-md bg-branco/80 backdrop-blur-md p-4 rounded-3xl shadow-xl border border-cinza-claro">
+            <div ref={cardAcaoRef} className="w-full max-w-md bg-branco/80 backdrop-blur-md p-4 rounded-3xl shadow-xl border border-cinza-claro">
               {/* Abas de Navegação */}
               <div className="flex bg-bege/60 p-1 rounded-2xl mb-4">
                 <button
@@ -129,6 +143,7 @@ export function Home() {
                 >
                   <div className="relative flex flex-col gap-1">
                     <input
+                      ref={sessionCodeInputRef}
                       type="text"
                       placeholder="CÓDIGO DA SESSÃO"
                       value={sessionCode}

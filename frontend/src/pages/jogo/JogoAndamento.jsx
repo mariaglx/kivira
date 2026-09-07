@@ -1,11 +1,61 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { useJogo } from "../../controllers/useJogo";
 import {BordaLateral} from "../../components/ui/BordaLateral";
 import confetti from "canvas-confetti";
 import { LogoKivira } from "../../components/LogoKivira";
 import { calcularGradeMosaico, calcularFatiaMosaico } from "../../utils/mosaico";
+import { apiRequest } from "../../services/api";
+
+// Monta as perguntas no formato que useJogo espera a partir da resposta de
+// GET /atividade/{id}/questoes — `id` vira a ORDEM (não o id do banco), porque
+// é a ordem que casa a peça certa com o slot certo no tabuleiro estilo LUK
+function montarPerguntas(dadosQuestoes) {
+  return dadosQuestoes.questoes.map((q) => {
+    const opcaoCorreta = q.opcoes.find((o) => o.correta) || q.opcoes[0];
+    return {
+      id: q.ordem,
+      texto_questao: q.texto_questao,
+      resposta_certa: opcaoCorreta?.texto_opcao || "",
+    };
+  });
+}
 
 export function JogoAndamento() {
+  const { state } = useLocation();
+  const atividadeId = state?.atividadeId;
+
+  const [atividade, setAtividade] = useState(null);
+  const [perguntasCarregadas, setPerguntasCarregadas] = useState([]);
+  const [carregando, setCarregando] = useState(!!atividadeId);
+  const [erroCarregamento, setErroCarregamento] = useState(null);
+
+  useEffect(() => {
+    if (!atividadeId) return;
+
+    let cancelado = false;
+
+    Promise.all([
+      apiRequest(`/atividade/${atividadeId}`),
+      apiRequest(`/atividade/${atividadeId}/questoes`),
+    ])
+      .then(([dadosAtividade, dadosQuestoes]) => {
+        if (cancelado) return;
+        setAtividade(dadosAtividade);
+        setPerguntasCarregadas(montarPerguntas(dadosQuestoes));
+      })
+      .catch((erro) => {
+        if (!cancelado) setErroCarregamento(erro.message || "Não foi possível carregar a atividade");
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [atividadeId]);
+
   const {
     perguntas,
     pecasSoltas,
@@ -22,7 +72,7 @@ export function JogoAndamento() {
     iniciarDrag,
     dropNoTabuleiro,
     reiniciarJogo,
-  } = useJogo();
+  } = useJogo(perguntasCarregadas, atividade?.imagem_atividade_url || "/img/resultado.png");
 
   const acertouTudo =
     fase === "virado" &&
@@ -55,11 +105,40 @@ export function JogoAndamento() {
   // (6, 9, 12, 24 têm proporções fixas; qualquer outro N cai num fallback quase-quadrado)
   const gradeMosaico = calcularGradeMosaico(perguntas.length);
 
+  if (!atividadeId || erroCarregamento) {
+    return (
+      <div className="min-h-screen bg-bege flex flex-col items-center justify-center gap-3">
+        <p className="text-azul font-bold">
+          {erroCarregamento || "Nenhuma atividade selecionada."}
+        </p>
+        <Link to="/professor/atividades" className="text-coral font-bold text-sm hover:underline">
+          ← Voltar pras atividades
+        </Link>
+      </div>
+    );
+  }
+
+  if (carregando) {
+    return (
+      <div className="min-h-screen bg-bege flex items-center justify-center">
+        <p className="text-azul/60 font-medium">Carregando atividade...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-bege text-white flex flex-col">
       <header className="flex justify-between bg-branco items-center border-b border-white/10 py-2 px-3">
-        <LogoKivira className="h-11 w-auto" />
-        <span className="text-md font-bold text-azul">Sons dos Animais</span>
+        <div className="flex items-center gap-4">
+          <LogoKivira className="h-11 w-auto" />
+          <Link
+            to={`/professor/atividades/${atividadeId}/editar`}
+            className="text-azul/50 hover:text-azul text-sm font-bold"
+          >
+            ← Editar atividade
+          </Link>
+        </div>
+        <span className="text-md font-bold text-azul">{atividade?.titulo}</span>
         <span className="font-bold text-start text-gray-500">
           {Object.keys(tabuleiro).length}/{perguntas.length}
           <div className="text-xs text-gray-400">peças colocadas</div>

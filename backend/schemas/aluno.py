@@ -18,12 +18,12 @@ class AlunoUpdateSchema(BaseModel):
 
 class CadastrarAlunoSchema(BaseModel):
     nome_completo: str
-    senha_temporaria: str
+    # Quando informado, o aluno já é matriculado direto nessa turma (criação
+    # feita de dentro da tela da turma) — sem ele, fica só cadastrado, sem turma
+    turma_id: Optional[int] = None
 
 class PrimeiroAcessoSchema(BaseModel):
     username: str 
     senha_temporaria: str
     emojis: List[str]
 
-class ResetarSenhaSchema(BaseModel):
-    senha_temporaria: str

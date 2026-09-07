@@ -83,7 +83,7 @@ async def resumo_dashboard_professor(session = Depends(pegar_sessao_kivira), usu
             "atividades_count": session.query(Atividade).filter(
                 Atividade.turma_id == turma.id
             ).count(),
-            "status": "Ativa" if turma.ativo else "Pausada",
+             "status": "Ativa" if turma.ativo else "Inativa",
         })
 
     return {

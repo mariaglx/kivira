@@ -5,9 +5,10 @@ from models.usuario import Usuario
 from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
+from models.professor import Professor
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-import bcrypt, unicodedata
-from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, ResetarSenhaSchema
+import bcrypt, secrets, unicodedata
+from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
@@ -87,6 +88,12 @@ def gerar_username_unico(nome_completo, session):
         username = f"{base}{contador}"
 
     return username
+
+# Senha temporária de primeiro acesso: só dígitos (nada de letra maiúscula/
+# minúscula ou símbolo confuso pra criança digitar), gerada pelo sistema —
+# o professor nunca escolhe essa senha, só entrega ela pro aluno
+def gerar_senha_temporaria():
+    return "".join(secrets.choice("0123456789") for _ in range(6))
 
 
 # Cria um aluno
@@ -184,26 +191,44 @@ async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
 
 
 # Cadastra um aluno a partir do nome.sobrenome - Criado pelo professor
-# Quem cadastrae é o professor
+# Quem cadastra é o professor. A senha de primeiro acesso é gerada pelo próprio
+# sistema (não é o professor quem escolhe) e só aparece nessa resposta — o
+# professor precisa anotar/repassar pro aluno nesse momento, não dá pra recuperar depois.
 @aluno_router.post("/cadastrar")
 async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     username = gerar_username_unico(aluno_schema.nome_completo, session)
+    senha_temporaria = gerar_senha_temporaria()
 
-    senha_criptografada = bcrypt.hashpw(aluno_schema.senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    senha_criptografada = bcrypt.hashpw(senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     novo_usuario = Usuario(email=None, senha_hash=senha_criptografada, tipo="estudante")
     session.add(novo_usuario)
     session.flush()
 
     novo_aluno = Aluno(aluno_schema.nome_completo, None, None)
-    novo_aluno.username = username 
+    novo_aluno.username = username
     novo_aluno.usuario_id = novo_usuario.id
     session.add(novo_aluno)
+    session.flush()
+
+    if aluno_schema.turma_id is not None:
+        turma = session.query(Turma).filter(Turma.id == aluno_schema.turma_id).first()
+        if not turma:
+            raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+            raise HTTPException(status_code=401, detail="Você não tem autorização para matricular alunos nessa turma")
+
+        session.add(AlunoTurma(turma_id=turma.id, aluno_id=novo_aluno.id))
+
     session.commit()
 
     return{
+        "id": novo_aluno.id,
         "mensagem": f"Aluno '{novo_aluno.nome_completo}' cadastrado com sucesso",
-        "username": username
+        "username": username,
+        "senha_temporaria": senha_temporaria,
     }
 
 
@@ -237,21 +262,25 @@ async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_s
 # Reseta a senha do Aluno caso necessário 
 
 @aluno_router.patch("/{id_aluno}/resetar_senha")
-async def resetar_senha_aluno(id_aluno: int, dados: ResetarSenhaSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
-    if not aluno: 
+    if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     if usuario.tipo not in ("professor", "admin"):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação")
 
     usuario_aluno = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 
-    usuario_aluno.senha_hash = bcrypt.hashpw(dados.senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    usuario_aluno.primeiro_acesso = True 
+    # Igual o cadastro: o professor nunca escolhe a senha, o sistema gera sozinho
+    senha_temporaria = gerar_senha_temporaria()
+    usuario_aluno.senha_hash = bcrypt.hashpw(senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    usuario_aluno.primeiro_acesso = True
     session.commit()
 
     return {
-        "mensagem": f"Senha de '{aluno.nome_completo}' redefinida com sucesso"
+        "mensagem": f"Senha de '{aluno.nome_completo}' redefinida com sucesso",
+        "username": aluno.username,
+        "senha_temporaria": senha_temporaria,
     }
 

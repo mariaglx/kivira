@@ -5,81 +5,34 @@ function embaralhar(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-export function useJogo(imagemAtividadeUrl = "/img/resultado.png") {
-  const perguntasIniciais = [
-    {
-      id: 1,
-      texto_questao: "Qual o som que a vaca faz?",
-      resposta_certa: "Muuuu",
-    },
-    {
-      id: 2,
-      texto_questao: "Qual o som que o cachorro faz?",
-      resposta_certa: "Au au",
-    },
-    {
-      id: 3,
-      texto_questao: "Qual o som que o gato faz?",
-      resposta_certa: "Miau",
-    },
-    {
-      id: 4,
-      texto_questao: "Qual o som que o passarinho faz?",
-      resposta_certa: "Piu piu",
-    },
-    {
-      id: 5,
-      texto_questao: "Qual o som que a galinha faz?",
-      resposta_certa: "Cocoricó",
-    },
-    {
-      id: 6,
-      texto_questao: "Qual o som que o leão faz?",
-      resposta_certa: "Roar!",
-    },
-    {
-      id: 7,
-      texto_questao: "Qual o som que o pato faz?",
-      resposta_certa: "Quack!",
-    },
-    {
-      id: 8,
-      texto_questao: "Qual o som que a cobra faz?",
-      resposta_certa: "Ssss",
-    },
-    {
-      id: 9,
-      texto_questao: "Qual o som que o grilo faz?",
-      resposta_certa: "Cricri cricri",
-    },
-    {
-      id: 10,
-      texto_questao: "Qual o som que a cabra faz?",
-      resposta_certa: "Béeeh",
-    },
-    {
-      id: 11,
-      texto_questao: "Qual o som que o cavalo faz?",
-      resposta_certa: "Hiii",
-    },
-    {
-      id: 12,
-      texto_questao: "Qual o som que a ovelha faz?",
-      resposta_certa: "Mêeeh",
-    },
-  ];
-
-  // Estados principais
-  const [perguntas] = useState(perguntasIniciais);
-  const [pecasSoltas, setPecasSoltas] = useState(() =>
-    embaralhar(perguntasIniciais),
-  );
+// `perguntas` já vem pronta de fora (montada em JogoAndamento.jsx a partir da
+// atividade real) — cada item precisa de {id, texto_questao, resposta_certa},
+// onde `id` é a ORDEM da questão (é ela que casa a peça certa com o slot certo,
+// no estilo LUK). Como o fetch da atividade é assíncrono, `perguntas` chega
+// vazia no primeiro render e só preenche depois — o efeito abaixo reage a essa
+// chegada e inicializa o resto do estado do jogo nesse momento.
+export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png") {
+  // Compara com a referência anterior de `perguntas` pra saber se ela acabou de
+  // chegar/trocar — sem useEffect (evita o "cascading render" que o eslint
+  // acusa), seguindo o padrão do próprio React pra resetar estado quando um
+  // parâmetro muda: ajusta direto durante a renderização.
+  const [perguntasAnteriores, setPerguntasAnteriores] = useState(perguntas);
+  const [pecasSoltas, setPecasSoltas] = useState(() => embaralhar(perguntas));
   const [tabuleiro, setTabuleiro] = useState({}); // Armazena { numeroSlot: pecaObjeto }
   const [pecaSelecionada, setPecaSelecionada] = useState(null);
 
   // Novos estados para o fluxo do jogo (LUK / Kivira)
   const [fase, setFase] = useState("jogando"); // "jogando" | "virado"
   const [resultados, setResultados] = useState({}); // { numeroSlot: true/false }
+
+  if (perguntas !== perguntasAnteriores) {
+    setPerguntasAnteriores(perguntas);
+    setPecasSoltas(embaralhar(perguntas));
+    setTabuleiro({});
+    setResultados({});
+    setPecaSelecionada(null);
+    setFase("jogando");
+  }
 
   // Ações existentes (adaptadas para guardar o objeto da peça inteira no tabuleiro)
   const selecionarPeca = (peca) => {
@@ -194,7 +147,7 @@ export function useJogo(imagemAtividadeUrl = "/img/resultado.png") {
     setPecaSelecionada(null);
     setPecaDraggin(null);
     setFase("jogando");
-    setPecasSoltas(embaralhar(perguntasIniciais));
+    setPecasSoltas(embaralhar(perguntas));
   };
 
   return {

@@ -8,6 +8,20 @@ export function Turmas() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
   const [listaTurmas, setListaTurmas] = useState([]);
+  const [turmaVisualizada, setTurmaVisualizada] = useState(null);
+  const [alunosVisualizados, setAlunosVisualizados] = useState([]);
+  const [carregandoAlunos, setCarregandoAlunos] = useState(false);
+
+  const abrirVerTurma = (turma) => {
+    setTurmaVisualizada(turma);
+    setAlunosVisualizados([]);
+    setCarregandoAlunos(true);
+    apiRequest(`/aluno_turma/turma/${turma.id}`)
+      .then(setAlunosVisualizados)
+      .finally(() => setCarregandoAlunos(false));
+  };
+
+  const fecharVerTurma = () => setTurmaVisualizada(null);
 
   useEffect(() => {
     async function carregarTurmas() {
@@ -90,7 +104,7 @@ export function Turmas() {
                     </span>
                   ) : (
                     <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
-                      Pausada
+                      Inativa
                     </span>
                   )}
                 </div>
@@ -117,8 +131,8 @@ export function Turmas() {
                 </div>
 
                 <div className="flex gap-2 w-full">
-                  <button 
-                    onClick={() => navigate(`/professor/turmas/${turma.id}`)}
+                  <button
+                    onClick={() => abrirVerTurma(turma)}
                     className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95"
                   >
                     Ver turma
@@ -146,6 +160,65 @@ export function Turmas() {
           </div>
         )}
       </main>
+
+      {turmaVisualizada && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <p className="font-extrabold text-azul text-lg">{turmaVisualizada.nome}</p>
+                {turmaVisualizada.ativo ? (
+                  <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
+                    Ativa
+                  </span>
+                ) : (
+                  <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
+                    Inativa
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={fecharVerTurma}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-xs font-bold uppercase tracking-wider text-azul/50 mt-5 mb-2">
+              Alunos ({alunosVisualizados.length})
+            </p>
+
+            {carregandoAlunos ? (
+              <p className="text-sm text-azul/60 py-2">Carregando...</p>
+            ) : alunosVisualizados.length === 0 ? (
+              <p className="text-sm text-azul/60 py-2">Nenhum aluno matriculado ainda.</p>
+            ) : (
+              <ul className="flex flex-col max-h-72 overflow-y-auto">
+                {alunosVisualizados.map((aluno) => (
+                  <li
+                    key={aluno.matricula_id}
+                    className="flex items-center gap-3 py-2.5 border-b border-cinza-claro/20 last:border-0"
+                  >
+                    {aluno.avatar_url && (
+                      <img
+                        src={`/avatares/${aluno.avatar_url}`}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-cover"
+                      />
+                    )}
+                    <span className="text-sm font-semibold text-azul">
+                      {aluno.apelido || aluno.nome_completo}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

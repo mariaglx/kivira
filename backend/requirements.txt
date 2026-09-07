@@ -3,6 +3,7 @@ annotated-types==0.7.0
 anyio==4.14.2
 bcrypt==5.0.0
 click==8.4.2
+cloudinary==1.46.2
 colorama==0.4.6
 cryptography==50.0.1
 dnspython==2.8.0
@@ -14,6 +15,7 @@ h11==0.16.0
 httptools==0.8.0
 httpx==0.28.1
 idna==3.18
+Pillow==11.3.0
 pyasn1==0.6.4
 pydantic==2.13.4
 pydantic_core==2.46.4

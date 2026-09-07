@@ -42,11 +42,11 @@ export function SelectCustom({
           onClick={() => setAberto(!aberto)}
           className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm text-left"
         >
-          <span className={opcaoSelecionada ? "text-azul" : "text-azul/40"}>
+          <span className={`truncate min-w-0 ${opcaoSelecionada ? "text-azul" : "text-azul/40"}`}>
             {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
           </span>
           <span
-            className={`text-azul/40 text-xs transition-transform ${aberto ? "rotate-180" : ""}`}
+            className={`shrink-0 text-azul/40 text-xs transition-transform ${aberto ? "rotate-180" : ""}`}
           >
             ▾
           </span>

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { Reorder, AnimatePresence, useDragControls } from "motion/react";
 import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
+import { SearchIcon } from "../../components/icons/search";
+import { XIcon } from "../../components/icons/x";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
 // um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
@@ -121,8 +123,30 @@ function QuestaoCard({
   );
 }
 
+// Monta a lista de números de página a mostrar, sempre com a primeira e a última
+// visíveis e "..." no lugar do que fica longe da página atual — evita uma barra
+// gigante quando o Pixabay devolve muitas páginas (até 25, no limite da API)
+function gerarPaginasVisiveis(paginaAtual, totalPaginas) {
+  const vizinhanca = 1;
+  const paginas = [];
+
+  for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+    const ehBorda = pagina === 1 || pagina === totalPaginas;
+    const ehVizinha = Math.abs(pagina - paginaAtual) <= vizinhanca;
+
+    if (ehBorda || ehVizinha) {
+      paginas.push(pagina);
+    } else if (paginas[paginas.length - 1] !== "...") {
+      paginas.push("...");
+    }
+  }
+
+  return paginas;
+}
+
 export function CriarAtividade() {
   const { id: idRota } = useParams();
+  const { state } = useLocation();
   const {
     formData,
     setFormData,
@@ -137,7 +161,27 @@ export function CriarAtividade() {
     gerandoIA,
     erroIA,
     setErroIA,
+    modalImagemAberto,
+    abrirBuscaImagem,
+    fecharBuscaImagem,
+    termoBuscaImagem,
+    setTermoBuscaImagem,
+    imagensPixabay,
+    buscandoImagens,
+    erroBuscaImagem,
+    setErroBuscaImagem,
+    buscarImagensPixabay,
+    selecionarImagemPixabay,
+    paginaAtual,
+    totalPaginasImagens,
+    irParaPaginaImagem,
     gerarQuestoesComIA,
+    abaImagem,
+    setAbaImagem,
+    enviandoImagem,
+    erroUploadImagem,
+    setErroUploadImagem,
+    enviarImagemDoComputador,
   } = useCriarAtividade();
   const [turmas, setTurmas] = useState([]);
   const [erroTurmas, setErroTurmas] = useState(null);
@@ -152,6 +196,7 @@ export function CriarAtividade() {
   const [questoesInvalidas, setQuestoesInvalidas] = useState({});
   const [tentativaInvalida, setTentativaInvalida] = useState(0);
   const inputRefs = useRef({});
+  const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
 
   // Embrulha o handleChangeBloco do hook: além de atualizar o dado, limpa o erro de validação do campo que acabou de ser corrigido
   const aoMudarBloco = (index, campo, valor) => {
@@ -206,6 +251,16 @@ export function CriarAtividade() {
       .catch((erro) => setErroTurmas(erro.message));
   }, []);
 
+  // Veio de "+ Nova atividade" de dentro de uma turma (TurmaForm.jsx) — a
+  // turma já chega pré-selecionada, só se aplica na criação (edição carrega
+  // a turma real da própria atividade no efeito de baixo)
+  useEffect(() => {
+    if (!idRota && state?.turmaIdPadrao) {
+      setFormData((atual) => ({ ...atual, turma_id: String(state.turmaIdPadrao) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Modo edição: a rota veio com um :id (botão "Editar" da lista de atividades) —
   // carrega a atividade e as questões já existentes pra dentro do formulário
   useEffect(() => {
@@ -252,6 +307,7 @@ export function CriarAtividade() {
 
         if (questoesCarregadas.length > 0) setQuestoes(questoesCarregadas);
         setIdAtividadeCriada(atividade.id);
+        if (atividade.codigo_atividade) setCodigoAtividade(atividade.codigo_atividade);
       })
       .catch((erro) => setMensagemErro(erro.message || "Não foi possível carregar a atividade"))
       .finally(() => {
@@ -471,106 +527,135 @@ export function CriarAtividade() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Disciplina
-              </label>
-              <input
-                type="text"
-                name="disciplina"
-                value={formData.disciplina}
-                onChange={handleChange}
-                placeholder="Ex: Ciências"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  Disciplina
+                </label>
+                <input
+                  type="text"
+                  name="disciplina"
+                  value={formData.disciplina}
+                  onChange={handleChange}
+                  placeholder="Ex: Ciências"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <SelectCustom
+                  label="Turma"
+                  name="turma_id"
+                  value={formData.turma_id}
+                  onChange={handleChange}
+                  placeholder="Nenhuma (opcional)"
+                  options={turmas.map((turma) => ({
+                    value: String(turma.id),
+                    label: turma.nome,
+                  }))}
+                />
+                {erroTurmas && (
+                  <p className="text-[11px] text-red-500">
+                    Não foi possível carregar: {erroTurmas}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Série/Ano
-              </label>
-              <input
-                type="text"
-                name="serie_ano"
-                value={formData.serie_ano}
-                onChange={handleChange}
-                placeholder="Ex: 3º ano do Ensino Fundamental"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
-              />
-              <p className="text-[11px] text-azul/40">
-                Usado apenas como contexto para a geração por IA.
-              </p>
-            </div>
+            <hr className="m-0 border-t border-cinza-claro/60" />
 
-            <div className="flex flex-col gap-1.5">
+            <div className="grid grid-cols-2 gap-3">
               <SelectCustom
-                label="Turma"
-                name="turma_id"
-                value={formData.turma_id}
+                label="Tipo de atividade"
+                name="tipo_atividade"
+                value={formData.tipo_atividade}
                 onChange={handleChange}
-                placeholder="Nenhuma (opcional)"
-                options={turmas.map((turma) => ({
-                  value: String(turma.id),
-                  label: turma.nome,
-                }))}
+                options={[
+                  { value: "arrastar_soltar", label: "Arrastar e soltar" },
+                  { value: "associacao", label: "Associação" },
+                  { value: "multipla_escolha", label: "Múltipla escolha" },
+                ]}
               />
-              {erroTurmas && (
-                <p className="text-[11px] text-red-500">
-                  Não foi possível carregar suas turmas: {erroTurmas}
-                </p>
-              )}
-            </div>
 
-            <SelectCustom
-              label="Tipo de atividade"
-              name="tipo_atividade"
-              value={formData.tipo_atividade}
-              onChange={handleChange}
-              options={[
-                { value: "arrastar_soltar", label: "Arrastar e soltar" },
-                { value: "associacao", label: "Associação" },
-                { value: "multipla_escolha", label: "Múltipla escolha" },
-              ]}
-            />
-
-            <SelectCustom
-              label="Dificuldade"
-              name="dificuldade"
-              value={formData.dificuldade}
-              onChange={handleChange}
-              options={[
-                { value: "facil", label: "Fácil" },
-                { value: "medio", label: "Médio" },
-                { value: "dificil", label: "Difícil" },
-              ]}
-            />
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Descrição
-              </label>
-              <textarea
-                name="descricao"
-                value={formData.descricao}
+              <SelectCustom
+                label="Dificuldade"
+                name="dificuldade"
+                value={formData.dificuldade}
                 onChange={handleChange}
-                placeholder="Uma breve descrição da atividade (opcional)"
-                rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                options={[
+                  { value: "facil", label: "Fácil" },
+                  { value: "medio", label: "Médio" },
+                  { value: "dificil", label: "Difícil" },
+                ]}
               />
             </div>
 
+            <hr className="m-0 border-t border-cinza-claro/60" />
+
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Imagem (URL)
+                Imagem da atividade
               </label>
-              <input
-                type="text"
-                name="imagem_atividade_url"
-                value={formData.imagem_atividade_url}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
-              />
+              <div className="flex gap-2 items-center">
+                {formData.imagem_atividade_url ? (
+                  <div className="relative group w-11 h-11 shrink-0">
+                    <img
+                      src={formData.imagem_atividade_url}
+                      alt="Prévia da imagem escolhida"
+                      className="w-11 h-11 rounded-xl object-cover border border-cinza-claro/30"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remover imagem"
+                      onClick={() =>
+                        setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
+                      }
+                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XIcon size={16} isAnimated={false} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => abrirBuscaImagem("enviar")}
+                    aria-label="Enviar imagem do computador"
+                    className="group relative w-11 h-11 rounded-xl border border-dashed border-cinza-claro/50 hover:border-coral/50 shrink-0 flex items-center justify-center text-azul/25 hover:text-coral transition-colors"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="group-hover:opacity-0 transition-opacity"
+                    >
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <circle cx="9" cy="9" r="2" />
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                    </svg>
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="w-4 h-4 absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                      <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => abrirBuscaImagem("buscar")}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/60 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
+                >
+                  <SearchIcon size={14} isAnimated={false} />
+                  {formData.imagem_atividade_url ? "Trocar imagem" : "Escolher imagem"}
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -581,7 +666,7 @@ export function CriarAtividade() {
                 <button
                   type="button"
                   onClick={copiarCodigo}
-                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 hover:bg-bege/70 shadow-sm transition-all"
+                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco hover:bg-bege/40 shadow-sm transition-all"
                 >
                   <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
                     {codigoAtividade}
@@ -605,6 +690,62 @@ export function CriarAtividade() {
                 </div>
               )}
             </div>
+
+            <hr className="m-0 border-t border-cinza-claro/60" />
+
+            <button
+              type="button"
+              onClick={() => setMostrarDetalhes((atual) => !atual)}
+              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/55 hover:text-azul/80 transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-3.5 h-3.5 transition-transform ${mostrarDetalhes ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              {mostrarDetalhes ? "Menos detalhes" : "Mais detalhes"}
+            </button>
+
+            {mostrarDetalhes && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Série/Ano
+                  </label>
+                  <input
+                    type="text"
+                    name="serie_ano"
+                    value={formData.serie_ano}
+                    onChange={handleChange}
+                    placeholder="Ex: 3º ano do Ensino Fundamental"
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  />
+                  <p className="text-[11px] text-azul/40">
+                    Usado apenas como contexto para a geração por IA.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Descrição
+                  </label>
+                  <textarea
+                    name="descricao"
+                    value={formData.descricao}
+                    onChange={handleChange}
+                    placeholder="Uma breve descrição da atividade (opcional)"
+                    rows={3}
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
@@ -667,6 +808,7 @@ export function CriarAtividade() {
                 {idAtividadeCriada ? (
                   <Link
                     to="/jogo"
+                    state={{ atividadeId: idAtividadeCriada }}
                     className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
                   >
                     <svg
@@ -854,6 +996,214 @@ export function CriarAtividade() {
             >
               Entendi
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
+      {modalImagemAberto && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
+                <button
+                  type="button"
+                  role="tab"
+                  onClick={() => setAbaImagem("buscar")}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "buscar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                >
+                  Buscar imagem
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  onClick={() => setAbaImagem("enviar")}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "enviar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                >
+                  Enviar arquivo
+                </button>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={fecharBuscaImagem}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                <XIcon size={16} isAnimated={false} />
+              </button>
+            </div>
+
+            {abaImagem === "buscar" && (
+              <>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    buscarImagensPixabay();
+                  }}
+                  className="flex gap-2 mb-3"
+                >
+                  <input
+                    type="text"
+                    value={termoBuscaImagem}
+                    onChange={(e) => setTermoBuscaImagem(e.target.value)}
+                    placeholder="Ex: gato, escola, números..."
+                    autoFocus
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={buscandoImagens || !termoBuscaImagem.trim()}
+                    className="shrink-0 rounded-xl px-4 py-2.5 font-bold text-sm text-branco bg-coral hover:bg-coral/90 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center"
+                  >
+                    {buscandoImagens ? (
+                      <span className="w-3.5 h-3.5 border-2 border-branco/40 border-t-branco rounded-full animate-spin" />
+                    ) : (
+                      <SearchIcon size={16} isAnimated={false} />
+                    )}
+                  </button>
+                </form>
+
+                {erroBuscaImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
+                    <span>{erroBuscaImagem}</span>
+                    <button
+                      type="button"
+                      onClick={() => setErroBuscaImagem(null)}
+                      className="font-bold hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+                  {imagensPixabay.length === 0 && !buscandoImagens && !erroBuscaImagem && (
+                    <p className="col-span-3 text-sm text-azul/40 text-center py-8">
+                      Busque um termo pra ver as imagens.
+                    </p>
+                  )}
+                  {imagensPixabay.map((imagem) => (
+                    <button
+                      key={imagem.id}
+                      type="button"
+                      onClick={() => selecionarImagemPixabay(imagem.url_imagem)}
+                      aria-label={`Selecionar imagem: ${imagem.tags}`}
+                      className={`aspect-square rounded-xl overflow-hidden transition ${
+                        formData.imagem_atividade_url === imagem.url_imagem
+                          ? "ring-4 ring-coral"
+                          : "ring-2 ring-transparent hover:ring-coral/40"
+                      }`}
+                    >
+                      <img
+                        src={imagem.url_preview}
+                        alt={imagem.tags}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {totalPaginasImagens > 1 && (
+                  <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => irParaPaginaImagem(paginaAtual - 1)}
+                      disabled={paginaAtual === 1 || buscandoImagens}
+                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
+                    >
+                      ‹
+                    </button>
+
+                    {gerarPaginasVisiveis(paginaAtual, totalPaginasImagens).map(
+                      (pagina, indice) =>
+                        pagina === "..." ? (
+                          <span
+                            key={`reticencias-${indice}`}
+                            className="px-1 text-azul/40 text-sm select-none"
+                          >
+                            …
+                          </span>
+                        ) : (
+                          <button
+                            key={pagina}
+                            type="button"
+                            onClick={() => irParaPaginaImagem(pagina)}
+                            disabled={buscandoImagens}
+                            className={`btn btn-sm border-none ${
+                              pagina === paginaAtual
+                                ? "bg-coral text-branco"
+                                : "btn-ghost text-azul/60"
+                            }`}
+                          >
+                            {pagina}
+                          </button>
+                        )
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => irParaPaginaImagem(paginaAtual + 1)}
+                      disabled={paginaAtual === totalPaginasImagens || buscandoImagens}
+                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {abaImagem === "enviar" && (
+              <div className="flex flex-col gap-4">
+                {erroUploadImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                    <span>{erroUploadImagem}</span>
+                    <button
+                      type="button"
+                      onClick={() => setErroUploadImagem(null)}
+                      className="font-bold hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                <label
+                  className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-10 cursor-pointer transition-colors ${
+                    enviandoImagem
+                      ? "border-cinza-claro/40 bg-cinza-claro/5 cursor-wait"
+                      : "border-coral/40 hover:bg-coral/5"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    disabled={enviandoImagem}
+                    onChange={(e) => {
+                      const arquivo = e.target.files?.[0];
+                      if (arquivo) enviarImagemDoComputador(arquivo);
+                      e.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                  {enviandoImagem ? (
+                    <>
+                      <span className="w-6 h-6 border-2 border-coral/30 border-t-coral rounded-full animate-spin" />
+                      <span className="text-sm font-bold text-azul/50">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6 text-coral">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                        <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
+                      </svg>
+                      <span className="text-sm font-bold text-azul">Clique pra escolher um arquivo</span>
+                      <span className="text-xs text-azul/40">JPEG, PNG, WEBP ou GIF — até 5MB</span>
+                    </>
+                  )}
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { apiRequest } from "../services/api";
 
+// Precisa bater com POR_PAGINA em backend/services/pixabay_service.py
+const IMAGENS_POR_PAGINA = 20;
+
 export function useCriarAtividade() {
   const [formData, setFormData] = useState({
     titulo: "",
@@ -155,6 +158,109 @@ export function useCriarAtividade() {
     }
   };
 
+  const [modalImagemAberto, setModalImagemAberto] = useState(false);
+  const [abaImagem, setAbaImagem] = useState("buscar"); // "buscar" (Pixabay) | "enviar" (upload local)
+  const [termoBuscaImagem, setTermoBuscaImagem] = useState("");
+  const [imagensPixabay, setImagensPixabay] = useState([]);
+  const [buscandoImagens, setBuscandoImagens] = useState(false);
+  const [erroBuscaImagem, setErroBuscaImagem] = useState(null);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [totalImagens, setTotalImagens] = useState(0);
+  const [jaBuscouImagem, setJaBuscouImagem] = useState(false);
+
+  // Monta um termo de busca inicial a partir do que o professor já preencheu
+  // na atividade (disciplina + título) — usado só pra sugerir algo de largada
+  // quando o modal abre, o professor pode apagar/trocar livremente depois
+  const contextoBuscaImagem = () =>
+    [formData.disciplina, formData.titulo].filter((v) => v && v.trim()).join(" ").trim();
+
+  const abrirBuscaImagem = (aba = "buscar") => {
+    setModalImagemAberto(true);
+    setAbaImagem(aba);
+    setErroBuscaImagem(null);
+
+    if (aba === "buscar" && !jaBuscouImagem) {
+      const contexto = contextoBuscaImagem();
+      if (contexto) {
+        setTermoBuscaImagem(contexto);
+        buscarImagensPixabay({ pagina: 1, termo: contexto });
+      }
+    }
+  };
+
+  const fecharBuscaImagem = () => {
+    setModalImagemAberto(false);
+  };
+
+  // pagina vem sempre de um clique explícito (busca nova = página 1, paginação = número
+  // clicado) ou da sugestão inicial; termo é opcional só nesse último caso, porque o
+  // state de termoBuscaImagem ainda não teria atualizado a tempo de ler aqui dentro
+  const buscarImagensPixabay = async ({ pagina = 1, termo } = {}) => {
+    const termoFinal = (termo ?? termoBuscaImagem).trim();
+    if (!termoFinal) return;
+
+    setErroBuscaImagem(null);
+    setBuscandoImagens(true);
+    setJaBuscouImagem(true);
+    try {
+      const parametros = new URLSearchParams({ termo: termoFinal, pagina: String(pagina) });
+      const resposta = await apiRequest(`/pixabay/buscar?${parametros.toString()}`);
+      setImagensPixabay(resposta.imagens || []);
+      setTotalImagens(resposta.total || 0);
+      setPaginaAtual(pagina);
+    } catch (erro) {
+      setErroBuscaImagem(erro.message || "Erro ao buscar imagens");
+    } finally {
+      setBuscandoImagens(false);
+    }
+  };
+
+  const totalPaginasImagens = Math.ceil(totalImagens / IMAGENS_POR_PAGINA);
+
+  const irParaPaginaImagem = (pagina) => {
+    if (pagina < 1 || pagina > totalPaginasImagens || pagina === paginaAtual) return;
+    buscarImagensPixabay({ pagina });
+  };
+
+  const selecionarImagemPixabay = (url) => {
+    setFormData((atual) => ({ ...atual, imagem_atividade_url: url }));
+    setModalImagemAberto(false);
+  };
+
+  const TAMANHO_MAXIMO_UPLOAD = 5 * 1024 * 1024; // 5MB, precisa bater com TAMANHO_MAXIMO_BYTES em cloudinary_service.py
+  const [enviandoImagem, setEnviandoImagem] = useState(false);
+  const [erroUploadImagem, setErroUploadImagem] = useState(null);
+
+  const enviarImagemDoComputador = async (arquivo) => {
+    setErroUploadImagem(null);
+
+    if (!arquivo.type.startsWith("image/")) {
+      setErroUploadImagem("Envie um arquivo de imagem (JPEG, PNG, WEBP ou GIF)");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_UPLOAD) {
+      setErroUploadImagem("Imagem muito grande (máximo 5MB)");
+      return;
+    }
+
+    const formularioUpload = new FormData();
+    formularioUpload.append("arquivo", arquivo);
+
+    setEnviandoImagem(true);
+    try {
+      const resposta = await apiRequest("/atividade/upload_imagem", {
+        method: "POST",
+        data: formularioUpload,
+      });
+      setFormData((atual) => ({ ...atual, imagem_atividade_url: resposta.url }));
+      setModalImagemAberto(false);
+    } catch (erro) {
+      setErroUploadImagem(erro.message || "Erro ao enviar imagem");
+    } finally {
+      setEnviandoImagem(false);
+    }
+  };
+
   return {
     formData,
     setFormData,
@@ -171,5 +277,25 @@ export function useCriarAtividade() {
     erroIA,
     setErroIA,
     gerarQuestoesComIA,
+    modalImagemAberto,
+    abrirBuscaImagem,
+    fecharBuscaImagem,
+    termoBuscaImagem,
+    setTermoBuscaImagem,
+    imagensPixabay,
+    buscandoImagens,
+    erroBuscaImagem,
+    setErroBuscaImagem,
+    buscarImagensPixabay,
+    selecionarImagemPixabay,
+    paginaAtual,
+    totalPaginasImagens,
+    irParaPaginaImagem,
+    abaImagem,
+    setAbaImagem,
+    enviandoImagem,
+    erroUploadImagem,
+    setErroUploadImagem,
+    enviarImagemDoComputador,
   };
 }
