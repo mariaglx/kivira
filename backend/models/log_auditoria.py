@@ -18,7 +18,7 @@ class LogAuditoria(Base):
     # preservar. CASCADE apagaria a prova de uma ação só porque a conta sumiu, e
     # RESTRICT (o padrão) impede excluir QUALQUER usuário que já tenha feito algo
     # logado, quebrando as rotas DELETE /professor e /aluno existentes.
-    usuario_id = Column("usuario_id", MysqlInteger(unsigned=True), ForeignKey("usuario.id", ondelete="SET NULL"), nullable=True)
+    usuario_id = Column("usuario_id", ForeignKey("usuario.id", ondelete="SET NULL"), nullable=True)
     # Papel do usuário no momento da ação (não o papel atual dele) — se o usuário
     # mudar de papel ou for removido depois, o log continua contando a história certa.
     papel_usuario = Column("papel_usuario", Enum("admin", "professor", "estudante", name="tipo_usuario_enum"), nullable=False)
