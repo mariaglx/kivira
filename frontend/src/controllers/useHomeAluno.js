@@ -9,16 +9,38 @@ export function useHomeAluno() {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    Promise.all([apiRequest("/aluno/me"), apiRequest("/atividade/aluno/minhas")])
+    let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
+
+    Promise.all([
+      apiRequest("/aluno/me", opcoesFetch),
+      apiRequest("/atividade/aluno/minhas", opcoesFetch),
+    ])
       .then(([perfil, lista]) => {
+        if (cancelado) return;
         setAluno(perfil);
         setAtividades(lista);
       })
-      .catch(() => navigate("/", { replace: true }))
-      .finally(() => setCarregando(false));
+      .catch((erro) => {
+        if (!cancelado && erro.name !== "AbortError") navigate("/", { replace: true });
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
-  const sair = () => {
+  const sair = async () => {
+    try {
+      await apiRequest("/auth_kivira/logout", { method: "POST" });
+    } catch {
+      // ignora: logout local não pode ficar travado por causa do log
+    }
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_type");

@@ -10,20 +10,24 @@ export function useProfessorAtual() {
 
   useEffect(() => {
     let cancelado = false;
+    const controller = new AbortController();
 
-    apiRequest("/professor/me")
+    apiRequest("/professor/me", { signal: controller.signal })
       .then((dados) => {
         if (!cancelado) setProfessor(dados);
       })
-      .catch((erro) => console.error("Erro ao buscar professor logado:", erro.message))
+      .catch((erro) => {
+        if (erro.name !== "AbortError") console.error("Erro ao buscar professor logado:", erro.message);
+      })
       .finally(() => {
         if (!cancelado) setCarregando(false);
       });
 
     return () => {
       cancelado = true;
+      controller.abort();
     };
   }, []);
 
-  return { professor, carregando };
+  return { professor, setProfessor, carregando };
 }

@@ -7,7 +7,9 @@ from models.aluno_turma import AlunoTurma
 from models.atividade import Atividade
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
+from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
+from services.auditoria_service import registrar_log
 
 turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -35,9 +37,27 @@ async def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
     if usuario.tipo == "admin":
         turmas = session.query(Turma).all()
-    else: 
+    else:
         turmas = session.query(Turma).filter(Turma.professor_id == professor.id).all()
 
+    # Antes: 1 query de contagem por turma (x2, alunos + atividades) dentro do loop —
+    # com N turmas isso virava 1 + 2N idas ao banco. Agora são só 3 no total,
+    # não importa quantas turmas existam.
+    turma_ids = [turma.id for turma in turmas]
+
+    alunos_por_turma = dict(
+        session.query(AlunoTurma.turma_id, func.count(AlunoTurma.id))
+        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1)
+        .group_by(AlunoTurma.turma_id)
+        .all()
+    ) if turma_ids else {}
+
+    atividades_por_turma = dict(
+        session.query(Atividade.turma_id, func.count(Atividade.id))
+        .filter(Atividade.turma_id.in_(turma_ids))
+        .group_by(Atividade.turma_id)
+        .all()
+    ) if turma_ids else {}
 
     return[
         {
@@ -48,12 +68,8 @@ async def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario
             "descricao": turma.descricao,
             "ativo": turma.ativo,
             "professor_id": turma.professor_id,
-            "alunos_count": session.query(AlunoTurma).filter(
-                AlunoTurma.turma_id == turma.id, AlunoTurma.ativo == 1
-            ).count(),
-            "atividades_count": session.query(Atividade).filter(
-                Atividade.turma_id == turma.id
-            ).count(),
+            "alunos_count": alunos_por_turma.get(turma.id, 0),
+            "atividades_count": atividades_por_turma.get(turma.id, 0),
         }
         for turma in turmas
     ]
@@ -93,6 +109,15 @@ async def criar_turma(turma_schema: TurmaSchema, session = Depends(pegar_sessao_
 
     session.add(nova_turma)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="CRIAR_TURMA",
+        entidade="turma",
+        entidade_id=nova_turma.id,
+        detalhes={"nome": nova_turma.nome, "professor_id": professor_id},
+    )
 
     return{"id": nova_turma.id, "mensagem": f"turma '{nova_turma.nome}' cadastrada com sucesso, codigo_acesso: {codigo}"}
     
@@ -145,6 +170,14 @@ async def editar_turma(id_turma: int, turma_schema: TurmaUpdateSchema, session =
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_TURMA",
+        entidade="turma",
+        entidade_id=turma.id,
+    )
+
     return {"mensagem": f"Turma '{turma.nome}' atualizada com sucesso"}
 
 # Faz a exclusão de uma turma a partir de um ID
@@ -160,7 +193,17 @@ async def deletar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), u
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     nome_turma = turma.nome
+    id_turma_excluida = turma.id
     session.delete(turma)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_TURMA",
+        entidade="turma",
+        entidade_id=id_turma_excluida,
+        detalhes={"nome": nome_turma},
+    )
 
     return {"mensagem": f"Turma '{nome_turma}' excluída com sucesso"}

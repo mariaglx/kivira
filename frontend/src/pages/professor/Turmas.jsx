@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { SearchIcon } from "../../components/icons/search";
@@ -12,23 +12,41 @@ export function Turmas() {
   const [alunosVisualizados, setAlunosVisualizados] = useState([]);
   const [carregandoAlunos, setCarregandoAlunos] = useState(false);
 
+  // Guarda qual turma foi clicada por último — se o professor clicar em "Ver
+  // turma" de A e depois de B antes da resposta de A voltar, essa referência
+  // garante que só a resposta da turma ainda selecionada (B) é aplicada,
+  // mesmo que a resposta de A chegue depois da de B.
+  const turmaVisualizadaIdRef = useRef(null);
+
   const abrirVerTurma = (turma) => {
+    turmaVisualizadaIdRef.current = turma.id;
     setTurmaVisualizada(turma);
     setAlunosVisualizados([]);
     setCarregandoAlunos(true);
     apiRequest(`/aluno_turma/turma/${turma.id}`)
-      .then(setAlunosVisualizados)
-      .finally(() => setCarregandoAlunos(false));
+      .then((dados) => {
+        if (turmaVisualizadaIdRef.current === turma.id) setAlunosVisualizados(dados);
+      })
+      .finally(() => {
+        if (turmaVisualizadaIdRef.current === turma.id) setCarregandoAlunos(false);
+      });
   };
 
-  const fecharVerTurma = () => setTurmaVisualizada(null);
+  const fecharVerTurma = () => {
+    turmaVisualizadaIdRef.current = null;
+    setTurmaVisualizada(null);
+  };
 
   useEffect(() => {
+    let cancelado = false;
+    const controller = new AbortController();
+
     async function carregarTurmas() {
       try {
-        const response = await apiRequest("/turma/");
-        setListaTurmas(Array.isArray(response) ? response : []);
+        const response = await apiRequest("/turma/", { signal: controller.signal });
+        if (!cancelado) setListaTurmas(Array.isArray(response) ? response : []);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Erro ao carregar turmas:", err.message);
         if (
           err.message?.includes("Token") ||
@@ -39,11 +57,16 @@ export function Turmas() {
           navigate("/login");
         }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
 
     carregarTurmas();
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
   // Filtra as turmas com base no input de pesquisa
@@ -222,3 +245,4 @@ export function Turmas() {
     </>
   );
 }
+export default Turmas;

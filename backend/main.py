@@ -31,6 +31,7 @@ from routes.aluno_turma import aluno_turma_router
 from routes.ia import ia_router
 from routes.avatar import avatar_router
 from routes.pixabay import pixabay_router
+from routes.admin import admin_router
 # from routes.materia import materia_router
 
 app.include_router(professor_router)
@@ -48,4 +49,5 @@ app.include_router(aluno_turma_router)
 app.include_router(ia_router)
 app.include_router(avatar_router)
 app.include_router(pixabay_router)
+app.include_router(admin_router)
 # app.include_router(materia_router)

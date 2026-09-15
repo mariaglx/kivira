@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { buscarAvatares } from "../services/avatarService";
 
 export function useEscolherAvatar() {
   const navigate = useNavigate();
@@ -12,13 +13,29 @@ export function useEscolherAvatar() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    apiRequest("/avatar/")
-      .then(setAvatares)
-      .catch((e) => setErro(e.message || "Não foi possível carregar os avatares."));
+    let cancelado = false;
+    const controller = new AbortController();
 
-    apiRequest("/aluno/me")
-      .then((aluno) => setAlunoId(aluno.id))
-      .catch(() => navigate("/", { replace: true }));
+    buscarAvatares()
+      .then((dados) => {
+        if (!cancelado) setAvatares(dados);
+      })
+      .catch((e) => {
+        if (!cancelado) setErro(e.message || "Não foi possível carregar os avatares.");
+      });
+
+    apiRequest("/aluno/me", { signal: controller.signal })
+      .then((aluno) => {
+        if (!cancelado) setAlunoId(aluno.id);
+      })
+      .catch((e) => {
+        if (!cancelado && e.name !== "AbortError") navigate("/", { replace: true });
+      });
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
   const categorias = ["todos", ...new Set(avatares.map((a) => a.categoria))];

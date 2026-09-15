@@ -13,11 +13,17 @@ export function Dashboard() {
   });
 
   useEffect(() => {
+    let cancelado = false;
+    const controller = new AbortController();
+
     async function carregarDashboard() {
       try {
-        const response = await apiRequest("/professor/dashboard/resumo");
-        setDados(response);
+        const response = await apiRequest("/professor/dashboard/resumo", {
+          signal: controller.signal,
+        });
+        if (!cancelado) setDados(response);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Erro ao carregar dados do dashboard:", err.message);
         if (
           err.message?.includes("Token") ||
@@ -28,11 +34,16 @@ export function Dashboard() {
           navigate("/login");
         }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
 
     carregarDashboard();
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
@@ -191,3 +202,5 @@ export function Dashboard() {
     </>
   );
 }
+
+export default Dashboard;

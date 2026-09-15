@@ -40,10 +40,17 @@ export function useTurmaForm() {
     if (!modoEdicao) return;
 
     let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
+
+    // /atividade/professor/minhas?turma_id=<id>: antes buscava TODAS as
+    // atividades do professor (de todas as turmas) só pra filtrar no cliente
+    // as dessa turma — quanto mais atividades o professor tivesse, mais lento
+    // ficava abrir qualquer turma pra editar.
     Promise.all([
-      apiRequest(`/turma/${id}`),
-      apiRequest(`/aluno_turma/turma/${id}`),
-      apiRequest("/atividade/professor/minhas"),
+      apiRequest(`/turma/${id}`, opcoesFetch),
+      apiRequest(`/aluno_turma/turma/${id}`, opcoesFetch),
+      apiRequest(`/atividade/professor/minhas?turma_id=${id}`, opcoesFetch),
     ])
       .then(([turma, dadosAlunos, dadosAtividades]) => {
         if (cancelado) return;
@@ -58,20 +65,19 @@ export function useTurmaForm() {
         setAlunos(
           ordenarPorTexto(dadosAlunos, (a) => a.apelido || a.nome_completo),
         );
-        setAtividades(
-          ordenarPorTexto(
-            dadosAtividades.filter((a) => a.turma_id === Number(id)),
-            (a) => a.titulo,
-          ),
-        );
+        setAtividades(ordenarPorTexto(dadosAtividades, (a) => a.titulo));
       })
-      .catch((err) => setErro(err.message || "Não foi possível carregar a turma"))
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setErro(err.message || "Não foi possível carregar a turma");
+      })
       .finally(() => {
         if (!cancelado) setCarregando(false);
       });
 
     return () => {
       cancelado = true;
+      controller.abort();
     };
   }, [id, modoEdicao]);
 

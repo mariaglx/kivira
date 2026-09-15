@@ -40,11 +40,17 @@ export function Atividades() {
   }
 
   useEffect(() => {
+    let cancelado = false;
+    const controller = new AbortController();
+
     async function carregarAtividades() {
       try {
-        const response = await apiRequest("/atividade/professor/minhas");
-        setListaAtividades(Array.isArray(response) ? response : []);
+        const response = await apiRequest("/atividade/professor/minhas", {
+          signal: controller.signal,
+        });
+        if (!cancelado) setListaAtividades(Array.isArray(response) ? response : []);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Erro ao carregar atividades:", err.message);
         if (
           err.message?.includes("Token") ||
@@ -55,11 +61,16 @@ export function Atividades() {
           navigate("/login");
         }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
 
     carregarAtividades();
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
   const atividadesFiltradas = listaAtividades.filter(
@@ -289,3 +300,5 @@ export function Atividades() {
     </>
   );
 }
+
+export default Atividades;
