@@ -5,11 +5,12 @@
 # em desenvolvimento local.
 
 import json
+import httpx
 from google import genai
 from google.genai import types
-from google.genai.errors import APIError
+from google.genai.errors import APIError, UnknownApiResponseError
 from fastapi import HTTPException
-from core.config import GEMINI_API_KEY, GEMINI_MODEL
+from core.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT_SEG
 from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA
 
 _client: genai.Client | None = None
@@ -20,7 +21,10 @@ def _obter_client() -> genai.Client:
     if _client is None:
         if not GEMINI_API_KEY:
             raise HTTPException(status_code=503, detail="GEMINI_API_KEY não configurada no servidor.")
-        _client = genai.Client(api_key=GEMINI_API_KEY)
+        _client = genai.Client(
+            api_key=GEMINI_API_KEY,
+            http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_SEG * 1000),
+        )
     return _client
 
 
@@ -87,6 +91,11 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
     config = types.GenerateContentConfig(
         system_instruction=montar_prompt_sistema(),
         response_mime_type="application/json",
+        # Não usamos tools/function calling aqui — desliga o AFC pra evitar o
+        # warning "Direct use of automatic function calling (AFC) in
+        # AsyncModels.generate_content is not recommended" que o SDK loga por
+        # padrão em toda chamada a generate_content.
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
 
     try:
@@ -95,7 +104,11 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
             contents=montar_prompt_usuario(dados, quantidade_faltante),
             config=config,
         )
-    except APIError:
+    except httpx.HTTPError:
+        # Falha de rede/timeout ao tentar alcançar a API do Gemini (não chega
+        # a virar APIError porque nem retorna uma resposta HTTP completa).
+        raise HTTPException(status_code=503, detail="Não foi possível conectar à API do Gemini. Tente novamente.")
+    except (APIError, UnknownApiResponseError):
         raise HTTPException(status_code=502, detail="O Gemini retornou um erro ao gerar as questões.")
 
     dados_json = extrair_json_da_resposta(resposta.text or "")
