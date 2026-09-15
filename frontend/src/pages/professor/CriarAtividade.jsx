@@ -1,23 +1,152 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Link, useParams, useLocation } from "react-router-dom";
+import { Reorder, AnimatePresence, useDragControls } from "motion/react";
 import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
+import { apiRequest } from "../../services/api";
+import { SearchIcon } from "../../components/icons/search";
+import { XIcon } from "../../components/icons/x";
 
-const API_URL = "http://localhost:8000"; // Temporário, apenas para teste das atividades
+// Um card de questão arrastável — precisa ser seu próprio componente pra cada
+// um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
+// em vez do card inteiro virar arrastável e atrapalhar o clique nos campos)
+function QuestaoCard({
+  questao,
+  index,
+  erro,
+  tentativaInvalida,
+  podeRemover,
+  onMudarBloco,
+  onRemover,
+  registrarInputRef,
+}) {
+  const dragControls = useDragControls();
 
-const TOKEN_TEMPORARIO =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NCIsImV4cCI6MTc4ODEyNjQzNn0.rdtRcy1OTN768SmvMmihnYTOloU9buH7w-L9pmu9N1A"; // usuario_id=54, professor_id=32 — válido por 7 dias a partir de 23/08/2026
+  return (
+    <Reorder.Item
+      value={questao}
+      as="div"
+      dragListener={false}
+      dragControls={dragControls}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="mb-3"
+    >
+      <div
+        key={erro ? `erro-${tentativaInvalida}` : "ok"}
+        className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
+          erro
+            ? "border-red-300 animate-tremida-leve"
+            : "border-cinza-claro/10"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-azul/40">
+            Questão {questao.ordem}
+          </span>
+          <div className="flex items-center gap-1">
+            <span
+              onPointerDown={(e) => dragControls.start(e)}
+              title="Arraste para reordenar"
+              className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/60 transition-colors select-none touch-none"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="w-3.5 h-3.5"
+              >
+                <circle cx="5" cy="3" r="1.3" />
+                <circle cx="11" cy="3" r="1.3" />
+                <circle cx="5" cy="8" r="1.3" />
+                <circle cx="11" cy="8" r="1.3" />
+                <circle cx="5" cy="13" r="1.3" />
+                <circle cx="11" cy="13" r="1.3" />
+              </svg>
+            </span>
+            <button
+              type="button"
+              onClick={() => onRemover(index)}
+              disabled={!podeRemover}
+              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-red-500 disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
+            >
+              ×
+            </button>
+          </div>
+        </div>
 
-// TODO: Fazer puxar das turmas cadastradas posteriormente
-const TURMAS_MOCK = [
-  { id: 1, nome: "3º Ano A" },
-  { id: 2, nome: "4º Ano B" },
-  { id: 3, nome: "2º Ano A" },
-];
+        {erro && (
+          <p className="text-xs font-bold text-red-500 -mt-1.5">
+            Questão não pode estar em branco
+          </p>
+        )}
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+            Texto da pergunta
+          </label>
+          <input
+            ref={(el) => registrarInputRef(`${questao.localId}-texto`, el)}
+            type="text"
+            value={questao.texto_questao}
+            onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
+            placeholder="Ex: Qual o som que a vaca faz?"
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+              erro?.texto
+                ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
+            }`}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+            Resposta certa
+          </label>
+          <input
+            ref={(el) => registrarInputRef(`${questao.localId}-resposta`, el)}
+            type="text"
+            value={questao.resposta_certa}
+            onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
+            placeholder="Ex: Muuuu"
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+              erro?.resposta
+                ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
+            }`}
+          />
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+// Monta a lista de números de página a mostrar, sempre com a primeira e a última
+// visíveis e "..." no lugar do que fica longe da página atual — evita uma barra
+// gigante quando o Pixabay devolve muitas páginas (até 25, no limite da API)
+function gerarPaginasVisiveis(paginaAtual, totalPaginas) {
+  const vizinhanca = 1;
+  const paginas = [];
+
+  for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+    const ehBorda = pagina === 1 || pagina === totalPaginas;
+    const ehVizinha = Math.abs(pagina - paginaAtual) <= vizinhanca;
+
+    if (ehBorda || ehVizinha) {
+      paginas.push(pagina);
+    } else if (paginas[paginas.length - 1] !== "...") {
+      paginas.push("...");
+    }
+  }
+
+  return paginas;
+}
 
 export function CriarAtividade() {
-  const navigate = useNavigate();
+  const { id: idRota } = useParams();
+  const { state } = useLocation();
   const {
     formData,
     setFormData,
@@ -29,29 +158,45 @@ export function CriarAtividade() {
     handleChangeBloco,
     adicionarQuestao,
     removerQuestao,
-    moverQuestao,
+    gerandoIA,
+    erroIA,
+    setErroIA,
+    modalImagemAberto,
+    abrirBuscaImagem,
+    fecharBuscaImagem,
+    termoBuscaImagem,
+    setTermoBuscaImagem,
+    imagensPixabay,
+    buscandoImagens,
+    erroBuscaImagem,
+    setErroBuscaImagem,
+    buscarImagensPixabay,
+    selecionarImagemPixabay,
+    paginaAtual,
+    totalPaginasImagens,
+    irParaPaginaImagem,
+    gerarQuestoesComIA,
+    abaImagem,
+    setAbaImagem,
+    enviandoImagem,
+    erroUploadImagem,
+    setErroUploadImagem,
+    enviarImagemDoComputador,
   } = useCriarAtividade();
+  const [turmas, setTurmas] = useState([]);
+  const [erroTurmas, setErroTurmas] = useState(null);
   const [idAtividadeCriada, setIdAtividadeCriada] = useState(null);
   const [codigoAtividade, setCodigoAtividade] = useState(null);
   const [codigoCopiado, setCodigoCopiado] = useState(false);
   const [mostrarSucesso, setMostrarSucesso] = useState(false);
   const [foiCriacao, setFoiCriacao] = useState(true);
   const [mensagemErro, setMensagemErro] = useState(null);
-  const [removendoId, setRemovendoId] = useState(null);
-  const [entrandoId, setEntrandoId] = useState(null);
-  const [arrastandoId, setArrastandoId] = useState(null);
-  const [indiceAlvo, setIndiceAlvo] = useState(null);
-  const [posicaoPointer, setPosicaoPointer] = useState({ x: 0, y: 0 });
-  const [offsetPointer, setOffsetPointer] = useState({ x: 0, y: 0 });
-  const [larguraCard, setLarguraCard] = useState(0);
-  const [alturaCard, setAlturaCard] = useState(0);
+  const [salvando, setSalvando] = useState(false);
+  const [carregandoEdicao, setCarregandoEdicao] = useState(!!idRota);
   const [questoesInvalidas, setQuestoesInvalidas] = useState({});
   const [tentativaInvalida, setTentativaInvalida] = useState(0);
-  const cardRefs = useRef({});
-  const wrapperRefs = useRef({});
   const inputRefs = useRef({});
-  const posicoesAntesRef = useRef(null);
-  const indiceAlvoRef = useRef(null);
+  const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
 
   // Embrulha o handleChangeBloco do hook: além de atualizar o dado, limpa o erro de validação do campo que acabou de ser corrigido
   const aoMudarBloco = (index, campo, valor) => {
@@ -77,134 +222,11 @@ export function CriarAtividade() {
     });
   };
 
-  // Embrulha o adicionarQuestao do hook com a animação de entrada
-  const aoClicarAdicionar = () => {
-    const novaQuestao = adicionarQuestao();
-    setEntrandoId(novaQuestao.localId);
-    setTimeout(() => setEntrandoId(null), 20);
+  // Reordena por arrastar (Reorder, da motion) — recebe o array já na nova ordem
+  // e só precisa renumerar o campo "ordem" de cada questão
+  const handleReorder = (novaOrdem) => {
+    setQuestoes(novaOrdem.map((q, i) => ({ ...q, ordem: i + 1 })));
   };
-
-  // Embrulha o removerQuestao do hook com a animação de saída
-  const aoRemoverQuestao = (index) => {
-    if (questoes.length <= 1) return;
-    const questaoRemovida = questoes[index];
-    setRemovendoId(questaoRemovida.localId);
-    setTimeout(() => {
-      removerQuestao(index);
-      setRemovendoId(null);
-    }, 300);
-  };
-
-  // Guarda a posição atual de cada card antes do "buraco" mudar de lugar, pra poder animar o deslize (técnica FLIP)
-  const capturarPosicoesAntes = () => {
-    const posicoes = {};
-    Object.entries(wrapperRefs.current).forEach(([id, el]) => {
-      if (el) posicoes[id] = el.getBoundingClientRect().top;
-    });
-    posicoesAntesRef.current = posicoes;
-  };
-
-  // Depois que o "buraco" muda de lugar e a lista já re-renderizou: cada card que mudou de posição
-  // começa "teletransportado" de volta pro lugar antigo (sem transição) e desliza suavemente até o novo lugar
-  useLayoutEffect(() => {
-    const antes = posicoesAntesRef.current;
-    if (!antes) return;
-    posicoesAntesRef.current = null;
-
-    Object.entries(wrapperRefs.current).forEach(([id, el]) => {
-      if (!el || antes[id] === undefined) return;
-      const depois = el.getBoundingClientRect().top;
-      const delta = antes[id] - depois;
-      if (Math.abs(delta) < 1) return;
-
-      el.style.transition = "none";
-      el.style.transform = `translateY(${delta}px)`;
-
-      // Espera o navegador pintar o estado "deslocado" antes de animar de volta, senão não tem transição pra ver
-      setTimeout(() => {
-        el.style.transition = "transform 220ms ease-out";
-        el.style.transform = "";
-        setTimeout(() => {
-          el.style.transition = "";
-        }, 240);
-      }, 20);
-    });
-  }, [indiceAlvo]);
-
-  // Pega o card inteiro (com o conteúdo real) e o "descola" da lista, seguindo o mouse
-  const iniciarArrasto = (e, questao) => {
-    e.preventDefault();
-    const cardOriginal = cardRefs.current[questao.localId];
-    if (!cardOriginal) return;
-
-    const rect = cardOriginal.getBoundingClientRect();
-    const origemIndex = questoes.findIndex(
-      (q) => q.localId === questao.localId,
-    );
-
-    setArrastandoId(questao.localId);
-    indiceAlvoRef.current = origemIndex; // o "buraco" começa exatamente onde o card estava
-    setIndiceAlvo(origemIndex);
-    setLarguraCard(rect.width);
-    setAlturaCard(rect.height);
-    setOffsetPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-    setPosicaoPointer({ x: e.clientX, y: e.clientY });
-  };
-
-  // Enquanto arrasta: só atualiza o "buraco" (preview) — nada é decidido de verdade até soltar
-  useEffect(() => {
-    if (!arrastandoId) return;
-
-    document.body.style.cursor = "grabbing";
-    document.body.style.userSelect = "none";
-
-    const aoMoverMouse = (e) => {
-      setPosicaoPointer({ x: e.clientX, y: e.clientY });
-
-      const elementoSobre = document.elementFromPoint(e.clientX, e.clientY);
-      const cardSobre = elementoSobre?.closest("[data-questao-local-id]");
-      const idSobre = cardSobre?.dataset.questaoLocalId;
-      if (!idSobre || idSobre === arrastandoId) return;
-
-      const semOrigem = questoes.filter((q) => q.localId !== arrastandoId);
-      const alvoIndex = semOrigem.findIndex((q) => q.localId === idSobre);
-      if (alvoIndex === -1) return;
-
-      // Metade de cima do card alvo = buraco entra antes dele; metade de baixo = entra depois
-      const rectAlvo = cardSobre.getBoundingClientRect();
-      const entrarDepois = e.clientY > rectAlvo.top + rectAlvo.height / 2;
-
-      const novoIndiceAlvo = entrarDepois ? alvoIndex + 1 : alvoIndex;
-      if (novoIndiceAlvo === indiceAlvoRef.current) return;
-
-      capturarPosicoesAntes();
-      indiceAlvoRef.current = novoIndiceAlvo;
-      setIndiceAlvo(novoIndiceAlvo);
-    };
-
-    const aoSoltarMouse = () => {
-      const origemIndex = questoes.findIndex((q) => q.localId === arrastandoId);
-      const destino = indiceAlvoRef.current;
-      if (origemIndex !== -1 && destino !== null) {
-        moverQuestao(origemIndex, destino);
-        // Reaproveita a mesma animação de "entrada" pro card pousar suave na nova posição
-        setEntrandoId(arrastandoId);
-        setTimeout(() => setEntrandoId(null), 20);
-      }
-      indiceAlvoRef.current = null;
-      setIndiceAlvo(null);
-      setArrastandoId(null);
-    };
-
-    window.addEventListener("mousemove", aoMoverMouse);
-    window.addEventListener("mouseup", aoSoltarMouse);
-    return () => {
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      window.removeEventListener("mousemove", aoMoverMouse);
-      window.removeEventListener("mouseup", aoSoltarMouse);
-    };
-  }, [arrastandoId, questoes]);
 
   // Depois que a lista re-renderiza com os cards em erro, rola até o primeiro e foca no campo vazio
   useEffect(() => {
@@ -222,6 +244,93 @@ export function CriarAtividade() {
     }
   }, [tentativaInvalida]);
 
+  // Carrega as turmas do professor logado assim que a tela abre
+  useEffect(() => {
+    const controller = new AbortController();
+
+    apiRequest("/turma/", { signal: controller.signal })
+      .then(setTurmas)
+      .catch((erro) => {
+        if (erro.name !== "AbortError") setErroTurmas(erro.message);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  // Veio de "+ Nova atividade" de dentro de uma turma (TurmaForm.jsx) — a
+  // turma já chega pré-selecionada, só se aplica na criação (edição carrega
+  // a turma real da própria atividade no efeito de baixo)
+  useEffect(() => {
+    if (!idRota && state?.turmaIdPadrao) {
+      setFormData((atual) => ({ ...atual, turma_id: String(state.turmaIdPadrao) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Modo edição: a rota veio com um :id (botão "Editar" da lista de atividades) —
+  // carrega a atividade e as questões já existentes pra dentro do formulário
+  useEffect(() => {
+    if (!idRota) return;
+
+    let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
+
+    Promise.all([
+      apiRequest(`/atividade/${idRota}`, opcoesFetch),
+      apiRequest(`/atividade/${idRota}/questoes`, opcoesFetch),
+    ])
+      .then(([atividade, dadosQuestoes]) => {
+        if (cancelado) return;
+
+        const questoesCarregadas = dadosQuestoes.questoes.map((q) => {
+          const opcaoCorreta =
+            q.opcoes.find((o) => o.correta) || q.opcoes[0] || null;
+          return {
+            localId: crypto.randomUUID(),
+            ordem: q.ordem,
+            texto_questao: q.texto_questao,
+            resposta_certa: opcaoCorreta?.texto_opcao || "",
+            questaoId: q.id,
+            opcaoId: opcaoCorreta?.id || null,
+          };
+        });
+
+        setFormData((atual) => ({
+          ...atual,
+          titulo: atividade.titulo || "",
+          tipo_atividade: atividade.tipo_atividade || "arrastar_soltar",
+          turma_id: atividade.turma_id ? String(atividade.turma_id) : "",
+          descricao: atividade.descricao || "",
+          disciplina: atividade.disciplina || "",
+          dificuldade: atividade.dificuldade || "facil",
+          imagem_atividade_url: atividade.imagem_atividade_url || "",
+          // Se já existem questões salvas, o número de blocos precisa bater com
+          // elas (senão o campo "Blocos" mostra um número que não confere com
+          // os cards de questão exibidos abaixo)
+          quantidade_blocos:
+            questoesCarregadas.length || atividade.quantidade_blocos,
+          tempo_limite_seg: atividade.tempo_limite_seg || "",
+        }));
+
+        if (questoesCarregadas.length > 0) setQuestoes(questoesCarregadas);
+        setIdAtividadeCriada(atividade.id);
+        if (atividade.codigo_atividade) setCodigoAtividade(atividade.codigo_atividade);
+      })
+      .catch((erro) => {
+        if (erro.name === "AbortError") return;
+        setMensagemErro(erro.message || "Não foi possível carregar a atividade");
+      })
+      .finally(() => {
+        if (!cancelado) setCarregandoEdicao(false);
+      });
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
+  }, [idRota, setFormData, setQuestoes]);
+
   const copiarCodigo = async () => {
     if (!codigoAtividade) return;
 
@@ -237,6 +346,11 @@ export function CriarAtividade() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Trava contra duplo clique/duplo submit: sem isso, um clique repetido enquanto
+    // a primeira chamada ainda está em voo cria uma atividade nova a cada clique
+    // (foi exatamente isso que gerou várias atividades idênticas e incompletas no banco)
+    if (salvando) return;
 
     const novasInvalidas = {};
     questoes.forEach((questao) => {
@@ -256,11 +370,8 @@ export function CriarAtividade() {
       return;
     }
 
-    const urlAtividade = idAtividadeCriada
-      ? `${API_URL}/atividade/${idAtividadeCriada}`
-      : `${API_URL}/atividade/criar_atividade`;
-
-    const metodoAtividade = idAtividadeCriada ? "PATCH" : "POST";
+    setSalvando(true);
+    try {
 
     const corpoAtividade = {
       titulo: formData.titulo,
@@ -274,23 +385,19 @@ export function CriarAtividade() {
       tempo_limite_seg: formData.tempo_limite_seg || null,
     };
 
-    if (!idAtividadeCriada) {
-      corpoAtividade.professor_id = 32; //TODO remover id fixo mais tarde
-    }
-
-    const respostaAtividade = await fetch(urlAtividade, {
-      method: metodoAtividade,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
-      },
-      body: JSON.stringify(corpoAtividade),
-    });
-
-    const dadosAtividade = await respostaAtividade.json();
-
-    if (!respostaAtividade.ok) {
-      setMensagemErro(dadosAtividade.detail || "Erro ao criar atividade");
+    let dadosAtividade;
+    try {
+      dadosAtividade = await apiRequest(
+        idAtividadeCriada
+          ? `/atividade/${idAtividadeCriada}`
+          : "/atividade/criar_atividade",
+        {
+          method: idAtividadeCriada ? "PATCH" : "POST",
+          data: corpoAtividade,
+        },
+      );
+    } catch (erro) {
+      setMensagemErro(erro.message || "Erro ao criar atividade");
       return;
     }
 
@@ -299,296 +406,62 @@ export function CriarAtividade() {
       setCodigoAtividade(dadosAtividade.codigo_atividade);
     }
 
-    for (const questao of questoes) {
-      const urlQuestao = questao.questaoId
-        ? `${API_URL}/questao/${questao.questaoId}`
-        : `${API_URL}/questao/criar`;
-
-      const metodoQuestao = questao.questaoId ? "PATCH" : "POST";
-
-      const corpoQuestao = {
-        texto_questao: questao.texto_questao,
-        tipo_questao: formData.tipo_atividade,
-        ordem: questao.ordem,
-        pontos: 10,
-      };
-
-      if (!questao.questaoId) {
-        corpoQuestao.atividade_id = atividadeId;
-      }
-
-      const respostaQuestao = await fetch(urlQuestao, {
-        method: metodoQuestao,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
+    // Salva todas as questões (+ respostas) numa única requisição — antes era
+    // 1 POST/PATCH por questão + 1 POST/PATCH por opção, em série (até 24
+    // requests pros 12 blocos padrão, ~50s no fim a fim contra o banco na nuvem).
+    let respostaQuestoes;
+    try {
+      respostaQuestoes = await apiRequest(`/atividade/${atividadeId}/questoes`, {
+        method: "PUT",
+        data: {
+          questoes: questoes.map((questao) => ({
+            questao_id: questao.questaoId || null,
+            opcao_id: questao.opcaoId || null,
+            texto_questao: questao.texto_questao,
+            ordem: questao.ordem,
+            pontos: 10,
+            resposta_certa: questao.resposta_certa,
+          })),
+          remover_questao_ids: questoesParaRemover,
         },
-        body: JSON.stringify(corpoQuestao),
       });
-
-      const dadosQuestao = await respostaQuestao.json();
-
-      if (!respostaQuestao.ok) {
-        setMensagemErro(
-          `Erro na questão ${questao.ordem}: ${dadosQuestao.detail}`,
-        );
-        return;
-      }
-
-      const questaoID = questao.questaoId || dadosQuestao.id;
-
-      const urlOpcao = questao.opcaoId
-        ? `${API_URL}/opcao_questao/${questao.opcaoId}`
-        : `${API_URL}/opcao_questao/criar`;
-
-      const metodoOpcao = questao.opcaoId ? "PATCH" : "POST";
-
-      const corpoOpcao = {
-        texto_opcao: questao.resposta_certa,
-      };
-
-      if (!questao.opcaoId) {
-        corpoOpcao.questao_id = questaoID;
-        corpoOpcao.correta = 1;
-      }
-
-      const respostaOpcao = await fetch(urlOpcao, {
-        method: metodoOpcao,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
-        },
-        body: JSON.stringify(corpoOpcao),
-      });
-
-      const dadosOpcao = await respostaOpcao.json();
-
-      if (!respostaOpcao.ok) {
-        setMensagemErro(
-          `Erro na resposta da questão ${questao.ordem}: ${dadosOpcao.detail}`,
-        );
-        return;
-      }
-
-      setQuestoes((atual) =>
-        atual.map((q) =>
-          q.ordem === questao.ordem
-            ? {
-                ...q,
-                questaoId: questaoID,
-                opcaoId: questao.opcaoId || dadosOpcao.id,
-              }
-            : q,
-        ),
-      );
+    } catch (erro) {
+      setMensagemErro(erro.message || "Erro ao salvar as questões");
+      return;
     }
 
-    for (const idParaRemover of questoesParaRemover) {
-      const respostaDelete = await fetch(
-        `${API_URL}/questao/${idParaRemover}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${TOKEN_TEMPORARIO}`,
-          },
-        },
-      );
-
-      if (!respostaDelete.ok) {
-        const dadosDelete = await respostaDelete.json();
-        setMensagemErro(`Erro ao remover uma questão: ${dadosDelete.detail}`);
-        return;
-      }
-    }
+    const idsPorOrdem = new Map(
+      respostaQuestoes.questoes.map((q) => [q.ordem, q]),
+    );
+    setQuestoes((atual) =>
+      atual.map((q) => {
+        const salva = idsPorOrdem.get(q.ordem);
+        return salva
+          ? { ...q, questaoId: salva.questao_id, opcaoId: salva.opcao_id }
+          : q;
+      }),
+    );
 
     setQuestoesParaRemover([]);
 
-    setFoiCriacao(metodoAtividade === "POST");
+    setFoiCriacao(!idAtividadeCriada);
     setIdAtividadeCriada(atividadeId);
     setMostrarSucesso(true);
+    } finally {
+      setSalvando(false);
+    }
   };
 
-  const renderCardQuestao = (questao) => {
-    const index = questoes.findIndex((q) => q.localId === questao.localId);
-    const erro = questoesInvalidas[questao.localId];
-
+  if (carregandoEdicao) {
     return (
-      <div
-        key={questao.localId}
-        data-questao-local-id={questao.localId}
-        ref={(el) => {
-          wrapperRefs.current[questao.localId] = el;
-        }}
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          removendoId === questao.localId || entrandoId === questao.localId
-            ? "max-h-0 opacity-0 scale-95 mb-0"
-            : "max-h-[360px] opacity-100 scale-100 mb-3"
-        }`}
-      >
-        <div
-          key={erro ? `erro-${tentativaInvalida}` : "ok"}
-          ref={(el) => {
-            cardRefs.current[questao.localId] = el;
-          }}
-          className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
-            erro
-              ? "border-red-300 animate-tremida-leve"
-              : "border-cinza-claro/10"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-azul/40">
-              Questão {questao.ordem}
-            </span>
-            <div className="flex items-center gap-1">
-              <span
-                onMouseDown={(e) => iniciarArrasto(e, questao)}
-                title="Arraste para reordenar"
-                className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/60 transition-colors select-none"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="w-3.5 h-3.5"
-                >
-                  <circle cx="5" cy="3" r="1.3" />
-                  <circle cx="11" cy="3" r="1.3" />
-                  <circle cx="5" cy="8" r="1.3" />
-                  <circle cx="11" cy="8" r="1.3" />
-                  <circle cx="5" cy="13" r="1.3" />
-                  <circle cx="11" cy="13" r="1.3" />
-                </svg>
-              </span>
-              <button
-                type="button"
-                onClick={() => aoRemoverQuestao(index)}
-                disabled={questoes.length <= 1}
-                className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-red-500 disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-
-          {erro && (
-            <p className="text-xs font-bold text-red-500 -mt-1.5">
-              Questão não pode estar em branco
-            </p>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-              Texto da pergunta
-            </label>
-            <input
-              ref={(el) => {
-                inputRefs.current[`${questao.localId}-texto`] = el;
-              }}
-              type="text"
-              value={questao.texto_questao}
-              onChange={(e) =>
-                aoMudarBloco(index, "texto_questao", e.target.value)
-              }
-              placeholder="Ex: Qual o som que a vaca faz?"
-              className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
-                erro?.texto
-                  ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                  : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
-              }`}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-              Resposta certa
-            </label>
-            <input
-              ref={(el) => {
-                inputRefs.current[`${questao.localId}-resposta`] = el;
-              }}
-              type="text"
-              value={questao.resposta_certa}
-              onChange={(e) =>
-                aoMudarBloco(index, "resposta_certa", e.target.value)
-              }
-              placeholder="Ex: Muuuu"
-              className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
-                erro?.resposta
-                  ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                  : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
-              }`}
-            />
-          </div>
-        </div>
-      </div>
+      <main className="flex-1 p-8">
+        <p className="text-azul/60">Carregando atividade...</p>
+      </main>
     );
-  };
+  }
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      {/* 1. SIDEBAR (Barra Lateral Esquerda) */}
-      <aside className="w-64 bg-[#1e2a38] text-branco flex flex-col justify-between p-6 sticky top-0 h-screen self-start">
-        <div className="flex flex-col gap-8">
-          <div className="flex items-center gap-3">
-            <img src="/img/logo.png" alt="Logo" className="w-7 h-7" />
-            <span className="font-extrabold tracking-widest text-lg text-branco">
-              KIVIRA
-            </span>
-          </div>
-
-          <nav className="flex flex-col gap-6">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
-              Menu
-            </span>
-            <ul className="flex flex-col gap-2">
-              <li>
-                <a
-                  href="/professor"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Dashboard
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/turmas"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Turmas
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/atividades"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-branco/10 text-branco font-medium transition-all relative"
-                >
-                  <span className="w-2 h-2 rounded-full bg-coral absolute left-2"></span>
-                  <span className="pl-2">Atividades</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/professor/configuracoes"
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-branco/5 hover:text-branco transition-all font-medium"
-                >
-                  • Configurações
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3 border-t border-branco/10 pt-4 cursor-pointer hover:opacity-90 transition-opacity">
-          <div className="w-10 h-10 rounded-full bg-coral/80 flex items-center justify-center font-bold text-branco shadow-md">
-            P
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-sm text-branco">Professor(a)</span>
-            <span className="text-xs text-gray-400">Ver perfil →</span>
-          </div>
-        </div>
-      </aside>
-
+    <>
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-6">
         <header className="flex items-center gap-3">
@@ -625,82 +498,135 @@ export function CriarAtividade() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Disciplina
-              </label>
-              <input
-                type="text"
-                name="disciplina"
-                value={formData.disciplina}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  Disciplina
+                </label>
+                <input
+                  type="text"
+                  name="disciplina"
+                  value={formData.disciplina}
+                  onChange={handleChange}
+                  placeholder="Ex: Ciências"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <SelectCustom
+                  label="Turma"
+                  name="turma_id"
+                  value={formData.turma_id}
+                  onChange={handleChange}
+                  placeholder="Nenhuma (opcional)"
+                  options={turmas.map((turma) => ({
+                    value: String(turma.id),
+                    label: turma.nome,
+                  }))}
+                />
+                {erroTurmas && (
+                  <p className="text-[11px] text-red-500">
+                    Não foi possível carregar: {erroTurmas}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <hr className="m-0 border-t border-cinza-claro/60" />
+
+            <div className="grid grid-cols-2 gap-3">
+              <SelectCustom
+                label="Tipo de atividade"
+                name="tipo_atividade"
+                value={formData.tipo_atividade}
                 onChange={handleChange}
-                placeholder="Ex: Ciências"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                options={[
+                  { value: "arrastar_soltar", label: "Arrastar e soltar" },
+                  { value: "associacao", label: "Associação" },
+                  { value: "multipla_escolha", label: "Múltipla escolha" },
+                ]}
+              />
+
+              <SelectCustom
+                label="Dificuldade"
+                name="dificuldade"
+                value={formData.dificuldade}
+                onChange={handleChange}
+                options={[
+                  { value: "facil", label: "Fácil" },
+                  { value: "medio", label: "Médio" },
+                  { value: "dificil", label: "Difícil" },
+                ]}
               />
             </div>
 
-            <SelectCustom
-              label="Turma"
-              name="turma_id"
-              value={formData.turma_id}
-              onChange={handleChange}
-              placeholder="Nenhuma (opcional)"
-              options={TURMAS_MOCK.map((turma) => ({
-                value: String(turma.id),
-                label: turma.nome,
-              }))}
-            />
-
-            <SelectCustom
-              label="Tipo de atividade"
-              name="tipo_atividade"
-              value={formData.tipo_atividade}
-              onChange={handleChange}
-              options={[
-                { value: "arrastar_soltar", label: "Arrastar e soltar" },
-                { value: "associacao", label: "Associação" },
-                { value: "multipla_escolha", label: "Múltipla escolha" },
-              ]}
-            />
-
-            <SelectCustom
-              label="Dificuldade"
-              name="dificuldade"
-              value={formData.dificuldade}
-              onChange={handleChange}
-              options={[
-                { value: "facil", label: "Fácil" },
-                { value: "medio", label: "Médio" },
-                { value: "dificil", label: "Difícil" },
-              ]}
-            />
+            <hr className="m-0 border-t border-cinza-claro/60" />
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Descrição
+                Imagem da atividade
               </label>
-              <textarea
-                name="descricao"
-                value={formData.descricao}
-                onChange={handleChange}
-                placeholder="Uma breve descrição da atividade (opcional)"
-                rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                Imagem (URL)
-              </label>
-              <input
-                type="text"
-                name="imagem_atividade_url"
-                value={formData.imagem_atividade_url}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
-              />
+              <div className="flex gap-2 items-center">
+                {formData.imagem_atividade_url ? (
+                  <div className="relative group w-11 h-11 shrink-0">
+                    <img
+                      src={formData.imagem_atividade_url}
+                      alt="Prévia da imagem escolhida"
+                      className="w-11 h-11 rounded-xl object-cover border border-cinza-claro/30"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remover imagem"
+                      onClick={() =>
+                        setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
+                      }
+                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XIcon size={16} isAnimated={false} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => abrirBuscaImagem("enviar")}
+                    aria-label="Enviar imagem do computador"
+                    className="group relative w-11 h-11 rounded-xl border border-dashed border-cinza-claro/50 hover:border-coral/50 shrink-0 flex items-center justify-center text-azul/25 hover:text-coral transition-colors"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="group-hover:opacity-0 transition-opacity"
+                    >
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <circle cx="9" cy="9" r="2" />
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                    </svg>
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="w-4 h-4 absolute opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                      <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => abrirBuscaImagem("buscar")}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/60 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
+                >
+                  <SearchIcon size={14} isAnimated={false} />
+                  {formData.imagem_atividade_url ? "Trocar imagem" : "Escolher imagem"}
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -711,7 +637,7 @@ export function CriarAtividade() {
                 <button
                   type="button"
                   onClick={copiarCodigo}
-                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 hover:bg-bege/70 shadow-sm transition-all"
+                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco hover:bg-bege/40 shadow-sm transition-all"
                 >
                   <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
                     {codigoAtividade}
@@ -735,6 +661,62 @@ export function CriarAtividade() {
                 </div>
               )}
             </div>
+
+            <hr className="m-0 border-t border-cinza-claro/60" />
+
+            <button
+              type="button"
+              onClick={() => setMostrarDetalhes((atual) => !atual)}
+              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/55 hover:text-azul/80 transition-colors"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-3.5 h-3.5 transition-transform ${mostrarDetalhes ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              {mostrarDetalhes ? "Menos detalhes" : "Mais detalhes"}
+            </button>
+
+            {mostrarDetalhes && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Série/Ano
+                  </label>
+                  <input
+                    type="text"
+                    name="serie_ano"
+                    value={formData.serie_ano}
+                    onChange={handleChange}
+                    placeholder="Ex: 3º ano do Ensino Fundamental"
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  />
+                  <p className="text-[11px] text-azul/40">
+                    Usado apenas como contexto para a geração por IA.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                    Descrição
+                  </label>
+                  <textarea
+                    name="descricao"
+                    value={formData.descricao}
+                    onChange={handleChange}
+                    placeholder="Uma breve descrição da atividade (opcional)"
+                    rows={3}
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
@@ -776,10 +758,28 @@ export function CriarAtividade() {
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
 
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={gerarQuestoesComIA}
+                  disabled={gerandoIA}
+                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center gap-2"
+                >
+                  {gerandoIA ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-coral/40 border-t-coral rounded-full animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>✨ Gerar com IA</>
+                  )}
+                </button>
+
               <div className="relative group">
                 {idAtividadeCriada ? (
                   <Link
                     to="/jogo"
+                    state={{ atividadeId: idAtividadeCriada }}
                     className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
                   >
                     <svg
@@ -815,44 +815,51 @@ export function CriarAtividade() {
                   </div>
                 )}
               </div>
+              </div>
             </div>
 
-            <div className="flex flex-col">
-              {(() => {
-                if (!arrastandoId) {
-                  return questoes.map((questao) => renderCardQuestao(questao));
-                }
+            {erroIA && (
+              <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                <span>{erroIA}</span>
+                <button
+                  type="button"
+                  onClick={() => setErroIA(null)}
+                  className="font-bold hover:text-red-800"
+                >
+                  ×
+                </button>
+              </div>
+            )}
 
-                // Enquanto arrasta: mostra a lista sem o card de origem (ele vira o card flutuante)
-                // e insere um "buraco" no lugar onde ele cairia se você soltar agora
-                const semOrigem = questoes.filter(
-                  (q) => q.localId !== arrastandoId,
-                );
-                const alvo =
-                  indiceAlvo === null ? semOrigem.length : indiceAlvo;
-
-                const buraco = (
-                  <div
-                    key="buraco-preview"
-                    ref={(el) => {
-                      wrapperRefs.current.__gap__ = el;
+            <Reorder.Group
+              as="div"
+              axis="y"
+              values={questoes}
+              onReorder={handleReorder}
+              className="flex flex-col"
+            >
+              <AnimatePresence initial={false}>
+                {questoes.map((questao, index) => (
+                  <QuestaoCard
+                    key={questao.localId}
+                    questao={questao}
+                    index={index}
+                    erro={questoesInvalidas[questao.localId]}
+                    tentativaInvalida={tentativaInvalida}
+                    podeRemover={questoes.length > 1}
+                    onMudarBloco={aoMudarBloco}
+                    onRemover={removerQuestao}
+                    registrarInputRef={(chave, el) => {
+                      inputRefs.current[chave] = el;
                     }}
-                    style={{ height: alturaCard }}
-                    className="rounded-2xl border-2 border-dashed border-coral/40 bg-coral/5 mb-3 transition-all duration-150"
                   />
-                );
-
-                const itens = semOrigem.map((questao) =>
-                  renderCardQuestao(questao),
-                );
-                itens.splice(alvo, 0, buraco);
-                return itens;
-              })()}
-            </div>
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
 
             <button
               type="button"
-              onClick={aoClicarAdicionar}
+              onClick={() => adicionarQuestao()}
               className="w-full border-2 border-dashed border-coral/40 rounded-2xl py-4 flex items-center justify-center gap-2 text-coral font-bold text-sm hover:bg-branco/40 transition-all hover:scale-[1.01] active:scale-95"
             >
               + Adicionar questão
@@ -867,66 +874,19 @@ export function CriarAtividade() {
               </Link>
               <button
                 type="submit"
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                disabled={salvando}
+                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {idAtividadeCriada ? "Atualizar Atividade" : "Criar Atividade"}
+                {salvando
+                  ? "Salvando..."
+                  : idAtividadeCriada
+                    ? "Atualizar Atividade"
+                    : "Criar Atividade"}
               </button>
             </div>
           </div>
         </form>
       </main>
-
-      {/* Card "levantado" da lista enquanto está sendo arrastado — segue o mouse */}
-      {arrastandoId &&
-        (() => {
-          const questaoArrastada = questoes.find(
-            (q) => q.localId === arrastandoId,
-          );
-          if (!questaoArrastada) return null;
-
-          return (
-            <div
-              className="fixed z-50 pointer-events-none rotate-1"
-              style={{
-                left: posicaoPointer.x - offsetPointer.x,
-                top: posicaoPointer.y - offsetPointer.y,
-                width: larguraCard,
-              }}
-            >
-              <div className="bg-branco rounded-2xl p-5 shadow-2xl border border-cinza-claro/10 flex flex-col gap-3 scale-105">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-azul/40">
-                    Questão {questaoArrastada.ordem}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                    Texto da pergunta
-                  </label>
-                  <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
-                    {questaoArrastada.texto_questao || (
-                      <span className="text-azul/40">
-                        Ex: Qual o som que a vaca faz?
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                    Resposta certa
-                  </label>
-                  <div className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-sm truncate">
-                    {questaoArrastada.resposta_certa || (
-                      <span className="text-azul/40">Ex: Muuuu</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
@@ -1010,6 +970,216 @@ export function CriarAtividade() {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
+      {modalImagemAberto && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
+                <button
+                  type="button"
+                  role="tab"
+                  onClick={() => setAbaImagem("buscar")}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "buscar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                >
+                  Buscar imagem
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  onClick={() => setAbaImagem("enviar")}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "enviar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                >
+                  Enviar arquivo
+                </button>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={fecharBuscaImagem}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                <XIcon size={16} isAnimated={false} />
+              </button>
+            </div>
+
+            {abaImagem === "buscar" && (
+              <>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    buscarImagensPixabay();
+                  }}
+                  className="flex gap-2 mb-3"
+                >
+                  <input
+                    type="text"
+                    value={termoBuscaImagem}
+                    onChange={(e) => setTermoBuscaImagem(e.target.value)}
+                    placeholder="Ex: gato, escola, números..."
+                    autoFocus
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={buscandoImagens || !termoBuscaImagem.trim()}
+                    className="shrink-0 rounded-xl px-4 py-2.5 font-bold text-sm text-branco bg-coral hover:bg-coral/90 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center"
+                  >
+                    {buscandoImagens ? (
+                      <span className="w-3.5 h-3.5 border-2 border-branco/40 border-t-branco rounded-full animate-spin" />
+                    ) : (
+                      <SearchIcon size={16} isAnimated={false} />
+                    )}
+                  </button>
+                </form>
+
+                {erroBuscaImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
+                    <span>{erroBuscaImagem}</span>
+                    <button
+                      type="button"
+                      onClick={() => setErroBuscaImagem(null)}
+                      className="font-bold hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
+                  {imagensPixabay.length === 0 && !buscandoImagens && !erroBuscaImagem && (
+                    <p className="col-span-3 text-sm text-azul/40 text-center py-8">
+                      Busque um termo pra ver as imagens.
+                    </p>
+                  )}
+                  {imagensPixabay.map((imagem) => (
+                    <button
+                      key={imagem.id}
+                      type="button"
+                      onClick={() => selecionarImagemPixabay(imagem.url_imagem)}
+                      aria-label={`Selecionar imagem: ${imagem.tags}`}
+                      className={`aspect-square rounded-xl overflow-hidden transition ${
+                        formData.imagem_atividade_url === imagem.url_imagem
+                          ? "ring-4 ring-coral"
+                          : "ring-2 ring-transparent hover:ring-coral/40"
+                      }`}
+                    >
+                      <img
+                        src={imagem.url_preview}
+                        alt={imagem.tags}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {totalPaginasImagens > 1 && (
+                  <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => irParaPaginaImagem(paginaAtual - 1)}
+                      disabled={paginaAtual === 1 || buscandoImagens}
+                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
+                    >
+                      ‹
+                    </button>
+
+                    {gerarPaginasVisiveis(paginaAtual, totalPaginasImagens).map(
+                      (pagina, indice) =>
+                        pagina === "..." ? (
+                          <span
+                            key={`reticencias-${indice}`}
+                            className="px-1 text-azul/40 text-sm select-none"
+                          >
+                            …
+                          </span>
+                        ) : (
+                          <button
+                            key={pagina}
+                            type="button"
+                            onClick={() => irParaPaginaImagem(pagina)}
+                            disabled={buscandoImagens}
+                            className={`btn btn-sm border-none ${
+                              pagina === paginaAtual
+                                ? "bg-coral text-branco"
+                                : "btn-ghost text-azul/60"
+                            }`}
+                          >
+                            {pagina}
+                          </button>
+                        )
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => irParaPaginaImagem(paginaAtual + 1)}
+                      disabled={paginaAtual === totalPaginasImagens || buscandoImagens}
+                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {abaImagem === "enviar" && (
+              <div className="flex flex-col gap-4">
+                {erroUploadImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                    <span>{erroUploadImagem}</span>
+                    <button
+                      type="button"
+                      onClick={() => setErroUploadImagem(null)}
+                      className="font-bold hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                <label
+                  className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-2xl py-10 cursor-pointer transition-colors ${
+                    enviandoImagem
+                      ? "border-cinza-claro/40 bg-cinza-claro/5 cursor-wait"
+                      : "border-coral/40 hover:bg-coral/5"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    disabled={enviandoImagem}
+                    onChange={(e) => {
+                      const arquivo = e.target.files?.[0];
+                      if (arquivo) enviarImagemDoComputador(arquivo);
+                      e.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                  {enviandoImagem ? (
+                    <>
+                      <span className="w-6 h-6 border-2 border-coral/30 border-t-coral rounded-full animate-spin" />
+                      <span className="text-sm font-bold text-azul/50">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6 text-coral">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                        <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
+                      </svg>
+                      <span className="text-sm font-bold text-azul">Clique pra escolher um arquivo</span>
+                      <span className="text-xs text-azul/40">JPEG, PNG, WEBP ou GIF — até 5MB</span>
+                    </>
+                  )}
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
+
+export default CriarAtividade;

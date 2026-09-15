@@ -7,6 +7,7 @@ from schemas.questao import QuestaoSchema, QuestaoUpdateSchema
 from models.usuario import Usuario
 from models.atividade import Atividade
 from models.professor import Professor
+from services.auditoria_service import registrar_log
 
 questao_router = APIRouter(prefix="/questao", tags=["questao"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -32,7 +33,16 @@ async def criar_questao(questao_schema: QuestaoSchema, session = Depends(pegar_s
     session.add(nova_questao)
     session.commit()
 
-    return {"mensagem": "Questão cadastrada com sucesso"}
+    registrar_log(
+        session,
+        usuario,
+        acao="CRIAR_QUESTAO",
+        entidade="questao",
+        entidade_id=nova_questao.id,
+        detalhes={"atividade_id": nova_questao.atividade_id},
+    )
+
+    return {"id": nova_questao.id, "mensagem": "Questão cadastrada com sucesso"}
 
 
 @questao_router.get("/{id_questao}")
@@ -79,6 +89,14 @@ async def editar_questao(id_questao: int, questao_schema: QuestaoUpdateSchema, s
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_QUESTAO",
+        entidade="questao",
+        entidade_id=questao.id,
+    )
+
     return {"mensagem": "Questão atualizada com sucesso"}
 
 
@@ -93,8 +111,17 @@ async def deletar_questao(id_questao: int, session = Depends(pegar_sessao_kivira
     if usuario.tipo != "admin" and (not professor or not atividade or professor.id != atividade.professor_id):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
+    id_questao_excluida = questao.id
     session.delete(questao)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_QUESTAO",
+        entidade="questao",
+        entidade_id=id_questao_excluida,
+    )
 
     return {"mensagem": "Questão excluída com sucesso"}
 

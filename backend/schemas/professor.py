@@ -16,3 +16,7 @@ class ProfessorUpdateSchema(BaseModel):
     escola: Optional[str] = Field(default=None, examples=[None])
     avatar_url: Optional[str] = Field(default=None, examples=[None])
     biografia: Optional[str] = Field(default=None, examples=[None])
+
+class AlterarSenhaProfessorSchema(BaseModel):
+    senha_atual: str
+    senha_nova: str

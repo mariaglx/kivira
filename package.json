@@ -19,6 +19,9 @@
     "url": "https://github.com/mariaglx/kivira/issues"
   },
   "homepage": "https://github.com/mariaglx/kivira#readme",
+  "allowScripts": {
+    "@anthropic-ai/claude-code": true
+  },
   "devDependencies": {
     "concurrently": "^10.0.5"
   }

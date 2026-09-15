@@ -7,6 +7,7 @@ from models.usuario import Usuario
 from models.professor import Professor
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from schemas.aluno_turma import AlunoTurmaSchema, AlunoTurmaUpdateSchema
+from services.auditoria_service import registrar_log
 
 aluno_turma_router = APIRouter(prefix="/aluno_turma", tags=["aluno_turma"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -40,6 +41,15 @@ async def criar_matricula(aluno_turma_schema: AlunoTurmaSchema, session = Depend
     session.add(nova_matricula)
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="CRIAR_MATRICULA",
+        entidade="aluno_turma",
+        entidade_id=nova_matricula.id,
+        detalhes={"turma_id": turma.id, "aluno_id": aluno.id},
+    )
+
     return {"mensagem": "Aluno matriculado na turma com sucesso"}
 
 
@@ -55,9 +65,19 @@ async def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_k
 
     matriculas = session.query(AlunoTurma).filter(AlunoTurma.turma_id == id_turma).all()
 
+    # Antes: 1 query de Aluno por matrícula dentro do loop — 1 + N idas ao banco.
+    # Agora é 1 query só, buscando de uma vez todos os alunos matriculados.
+    aluno_ids = [m.aluno_id for m in matriculas]
+    alunos_por_id = {}
+    if aluno_ids:
+        alunos_por_id = {
+            aluno.id: aluno
+            for aluno in session.query(Aluno).filter(Aluno.id.in_(aluno_ids)).all()
+        }
+
     resultado = []
     for matricula in matriculas:
-        aluno = session.query(Aluno).filter(Aluno.id == matricula.aluno_id).first()
+        aluno = alunos_por_id.get(matricula.aluno_id)
         resultado.append({
             "matricula_id": matricula.id,
             "aluno_id": aluno.id,
@@ -102,6 +122,14 @@ async def editar_matricula(id_matricula: int, aluno_turma_schema: AlunoTurmaUpda
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_MATRICULA",
+        entidade="aluno_turma",
+        entidade_id=matricula.id,
+    )
+
     return {"mensagem": "Matrícula atualizada com sucesso"}
 
 
@@ -116,7 +144,18 @@ async def deletar_matricula(id_matricula: int, session = Depends(pegar_sessao_ki
     if usuario.tipo != "admin" and (not professor or not turma or professor.id != turma.professor_id):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
+    id_matricula_excluida = matricula.id
+    turma_id, aluno_id = matricula.turma_id, matricula.aluno_id
     session.delete(matricula)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_MATRICULA",
+        entidade="aluno_turma",
+        entidade_id=id_matricula_excluida,
+        detalhes={"turma_id": turma_id, "aluno_id": aluno_id},
+    )
 
     return {"mensagem": "Matrícula excluída com sucesso"}

@@ -33,3 +33,5 @@ backend/.env
 
 # Frontend
 frontend/.env
+
+CLAUDE.md

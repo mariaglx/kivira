@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from models.usuario import Usuario
 from models.aluno import Aluno
-from dependecies import pegar_sessao_kivira
+from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt
 from sqlalchemy.orm import Session
 from schemas.auth import LoginSchema, LoginAlunoSchema
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from services.auditoria_service import registrar_log
 
 kivira_auth_router = APIRouter(prefix="/auth_kivira", tags=["auth"])
 
@@ -53,6 +54,9 @@ async def login(
     else:
         access_token = criar_token(usuario.id)
         refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id)
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -78,6 +82,9 @@ async def login_form(
         )
     else:
         access_token = criar_token(usuario.id)
+
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_form"})
+
         return {"access_token": access_token, "token_type": "Bearer"}
 
 
@@ -114,8 +121,21 @@ async def login_aluno(
     else:
         access_token = criar_token(usuario.id)
         refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_aluno"})
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "Bearer",
         }
+
+
+# Logout: com JWT stateless não há sessão pra invalidar no servidor — o token
+# continua válido até expirar mesmo depois disso. Esse endpoint existe só para
+# registrar a auditoria de saída; o front chama antes de limpar o localStorage.
+
+@kivira_auth_router.post("/logout")
+async def logout(session: Session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    registrar_log(session, usuario, acao="LOGOUT", entidade="usuario", entidade_id=usuario.id)
+    return {"mensagem": "Logout registrado com sucesso"}

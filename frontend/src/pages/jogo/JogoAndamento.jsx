@@ -1,11 +1,66 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { useJogo } from "../../controllers/useJogo";
 import {BordaLateral} from "../../components/ui/BordaLateral";
 import confetti from "canvas-confetti";
-import { useEffect } from "react"; 
 import { LogoKivira } from "../../components/LogoKivira";
+import { calcularGradeMosaico, calcularFatiaMosaico } from "../../utils/mosaico";
+import { apiRequest } from "../../services/api";
+
+// Monta as perguntas no formato que useJogo espera a partir da resposta de
+// GET /atividade/{id}/questoes — `id` vira a ORDEM (não o id do banco), porque
+// é a ordem que casa a peça certa com o slot certo no tabuleiro estilo LUK
+function montarPerguntas(dadosQuestoes) {
+  return dadosQuestoes.questoes.map((q) => {
+    const opcaoCorreta = q.opcoes.find((o) => o.correta) || q.opcoes[0];
+    return {
+      id: q.ordem,
+      texto_questao: q.texto_questao,
+      resposta_certa: opcaoCorreta?.texto_opcao || "",
+    };
+  });
+}
 
 export function JogoAndamento() {
+  const { state } = useLocation();
+  const atividadeId = state?.atividadeId;
+
+  const [atividade, setAtividade] = useState(null);
+  const [perguntasCarregadas, setPerguntasCarregadas] = useState([]);
+  const [carregando, setCarregando] = useState(!!atividadeId);
+  const [erroCarregamento, setErroCarregamento] = useState(null);
+
+  useEffect(() => {
+    if (!atividadeId) return;
+
+    let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
+
+    Promise.all([
+      apiRequest(`/atividade/${atividadeId}`, opcoesFetch),
+      apiRequest(`/atividade/${atividadeId}/questoes`, opcoesFetch),
+    ])
+      .then(([dadosAtividade, dadosQuestoes]) => {
+        if (cancelado) return;
+        setAtividade(dadosAtividade);
+        setPerguntasCarregadas(montarPerguntas(dadosQuestoes));
+      })
+      .catch((erro) => {
+        if (!cancelado && erro.name !== "AbortError") {
+          setErroCarregamento(erro.message || "Não foi possível carregar a atividade");
+        }
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
+  }, [atividadeId]);
+
   const {
     perguntas,
     pecasSoltas,
@@ -14,6 +69,7 @@ export function JogoAndamento() {
     fase,
     resultados,
     todosSlotsPreenchidos,
+    imagemAtividadeUrl,
     selecionarPeca,
     encaixarNoTabuleiro,
     virarTabuleiro,
@@ -21,7 +77,7 @@ export function JogoAndamento() {
     iniciarDrag,
     dropNoTabuleiro,
     reiniciarJogo,
-  } = useJogo();
+  } = useJogo(perguntasCarregadas, atividade?.imagem_atividade_url || "/img/resultado.png");
 
   const acertouTudo =
     fase === "virado" &&
@@ -50,15 +106,46 @@ export function JogoAndamento() {
   // Gerar array de slots com base no número de perguntas
   const slotsTabuleiro = perguntas.map((p) => p.id);
 
-  const URL_IMAGEM = "/img/resultado.png";
+  // Grade do mosaico calculada a partir da quantidade real de blocos da atividade
+  // (6, 9, 12, 24 têm proporções fixas; qualquer outro N cai num fallback quase-quadrado)
+  const gradeMosaico = calcularGradeMosaico(perguntas.length);
+
+  if (!atividadeId || erroCarregamento) {
+    return (
+      <div className="min-h-screen bg-bege flex flex-col items-center justify-center gap-3">
+        <p className="text-azul font-bold">
+          {erroCarregamento || "Nenhuma atividade selecionada."}
+        </p>
+        <Link to="/professor/atividades" className="text-coral font-bold text-sm hover:underline">
+          ← Voltar pras atividades
+        </Link>
+      </div>
+    );
+  }
+
+  if (carregando) {
+    return (
+      <div className="min-h-screen bg-bege flex items-center justify-center">
+        <p className="text-azul/60 font-medium">Carregando atividade...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bege text-white flex flex-col">
       <header className="flex justify-between bg-branco items-center border-b border-white/10 py-2 px-3">
-        <LogoKivira className="h-11 w-auto" />
-        <span className="text-md font-bold text-azul">Sons dos Animais</span>
+        <div className="flex items-center gap-4">
+          <LogoKivira className="h-11 w-auto" />
+          <Link
+            to={`/professor/atividades/${atividadeId}/editar`}
+            className="text-azul/50 hover:text-azul text-sm font-bold"
+          >
+            ← Editar atividade
+          </Link>
+        </div>
+        <span className="text-md font-bold text-azul">{atividade?.titulo}</span>
         <span className="font-bold text-start text-gray-500">
-          {Object.keys(tabuleiro).length}/12
+          {Object.keys(tabuleiro).length}/{perguntas.length}
           <div className="text-xs text-gray-400">peças colocadas</div>
         </span>
       </header>
@@ -99,25 +186,21 @@ export function JogoAndamento() {
               style={{ animationDuration: "1s" }}
             >
               <div
-                className={`grid grid-cols-4 w-full transition-all duration-300 ${
+                className={`grid w-full transition-all duration-300 ${
                   fase === "virado" ? "gap-0.5" : "gap-3"
                 }`}
+                style={{
+                  gridTemplateColumns: `repeat(${gradeMosaico.colunas}, minmax(0, 1fr))`,
+                }}
               >
-                {/* Ajuste o grid-cols conforme o número de colunas */}
                 {slotsTabuleiro.map((numeroSlot) => {
                   const pecaNoSlot = tabuleiro[numeroSlot];
                   const correcao = resultados[numeroSlot]; // true | false | undefined
 
+                  // A fatia do mosaico que aparece no slot é sempre a da RESPOSTA nele
+                  // encaixada (ou a do próprio slot, se vazio) — cada resposta "dona" de uma fatia fixa
                   const idPecaImagem = pecaNoSlot ? pecaNoSlot.id : numeroSlot;
-
-                  // Lógica de cálculo de posição do mosaico (Grid 4x3 para 12 peças)
-                  // Coluna varia de 0 a 3, Linha varia de 0 a 2
-                  const coluna = (idPecaImagem - 1) % 4;
-                  const linha = Math.floor((idPecaImagem - 1) / 4);
-
-                  // Percentuais para mover o background e exibir apenas o pedaço do slot
-                  const bgX = (coluna / 3) * 100;
-                  const bgY = (linha / 2) * 100;
+                  const fatia = calcularFatiaMosaico(idPecaImagem, gradeMosaico);
 
                   // Estilização dinâmica com Tailwind baseada no estado
                   let bordaCor = "border-white/10 bg-azul/15";
@@ -144,12 +227,11 @@ export function JogoAndamento() {
                           <div
                             className="absolute inset-0 bg-no-repeat transition-all duration-500"
                             style={{
-                              backgroundImage: `url(${URL_IMAGEM})`,
-                              backgroundSize: "400% 300%", // Como são 4 colunas e 3 linhas, amplia a imagem para cobrir o grid
-                              backgroundPosition: `${bgX}% ${bgY}%`,
+                              backgroundImage: `url(${imagemAtividadeUrl})`,
                               width: "100%",
                               height: "100%",
                               borderRadius: "0.5rem", // Para manter o mesmo arredondamento do botão
+                              ...fatia,
                             }}
                           />
                           {!correcao && (
@@ -261,3 +343,5 @@ export function JogoAndamento() {
     </div>
   );
 }
+
+export default JogoAndamento;

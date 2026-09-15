@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
-import { LogoKiviraRosa } from "../../components/LogoKiviraRosa";
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -14,11 +13,17 @@ export function Dashboard() {
   });
 
   useEffect(() => {
+    let cancelado = false;
+    const controller = new AbortController();
+
     async function carregarDashboard() {
       try {
-        const response = await apiRequest("/professor/dashboard/resumo");
-        setDados(response);
+        const response = await apiRequest("/professor/dashboard/resumo", {
+          signal: controller.signal,
+        });
+        if (!cancelado) setDados(response);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Erro ao carregar dados do dashboard:", err.message);
         if (
           err.message?.includes("Token") ||
@@ -29,11 +34,16 @@ export function Dashboard() {
           navigate("/login");
         }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
 
     carregarDashboard();
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [navigate]);
 
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
@@ -43,62 +53,7 @@ export function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-bege flex">
-      {/* Sidebar Lateral */}
-      <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg">
-        <div>
-          <div className="flex items-center mb-3 px-1">
-            <LogoKiviraRosa className="w-36 h-auto" />
-          </div>
-
-          <p className="text-xs font-bold text-laranja-claro tracking-widest uppercase mb-4">
-            Menu
-          </p>
-          <nav className="flex flex-col gap-2">
-            <Link
-              to="/professor"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-branco/10 text-branco font-semibold transition"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-coral"></span>
-              Dashboard
-            </Link>
-            <Link
-              to="/professor/turmas"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-            >
-              Turmas
-            </Link>
-            <Link
-              to="/professor/atividades"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-            >
-              Atividades
-            </Link>
-            <Link
-              to="/professor/configuracoes"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-            >
-              Configurações
-            </Link>
-          </nav>
-        </div>
-
-        {/* Perfil na base do Menu */}
-        <div className="pt-4 border-t border-branco/15 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-coral flex items-center justify-center font-bold text-branco uppercase shadow-sm">
-            {dados.professor.nome?.[0] || "P"}
-          </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-semibold truncate text-branco">
-              {dados.professor.nome}
-            </p>
-            <Link to="/perfil" className="text-xs text-laranja hover:underline">
-              Ver perfil &rarr;
-            </Link>
-          </div>
-        </div>
-      </aside>
-
+    <>
       {/* Conteúdo Principal */}
       <main className="flex-1 px-10 py-3 overflow-y-auto">
         {/* Cabeçalho */}
@@ -159,7 +114,7 @@ export function Dashboard() {
           </p>
           <div className="flex gap-4">
             <Button
-              onClick={() => navigate("/turmas/nova")}
+              onClick={() => navigate("/professor/turmas/nova")}
               className="bg-coral hover:brightness-95 text-branco font-semibold px-6 py-2.5 rounded-xl shadow-sm"
             >
               + Criar Turma
@@ -181,7 +136,7 @@ export function Dashboard() {
               Turmas Recentes
             </h3>
             <Link
-              to="/turmas"
+              to="/professor/turmas"
               className="text-sm font-semibold text-coral hover:underline"
             >
               Ver todas &rarr;
@@ -194,7 +149,7 @@ export function Dashboard() {
                 Você ainda não possui turmas cadastradas.
               </p>
               <Button
-                onClick={() => navigate("/turmas/nova")}
+                onClick={() => navigate("/professor/turmas/nova")}
                 className="mt-4 bg-coral text-branco text-xs px-4 py-2 rounded-xl"
               >
                 Criar minha primeira turma
@@ -244,6 +199,8 @@ export function Dashboard() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }
+
+export default Dashboard;

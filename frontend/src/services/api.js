@@ -1,6 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-export async function apiRequest(endpoint, { method = 'GET', data = null, headers = {} } = {}) {
+export async function apiRequest(endpoint, { method = 'GET', data = null, headers = {}, signal = null } = {}) {
   const token = localStorage.getItem('access_token');
 
   const config = {
@@ -9,6 +9,14 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
       ...headers,
     },
   };
+
+  // Permite cancelar a requisição (via AbortController) quando o componente
+  // desmonta antes da resposta chegar — evita trabalho desperdiçado no
+  // backend quando o StrictMode do React remonta a tela em desenvolvimento,
+  // e evita setState em componente já desmontado em qualquer ambiente.
+  if (signal) {
+    config.signal = signal;
+  }
 
   // Anexa o token JWT automaticamente se o usuário estiver logado
   if (token) {

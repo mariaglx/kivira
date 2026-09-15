@@ -1,31 +1,52 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/Button";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { LogoKiviraRosa } from "../../components/LogoKiviraRosa";
+import { SearchIcon } from "../../components/icons/search";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
+  const [listaTurmas, setListaTurmas] = useState([]);
+  const [turmaVisualizada, setTurmaVisualizada] = useState(null);
+  const [alunosVisualizados, setAlunosVisualizados] = useState([]);
+  const [carregandoAlunos, setCarregandoAlunos] = useState(false);
 
-  // Armazena a resposta completa da API ou inicia com fallback seguro
-  const [dadosTurmas, setDadosTurmas] = useState({
-    professor: { nome: "Professor(a)" },
-    turmas: [],
-  });
+  // Guarda qual turma foi clicada por último — se o professor clicar em "Ver
+  // turma" de A e depois de B antes da resposta de A voltar, essa referência
+  // garante que só a resposta da turma ainda selecionada (B) é aplicada,
+  // mesmo que a resposta de A chegue depois da de B.
+  const turmaVisualizadaIdRef = useRef(null);
+
+  const abrirVerTurma = (turma) => {
+    turmaVisualizadaIdRef.current = turma.id;
+    setTurmaVisualizada(turma);
+    setAlunosVisualizados([]);
+    setCarregandoAlunos(true);
+    apiRequest(`/aluno_turma/turma/${turma.id}`)
+      .then((dados) => {
+        if (turmaVisualizadaIdRef.current === turma.id) setAlunosVisualizados(dados);
+      })
+      .finally(() => {
+        if (turmaVisualizadaIdRef.current === turma.id) setCarregandoAlunos(false);
+      });
+  };
+
+  const fecharVerTurma = () => {
+    turmaVisualizadaIdRef.current = null;
+    setTurmaVisualizada(null);
+  };
 
   useEffect(() => {
+    let cancelado = false;
+    const controller = new AbortController();
+
     async function carregarTurmas() {
       try {
-        const response = await apiRequest("/professor/turmas");
-        // Ajuste conforme o retorno da sua API (se retornar array direto ou objeto com a lista)
-        if (Array.isArray(response)) {
-          setDadosTurmas((prev) => ({ ...prev, turmas: response }));
-        } else {
-          setDadosTurmas(response);
-        }
+        const response = await apiRequest("/turma/", { signal: controller.signal });
+        if (!cancelado) setListaTurmas(Array.isArray(response) ? response : []);
       } catch (err) {
+        if (err.name === "AbortError") return;
         console.error("Erro ao carregar turmas:", err.message);
         if (
           err.message?.includes("Token") ||
@@ -36,92 +57,33 @@ export function Turmas() {
           navigate("/login");
         }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
 
     carregarTurmas();
-  }, [navigate]);
 
-  // Garantia de que trabalharemos sempre com um Array para evitar crash
-  const listaTurmas = Array.isArray(dadosTurmas.turmas) ? dadosTurmas.turmas : [];
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
+  }, [navigate]);
 
   // Filtra as turmas com base no input de pesquisa
   const turmasFiltradas = listaTurmas.filter(
     (turma) =>
       turma.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-      turma.materia?.toLowerCase().includes(busca.toLowerCase()) ||
       turma.ano_escolar?.toLowerCase().includes(busca.toLowerCase())
   );
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      {/* 1. SIDEBAR */}
-      <div className="min-h-screen bg-bege flex">
-        <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg">
-          <div>
-            <div className="flex items-center mb-3 px-1">
-              <LogoKiviraRosa className="w-36 h-auto" />
-            </div>
-
-            <p className="text-xs font-bold text-laranja-claro tracking-widest uppercase mb-4">
-              Menu
-            </p>
-            <nav className="flex flex-col gap-2">
-              <Link
-                to="/professor"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/professor/turmas"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-branco/10 text-branco font-semibold transition"
-              >
-                <span className="w-2.5 h-2.5 rounded-full bg-coral"></span>
-                Turmas
-              </Link>
-              <Link
-                to="/professor/atividades"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Atividades
-              </Link>
-              <Link
-                to="/professor/configuracoes"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-cinza-claro hover:bg-branco/5 hover:text-branco transition font-medium"
-              >
-                Configurações
-              </Link>
-            </nav>
-          </div>
-
-          {/* Perfil na base do Menu */}
-          <div className="pt-4 border-t border-branco/15 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-coral flex items-center justify-center font-bold text-branco uppercase shadow-sm">
-              {dadosTurmas.professor?.nome?.[0] || "P"}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold truncate text-branco">
-                {dadosTurmas.professor?.nome || "Professor(a)"}
-              </p>
-              <Link
-                to="/perfil"
-                className="text-xs text-laranja hover:underline"
-              >
-                Ver perfil &rarr;
-              </Link>
-            </div>
-          </div>
-        </aside>
-      </div>
-
+    <>
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
         <header className="flex justify-between items-center">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
-          <button 
-            onClick={() => navigate("/turmas/nova")}
+          <button
+            onClick={() => navigate("/professor/turmas/nova")}
             className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95"
           >
             + Nova Turma
@@ -131,7 +93,7 @@ export function Turmas() {
         {/* Barra de Pesquisa */}
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            🔍
+             <SearchIcon size={16} isAnimated={false} />
           </span>
           <input
             type="text"
@@ -156,16 +118,16 @@ export function Turmas() {
                   <div>
                     <h3 className="text-lg font-bold text-azul">{turma.nome}</h3>
                     <span className="text-xs text-azul/50 font-medium">
-                      {turma.materia || turma.ano_escolar}
+                      {turma.ano_escolar}
                     </span>
                   </div>
-                  {turma.status === "Ativa" ? (
+                  {turma.ativo ? (
                     <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                       Ativa
                     </span>
                   ) : (
                     <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
-                      Pausada
+                      Inativa
                     </span>
                   )}
                 </div>
@@ -175,7 +137,7 @@ export function Turmas() {
                 <div className="flex gap-8">
                   <div>
                     <div className="text-xl font-extrabold text-azul">
-                      {turma.alunos_count ?? turma.alunos ?? 0}
+                      {turma.alunos_count ?? 0}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
                       Alunos
@@ -183,7 +145,7 @@ export function Turmas() {
                   </div>
                   <div>
                     <div className="text-xl font-extrabold text-azul">
-                      {turma.atividades_count ?? turma.atividades ?? 0}
+                      {turma.atividades_count ?? 0}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
                       Atividades
@@ -192,13 +154,16 @@ export function Turmas() {
                 </div>
 
                 <div className="flex gap-2 w-full">
-                  <button 
-                    onClick={() => navigate(`/professor/turmas/${turma.id}`)}
+                  <button
+                    onClick={() => abrirVerTurma(turma)}
                     className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95"
                   >
                     Ver turma
                   </button>
-                  <button className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95">
+                  <button
+                    onClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
+                    className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95"
+                  >
                     Editar
                   </button>
                 </div>
@@ -206,8 +171,8 @@ export function Turmas() {
             ))}
 
             {/* Card Pontilhado "Criar nova turma" */}
-            <button 
-              onClick={() => navigate("/turmas/nova")}
+            <button
+              onClick={() => navigate("/professor/turmas/nova")}
               className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-95"
             >
               <span className="text-3xl text-coral font-bold">+</span>
@@ -218,6 +183,66 @@ export function Turmas() {
           </div>
         )}
       </main>
-    </div>
+
+      {turmaVisualizada && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <p className="font-extrabold text-azul text-lg">{turmaVisualizada.nome}</p>
+                {turmaVisualizada.ativo ? (
+                  <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
+                    Ativa
+                  </span>
+                ) : (
+                  <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
+                    Inativa
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={fecharVerTurma}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-xs font-bold uppercase tracking-wider text-azul/50 mt-5 mb-2">
+              Alunos ({alunosVisualizados.length})
+            </p>
+
+            {carregandoAlunos ? (
+              <p className="text-sm text-azul/60 py-2">Carregando...</p>
+            ) : alunosVisualizados.length === 0 ? (
+              <p className="text-sm text-azul/60 py-2">Nenhum aluno matriculado ainda.</p>
+            ) : (
+              <ul className="flex flex-col max-h-72 overflow-y-auto">
+                {alunosVisualizados.map((aluno) => (
+                  <li
+                    key={aluno.matricula_id}
+                    className="flex items-center gap-3 py-2.5 border-b border-cinza-claro/20 last:border-0"
+                  >
+                    {aluno.avatar_url && (
+                      <img
+                        src={`/avatares/${aluno.avatar_url}`}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-cover"
+                      />
+                    )}
+                    <span className="text-sm font-semibold text-azul">
+                      {aluno.apelido || aluno.nome_completo}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
+export default Turmas;
