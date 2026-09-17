@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { apiRequest } from "../../services/api";
+import { useOutletContext } from "react-router-dom";
+import { buscarAvatares } from "../../services/avatarService";
 import { useConfiguracoesProfessor } from "../../controllers/useConfiguracoesProfessor";
 import { PencilIcon } from "../../components/icons/pencil";
 import { Trash2Icon } from "../../components/icons/trash-2";
@@ -17,8 +18,8 @@ import { TriangleAlertIcon } from "../../components/icons/triangle-alert";
 export function Configuracoes() {
   const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
 
+  const { professor, setProfessor, carregandoProfessor } = useOutletContext();
   const {
-    professor,
     metricas,
     carregando,
     erro,
@@ -27,7 +28,7 @@ export function Configuracoes() {
     salvarAvatar,
     alterarSenha,
     excluirConta,
-  } = useConfiguracoesProfessor();
+  } = useConfiguracoesProfessor({ professor, setProfessor, carregandoProfessor });
 
   const [modalAvatarAberto, setModalAvatarAberto] = useState(false);
   const [modalPerfilAberto, setModalPerfilAberto] = useState(false);
@@ -79,12 +80,19 @@ export function Configuracoes() {
   const [categoriaAtiva, setCategoriaAtiva] = useState(null);
 
   useEffect(() => {
-    apiRequest("/avatar/")
+    let cancelado = false;
+
+    buscarAvatares()
       .then((dados) => {
+        if (cancelado) return;
         setAvatares(dados);
         setCategoriaAtiva((atual) => atual ?? "todos");
       })
       .catch((erro) => console.error("Erro ao buscar avatares:", erro));
+
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
   const categorias = ["todos", ...new Set(avatares.map((a) => a.categoria))];
@@ -596,3 +604,5 @@ export function Configuracoes() {
     </>
   );
 }
+
+export default Configuracoes;

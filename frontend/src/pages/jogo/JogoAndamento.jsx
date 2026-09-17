@@ -34,10 +34,12 @@ export function JogoAndamento() {
     if (!atividadeId) return;
 
     let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
 
     Promise.all([
-      apiRequest(`/atividade/${atividadeId}`),
-      apiRequest(`/atividade/${atividadeId}/questoes`),
+      apiRequest(`/atividade/${atividadeId}`, opcoesFetch),
+      apiRequest(`/atividade/${atividadeId}/questoes`, opcoesFetch),
     ])
       .then(([dadosAtividade, dadosQuestoes]) => {
         if (cancelado) return;
@@ -45,7 +47,9 @@ export function JogoAndamento() {
         setPerguntasCarregadas(montarPerguntas(dadosQuestoes));
       })
       .catch((erro) => {
-        if (!cancelado) setErroCarregamento(erro.message || "Não foi possível carregar a atividade");
+        if (!cancelado && erro.name !== "AbortError") {
+          setErroCarregamento(erro.message || "Não foi possível carregar a atividade");
+        }
       })
       .finally(() => {
         if (!cancelado) setCarregando(false);
@@ -53,6 +57,7 @@ export function JogoAndamento() {
 
     return () => {
       cancelado = true;
+      controller.abort();
     };
   }, [atividadeId]);
 
@@ -338,3 +343,5 @@ export function JogoAndamento() {
     </div>
   );
 }
+
+export default JogoAndamento;

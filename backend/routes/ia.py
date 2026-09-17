@@ -1,9 +1,9 @@
-# Rota/End-point que o Front-end chama para gerar questões de atividade com IA (Ollama/llama3).
+# Rota/End-point que o Front-end chama para gerar questões de atividade com IA (Gemini).
 
 from fastapi import APIRouter, Depends
 from dependecies import verificar_token_kivira
 from schemas.ia_geracao import GerarQuestoesSchema, GerarQuestoesResponse
-from services.ollama_service import gerar_questoes_com_ia
+from services.gemini_service import gerar_questoes_com_ia
 
 ia_router = APIRouter(prefix="/ia", tags=["ia"], dependencies=[Depends(verificar_token_kivira)])
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 class AtividadeSchema(BaseModel):
     titulo: str
@@ -26,3 +26,22 @@ class AtividadeUpdateSchema(BaseModel):
     tempo_limite_seg: Optional[int] = Field(default=None, examples=[None])
     turma_id: Optional[int] = Field(default=None, examples=[None])
     publicado: Optional[bool] = Field(default=None, examples=[None])
+
+# Uma questão de "arrastar e soltar" tem sempre uma única resposta certa —
+# por isso resposta_certa vem junto no mesmo objeto, em vez de precisar de uma
+# segunda chamada pra opcao_questao. questao_id/opcao_id nulos = criar novo;
+# preenchidos = atualizar o existente (mesma convenção do formulário no front).
+class QuestaoComRespostaSchema(BaseModel):
+    questao_id: Optional[int] = None
+    opcao_id: Optional[int] = None
+    texto_questao: str
+    ordem: int
+    pontos: Optional[int] = 10
+    resposta_certa: str
+
+# Salva todas as questões (+ respostas) de uma atividade em uma única
+# requisição — evita o vaivém de 2 requests por questão que existia antes
+# (criar_atividade com 12 blocos chegava a 24 requests sequenciais).
+class SalvarQuestoesSchema(BaseModel):
+    questoes: List[QuestaoComRespostaSchema]
+    remover_questao_ids: Optional[List[int]] = []

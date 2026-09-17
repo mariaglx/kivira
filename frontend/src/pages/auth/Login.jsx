@@ -44,10 +44,10 @@ export function Login() {
         localStorage.setItem("refresh_token", data.refresh_token);
       }
 
-      console.log("Resposta do backend:", data);
-      // Se for professor, navega para a rota do dashboard/professor
-      if (data.tipo_usuario === "professor") {
-        navigate("/professor"); // ou a rota que você configurou no App.jsx (ex: '/professor')
+      if (data.tipo_usuario === "admin") {
+        navigate("/admin");
+      } else if (data.tipo_usuario === "professor") {
+        navigate("/professor");
       } else {
         navigate("/");
       }
@@ -108,3 +108,5 @@ export function Login() {
     </div>
   );
 }
+
+export default Login;

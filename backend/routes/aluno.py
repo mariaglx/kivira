@@ -9,6 +9,7 @@ from models.professor import Professor
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
+from services.auditoria_service import registrar_log
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
@@ -126,6 +127,15 @@ async def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_
         session.add(novo_aluno)
         session.commit()
 
+        registrar_log(
+            session,
+            novo_usuario,
+            acao="CRIAR_ALUNO",
+            entidade="aluno",
+            entidade_id=novo_aluno.id,
+            detalhes={"email": novo_usuario.email},
+        )
+
         return {"mensagem": f"aluno cadastrado com sucesso {aluno_schema.email}"}
 
 # Retorna os dados de um aluno já cadastrado a partir do ID
@@ -176,6 +186,14 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_ALUNO",
+        entidade="aluno",
+        entidade_id=aluno.id,
+    )
+
     return {"mensagem": f"Aluno '{aluno.nome_completo}' atualizado com sucesso"}
 
 # Faz a exclusão de um aluno a partir do ID
@@ -189,6 +207,19 @@ async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     nome_aluno = aluno.nome_completo
+    id_aluno_excluido = aluno.id
+
+    # Loga antes de excluir o usuário vinculado, mesmo motivo do professor:
+    # a FK usuario_id do log precisa existir no momento do insert (o
+    # ondelete="SET NULL" do model cuida do resto depois).
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_ALUNO",
+        entidade="aluno",
+        entidade_id=id_aluno_excluido,
+        detalhes={"nome_completo": nome_aluno},
+    )
 
     usuario_vinculado = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
     session.delete(usuario_vinculado)
@@ -231,6 +262,15 @@ async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="CADASTRAR_ALUNO",
+        entidade="aluno",
+        entidade_id=novo_aluno.id,
+        detalhes={"nome_completo": novo_aluno.nome_completo, "username": username, "turma_id": aluno_schema.turma_id},
+    )
+
     return{
         "id": novo_aluno.id,
         "mensagem": f"Aluno '{novo_aluno.nome_completo}' cadastrado com sucesso",
@@ -264,6 +304,14 @@ async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_s
     usuario.primeiro_acesso = False
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="PRIMEIRO_ACESSO_ALUNO",
+        entidade="aluno",
+        entidade_id=aluno.id,
+    )
+
     return {"mensagem": f"Conta de '{aluno.nome_completo}' ativada com sucesso"}
 
 # Reseta a senha do Aluno caso necessário 
@@ -284,6 +332,14 @@ async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivi
     usuario_aluno.senha_hash = bcrypt.hashpw(senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     usuario_aluno.primeiro_acesso = True
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="RESETAR_SENHA_ALUNO",
+        entidade="aluno",
+        entidade_id=aluno.id,
+    )
 
     return {
         "mensagem": f"Senha de '{aluno.nome_completo}' redefinida com sucesso",

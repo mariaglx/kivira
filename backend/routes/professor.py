@@ -1,6 +1,6 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao professor.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from models.usuario import Usuario
 from models.professor import Professor
 from models.turma import Turma
@@ -8,7 +8,9 @@ from models.atividade import Atividade
 from models.aluno_turma import AlunoTurma
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt
+from sqlalchemy import func
 from schemas.professor import ProfessorSchema, ProfessorUpdateSchema, AlterarSenhaProfessorSchema
+from services.auditoria_service import registrar_log
 
 professor_router = APIRouter(prefix="/professor", tags=["professor"])
 
@@ -50,12 +52,24 @@ async def alterar_minha_senha(dados: AlterarSenhaProfessorSchema, session = Depe
     usuario.senha_hash = bcrypt.hashpw(dados.senha_nova.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ALTERAR_SENHA_PROFESSOR",
+        entidade="usuario",
+        entidade_id=usuario.id,
+    )
+
     return {"mensagem": "Senha atualizada com sucesso"}
 
 # Resumo usado no Dashboard: métricas gerais + últimas turmas do professor logado
 
 @professor_router.get("/dashboard/resumo")
-async def resumo_dashboard_professor(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+async def resumo_dashboard_professor(
+    incluir_turmas_recentes: bool = Query(default=True),
+    session = Depends(pegar_sessao_kivira),
+    usuario: Usuario = Depends(verificar_token_kivira),
+):
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
@@ -64,27 +78,39 @@ async def resumo_dashboard_professor(session = Depends(pegar_sessao_kivira), usu
     turma_ids = [turma.id for turma in turmas]
 
     total_atividades = session.query(Atividade).filter(Atividade.professor_id == professor.id).count()
-    total_alunos = 0
-    if turma_ids:
-        total_alunos = session.query(AlunoTurma).filter(
-            AlunoTurma.turma_id.in_(turma_ids),
-            AlunoTurma.ativo == 1,
-        ).count()
 
+    # Antes: 1 query de contagem por turma (x2) dentro do loop das recentes, mais o
+    # count() de total_alunos — 1 + 2N idas ao banco. Agora são só 2 agregadas no
+    # total, reaproveitadas tanto pro total quanto pelas turmas recentes abaixo.
+    alunos_por_turma = dict(
+        session.query(AlunoTurma.turma_id, func.count(AlunoTurma.id))
+        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1)
+        .group_by(AlunoTurma.turma_id)
+        .all()
+    ) if turma_ids else {}
+
+    total_alunos = sum(alunos_por_turma.values())
+
+    # A tela de Configurações só usa "metricas" (os 3 totais) — não vale a pena
+    # montar a lista de turmas recentes (mais 1 query + ordenação) nesse caso.
     turmas_recentes = []
-    for turma in sorted(turmas, key=lambda t: t.id, reverse=True)[:5]:
-        turmas_recentes.append({
-            "id": turma.id,
-            "nome": turma.nome,
-            "ano_escolar": turma.ano_escolar,
-            "alunos_count": session.query(AlunoTurma).filter(
-                AlunoTurma.turma_id == turma.id, AlunoTurma.ativo == 1
-            ).count(),
-            "atividades_count": session.query(Atividade).filter(
-                Atividade.turma_id == turma.id
-            ).count(),
-             "status": "Ativa" if turma.ativo else "Inativa",
-        })
+    if incluir_turmas_recentes:
+        atividades_por_turma = dict(
+            session.query(Atividade.turma_id, func.count(Atividade.id))
+            .filter(Atividade.turma_id.in_(turma_ids))
+            .group_by(Atividade.turma_id)
+            .all()
+        ) if turma_ids else {}
+
+        for turma in sorted(turmas, key=lambda t: t.id, reverse=True)[:5]:
+            turmas_recentes.append({
+                "id": turma.id,
+                "nome": turma.nome,
+                "ano_escolar": turma.ano_escolar,
+                "alunos_count": alunos_por_turma.get(turma.id, 0),
+                "atividades_count": atividades_por_turma.get(turma.id, 0),
+                "status": "Ativa" if turma.ativo else "Inativa",
+            })
 
     return {
         "professor": {
@@ -122,6 +148,15 @@ async def criar_conta(professor_schema: ProfessorSchema, session = Depends(pegar
         novo_professor.usuario_id = novo_usuario.id
         session.add(novo_professor)
         session.commit()
+
+        registrar_log(
+            session,
+            novo_usuario,
+            acao="CRIAR_PROFESSOR",
+            entidade="professor",
+            entidade_id=novo_professor.id,
+            detalhes={"email": novo_usuario.email},
+        )
 
         return {"mensagem":f"professor cadastrado com sucesso {professor_schema.email}"}
 
@@ -174,6 +209,14 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_PROFESSOR",
+        entidade="professor",
+        entidade_id=professor.id,
+    )
+
     return {"mensagem": f"Professor '{professor.nome_completo}' atualizado com sucesso"}
 
 
@@ -188,6 +231,20 @@ async def deletar_professor(id_professor: int, session = Depends(pegar_sessao_ki
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     nome_professor = professor.nome_completo
+    id_professor_excluido = professor.id
+
+    # Loga ANTES de excluir o usuário: usuario_id do log referencia usuario.id,
+    # que some logo em seguida — se o próprio professor se excluir, o log
+    # precisa existir enquanto a FK ainda é válida (o ondelete="SET NULL" do
+    # model cuida de zerar essa referência depois, sem apagar o registro).
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_PROFESSOR",
+        entidade="professor",
+        entidade_id=id_professor_excluido,
+        detalhes={"nome_completo": nome_professor},
+    )
 
     usuario_vinculado = session.query(Usuario).filter(Usuario.id == professor.usuario_id).first()
     session.delete(usuario_vinculado)

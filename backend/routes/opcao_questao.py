@@ -7,6 +7,7 @@ from models.usuario import Usuario
 from models.questao import Questao
 from models.atividade import Atividade
 from models.professor import Professor
+from services.auditoria_service import registrar_log
 
 opcao_questao_router = APIRouter(prefix="/opcao_questao", tags=["opcao_questao"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -29,6 +30,15 @@ async def criar_opcao_questao(opcao_questao_schema: OpcaoQuestaoSchema, session 
     nova_opcao_questao.questao_id = opcao_questao_schema.questao_id
     session.add(nova_opcao_questao)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="CRIAR_OPCAO_QUESTAO",
+        entidade="opcao_questao",
+        entidade_id=nova_opcao_questao.id,
+        detalhes={"questao_id": nova_opcao_questao.questao_id},
+    )
 
     return{"id": nova_opcao_questao.id, "mensagem":"Opção de questão cadastrada com sucesso"}
 
@@ -73,6 +83,14 @@ async def editar_opcao_questao(id_opcao_questao: int, opcao_questao_schema: Opca
 
     session.commit()
 
+    registrar_log(
+        session,
+        usuario,
+        acao="ATUALIZAR_OPCAO_QUESTAO",
+        entidade="opcao_questao",
+        entidade_id=opcao_questao.id,
+    )
+
     return {"mensagem": "Opção de questão atualizada com sucesso"}
 
 
@@ -88,7 +106,16 @@ async def deletar_opcao_questao(id_opcao_questao: int, session = Depends(pegar_s
     if usuario.tipo != "admin" and (not professor or not atividade or professor.id != atividade.professor_id):
         raise HTTPException(status_code=401, detail="Você não possuí autorização para fazer essa alteração")
 
+    id_opcao_excluida = opcao_questao.id
     session.delete(opcao_questao)
     session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="EXCLUIR_OPCAO_QUESTAO",
+        entidade="opcao_questao",
+        entidade_id=id_opcao_excluida,
+    )
 
     return {"mensagem": "Opção de questão excluída com sucesso"}

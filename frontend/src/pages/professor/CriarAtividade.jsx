@@ -246,9 +246,15 @@ export function CriarAtividade() {
 
   // Carrega as turmas do professor logado assim que a tela abre
   useEffect(() => {
-    apiRequest("/turma/")
+    const controller = new AbortController();
+
+    apiRequest("/turma/", { signal: controller.signal })
       .then(setTurmas)
-      .catch((erro) => setErroTurmas(erro.message));
+      .catch((erro) => {
+        if (erro.name !== "AbortError") setErroTurmas(erro.message);
+      });
+
+    return () => controller.abort();
   }, []);
 
   // Veio de "+ Nova atividade" de dentro de uma turma (TurmaForm.jsx) — a
@@ -267,10 +273,12 @@ export function CriarAtividade() {
     if (!idRota) return;
 
     let cancelado = false;
+    const controller = new AbortController();
+    const opcoesFetch = { signal: controller.signal };
 
     Promise.all([
-      apiRequest(`/atividade/${idRota}`),
-      apiRequest(`/atividade/${idRota}/questoes`),
+      apiRequest(`/atividade/${idRota}`, opcoesFetch),
+      apiRequest(`/atividade/${idRota}/questoes`, opcoesFetch),
     ])
       .then(([atividade, dadosQuestoes]) => {
         if (cancelado) return;
@@ -309,13 +317,17 @@ export function CriarAtividade() {
         setIdAtividadeCriada(atividade.id);
         if (atividade.codigo_atividade) setCodigoAtividade(atividade.codigo_atividade);
       })
-      .catch((erro) => setMensagemErro(erro.message || "Não foi possível carregar a atividade"))
+      .catch((erro) => {
+        if (erro.name === "AbortError") return;
+        setMensagemErro(erro.message || "Não foi possível carregar a atividade");
+      })
       .finally(() => {
         if (!cancelado) setCarregandoEdicao(false);
       });
 
     return () => {
       cancelado = true;
+      controller.abort();
     };
   }, [idRota, setFormData, setQuestoes]);
 
@@ -394,82 +406,41 @@ export function CriarAtividade() {
       setCodigoAtividade(dadosAtividade.codigo_atividade);
     }
 
-    for (const questao of questoes) {
-      const corpoQuestao = {
-        texto_questao: questao.texto_questao,
-        tipo_questao: formData.tipo_atividade,
-        ordem: questao.ordem,
-        pontos: 10,
-      };
-
-      if (!questao.questaoId) {
-        corpoQuestao.atividade_id = atividadeId;
-      }
-
-      let dadosQuestao;
-      try {
-        dadosQuestao = await apiRequest(
-          questao.questaoId ? `/questao/${questao.questaoId}` : "/questao/criar",
-          {
-            method: questao.questaoId ? "PATCH" : "POST",
-            data: corpoQuestao,
-          },
-        );
-      } catch (erro) {
-        setMensagemErro(`Erro na questão ${questao.ordem}: ${erro.message}`);
-        return;
-      }
-
-      const questaoID = questao.questaoId || dadosQuestao.id;
-
-      const corpoOpcao = {
-        texto_opcao: questao.resposta_certa,
-      };
-
-      if (!questao.opcaoId) {
-        corpoOpcao.questao_id = questaoID;
-        corpoOpcao.correta = 1;
-      }
-
-      let dadosOpcao;
-      try {
-        dadosOpcao = await apiRequest(
-          questao.opcaoId
-            ? `/opcao_questao/${questao.opcaoId}`
-            : "/opcao_questao/criar",
-          {
-            method: questao.opcaoId ? "PATCH" : "POST",
-            data: corpoOpcao,
-          },
-        );
-      } catch (erro) {
-        setMensagemErro(
-          `Erro na resposta da questão ${questao.ordem}: ${erro.message}`,
-        );
-        return;
-      }
-
-      setQuestoes((atual) =>
-        atual.map((q) =>
-          q.ordem === questao.ordem
-            ? {
-                ...q,
-                questaoId: questaoID,
-                opcaoId: questao.opcaoId || dadosOpcao.id,
-              }
-            : q,
-        ),
-      );
+    // Salva todas as questões (+ respostas) numa única requisição — antes era
+    // 1 POST/PATCH por questão + 1 POST/PATCH por opção, em série (até 24
+    // requests pros 12 blocos padrão, ~50s no fim a fim contra o banco na nuvem).
+    let respostaQuestoes;
+    try {
+      respostaQuestoes = await apiRequest(`/atividade/${atividadeId}/questoes`, {
+        method: "PUT",
+        data: {
+          questoes: questoes.map((questao) => ({
+            questao_id: questao.questaoId || null,
+            opcao_id: questao.opcaoId || null,
+            texto_questao: questao.texto_questao,
+            ordem: questao.ordem,
+            pontos: 10,
+            resposta_certa: questao.resposta_certa,
+          })),
+          remover_questao_ids: questoesParaRemover,
+        },
+      });
+    } catch (erro) {
+      setMensagemErro(erro.message || "Erro ao salvar as questões");
+      return;
     }
 
-    for (const idParaRemover of questoesParaRemover) {
-      try {
-        await apiRequest(`/questao/${idParaRemover}`, { method: "DELETE" });
-      } catch (erro) {
-        setMensagemErro(`Erro ao remover uma questão: ${erro.message}`);
-        return;
-      }
-    }
+    const idsPorOrdem = new Map(
+      respostaQuestoes.questoes.map((q) => [q.ordem, q]),
+    );
+    setQuestoes((atual) =>
+      atual.map((q) => {
+        const salva = idsPorOrdem.get(q.ordem);
+        return salva
+          ? { ...q, questaoId: salva.questao_id, opcaoId: salva.opcao_id }
+          : q;
+      }),
+    );
 
     setQuestoesParaRemover([]);
 
@@ -1210,3 +1181,5 @@ export function CriarAtividade() {
     </>
   );
 }
+
+export default CriarAtividade;
