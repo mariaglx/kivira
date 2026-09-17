@@ -37,12 +37,12 @@ export function SeletorEmoji({ selecionados, onAlternar, max = 3 }) {
               disabled={desabilitado}
               aria-pressed={selecionado}
               aria-label={`Emoji ${emoji}`}
+              // Com os 3 escolhidos, os demais continuam desabilitados mas com
+              // a aparência normal: apagá-los fazia a grade parecer quebrada
               className={`aspect-square rounded-xl text-2xl flex items-center justify-center transition-all ${
                 selecionado
                   ? "bg-coral/20 ring-2 ring-coral scale-95"
-                  : desabilitado
-                    ? "bg-bege/30 opacity-30 cursor-not-allowed"
-                    : "bg-bege/50 hover:bg-coral/10 hover:scale-105"
+                  : "bg-bege/50 hover:bg-coral/10 hover:scale-105"
               }`}
             >
               {emoji}

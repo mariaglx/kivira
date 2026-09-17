@@ -14,17 +14,6 @@ export function Home() {
   const cardAcaoRef = useRef(null);
   const sessionCodeInputRef = useRef(null);
 
-  // O botão "Entrar" do topo não pode ir direto pra /login_aluno: essa tela
-  // exige um código de turma já validado (location.state.turmaCodigo) e,
-  // sem ele, ela mesma manda de volta pra "/" — virando um link que não fazia
-  // nada. Em vez disso, leva até o card "Sou Aluno" que já faz esse trabalho.
-  const irParaLoginAluno = () => {
-    setActiveTab("aluno");
-    setError("");
-    cardAcaoRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => sessionCodeInputRef.current?.focus(), 300);
-  };
-
   const handleJoinSession = async (e) => {
     e.preventDefault();
     const cleanCode = sessionCode.trim();
@@ -72,13 +61,12 @@ export function Home() {
           >
             Área do Professor
           </Link>
-          <button
-            type="button"
-            onClick={irParaLoginAluno}
+          <Link
+            to="/login_aluno"
             className="btn btn-primary rounded-full px-6 shadow-sm hover:scale-105 transition-all text-sm font-bold"
           >
             Entrar
-          </button>
+          </Link>
         </div>
       </header>
 

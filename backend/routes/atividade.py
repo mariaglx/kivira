@@ -41,6 +41,7 @@ async def listar_atividades_do_professor(session = Depends(pegar_sessao_kivira),
             "tipo_atividade": a.tipo_atividade,
             "dificuldade": a.dificuldade,
             "quantidade_blocos": a.quantidade_blocos,
+            "imagem_atividade_url": a.imagem_atividade_url,
             "turma_id": a.turma_id,
             "turma_nome": turma.nome if turma else None,
             "publicado": a.publicado,
@@ -181,8 +182,32 @@ async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pega
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    # Três perfis chegam aqui: o admin, o professor dono da atividade (modal
+    # "Ver questões") e o aluno que vai jogar. O aluno não tem linha em
+    # `professor`, então a checagem que só olhava o dono devolvia 401 pra ele
+    # sempre — e o botão "Jogar!" da home do aluno nunca funcionava.
+    if usuario.tipo == "admin":
+        autorizado = True
+
+    elif usuario.tipo == "estudante":
+        aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+
+        matricula = None
+        if aluno and atividade.turma_id:
+            matricula = session.query(AlunoTurma).filter(
+                AlunoTurma.aluno_id == aluno.id,
+                AlunoTurma.turma_id == atividade.turma_id,
+                AlunoTurma.ativo == 1,
+            ).first()
+
+        # Rascunho não publicado não vaza nem pra quem é da turma
+        autorizado = bool(matricula and atividade.publicado)
+
+    else:
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        autorizado = bool(professor and professor.id == atividade.professor_id)
+
+    if not autorizado:
         raise HTTPException(status_code=401, detail="Você não tem autorização para ver essas questões")
 
     questoes = session.query(Questao).filter(Questao.atividade_id == id_atividade).order_by(Questao.ordem).all()

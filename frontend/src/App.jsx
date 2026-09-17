@@ -15,6 +15,10 @@ import { Configuracoes } from "./pages/professor/Configuracoes";
 import { PrimeiroAcesso } from "./pages/aluno/PrimeiroAcesso";
 import { EscolherAvatar } from "./pages/aluno/EscolherAvatar";
 import { HomeAluno } from "./pages/aluno/HomeAluno";
+import { Turmas as TurmasAluno } from "./pages/aluno/Turmas";
+import { TurmaDetalhe } from "./pages/aluno/TurmaDetalhe";
+import { Historico } from "./pages/aluno/Historico";
+import { Configuracoes as ConfiguracoesAluno } from "./pages/aluno/Configuracoes";
 
 function App() {
   return (
@@ -42,6 +46,10 @@ function App() {
 
       <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
       <Route path="/aluno/home" element={<HomeAluno />} />
+      <Route path="/aluno/turmas" element={<TurmasAluno />} />
+      <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
+      <Route path="/aluno/historico" element={<Historico />} />
+      <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
     </Routes>
   );
 }

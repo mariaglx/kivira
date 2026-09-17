@@ -8,7 +8,7 @@ from models.aluno_turma import AlunoTurma
 from models.professor import Professor
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt, secrets, unicodedata
-from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema
+from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
@@ -40,22 +40,29 @@ async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usua
 # Também precisa vir ANTES de "/{id_aluno}"
 
 @aluno_router.get("/status-acesso")
-async def status_acesso_aluno(username: str, codigo_turma: str, session = Depends(pegar_sessao_kivira)):
+async def status_acesso_aluno(username: str, codigo_turma: str | None = None, session = Depends(pegar_sessao_kivira)):
     aluno = session.query(Aluno).filter(Aluno.username == username).first()
-    turma = session.query(Turma).filter(Turma.codigo_acesso == codigo_turma.strip().lower()).first()
 
-    matricula = None
-    if aluno and turma:
-        matricula = session.query(AlunoTurma).filter(
-            AlunoTurma.aluno_id == aluno.id,
-            AlunoTurma.turma_id == turma.id,
-            AlunoTurma.ativo == 1,
-        ).first()
+    # Com código (veio do card da Home): o aluno precisa ser daquela turma.
+    # Sem código (veio do "Entrar"): basta o username existir.
+    if codigo_turma:
+        turma = session.query(Turma).filter(Turma.codigo_acesso == codigo_turma.strip().lower()).first()
 
-    # Mensagem genérica de propósito: evita confirmar pra quem está tentando adivinhar
-    # se um username existe sem saber o código certo da turma
-    if not aluno or not turma or not matricula:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado nessa turma")
+        matricula = None
+        if aluno and turma:
+            matricula = session.query(AlunoTurma).filter(
+                AlunoTurma.aluno_id == aluno.id,
+                AlunoTurma.turma_id == turma.id,
+                AlunoTurma.ativo == 1,
+            ).first()
+
+        # Mensagem genérica de propósito: evita confirmar pra quem está tentando adivinhar
+        # se um username existe sem saber o código certo da turma
+        if not aluno or not turma or not matricula:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado nessa turma")
+
+    elif not aluno:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     usuario = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 
@@ -284,3 +291,140 @@ async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivi
         "senha_temporaria": senha_temporaria,
     }
 
+
+
+# Turmas em que o aluno logado está matriculado. Usada pela tela /aluno/turmas —
+# o aluno só vê as próprias turmas e não tem como criar nenhuma.
+
+@aluno_router.get("/minhas/turmas")
+async def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    matriculas = session.query(AlunoTurma).filter(
+        AlunoTurma.aluno_id == aluno.id,
+        AlunoTurma.ativo == 1,
+    ).all()
+
+    turma_ids = [m.turma_id for m in matriculas]
+    if not turma_ids:
+        return []
+
+    turmas = session.query(Turma).filter(Turma.id.in_(turma_ids)).all()
+
+    # Uma consulta só pros professores de todas as turmas, em vez de uma por
+    # turma dentro do laço — o banco está longe e cada ida custa caro
+    professor_ids = {t.professor_id for t in turmas}
+    professores = session.query(Professor).filter(Professor.id.in_(professor_ids)).all()
+    professor_por_id = {p.id: p for p in professores}
+
+    resultado = []
+    for turma in turmas:
+        professor = professor_por_id.get(turma.professor_id)
+        resultado.append({
+            "id": turma.id,
+            "nome": turma.nome,
+            "ano_escolar": turma.ano_escolar,
+            "ano_letivo": turma.ano_letivo,
+            "ativo": turma.ativo,
+            "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
+            "professor_avatar_url": professor.avatar_url if professor else None,
+        })
+
+    return resultado
+
+
+# Troca da senha de emojis pelo próprio aluno, sabendo a senha atual. Diferente
+# do /primeiro_acesso (que só vale enquanto primeiro_acesso for True) e do
+# /{id}/resetar_senha (que é a professora gerando uma senha temporária).
+
+@aluno_router.post("/trocar_senha")
+async def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    if len(dados.emojis) != 3:
+        raise HTTPException(status_code=400, detail="Escolha 3 emojis para a nova senha")
+
+    senha_atual = "".join(dados.senha_atual)
+    if not bcrypt.checkpw(senha_atual.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
+        raise HTTPException(status_code=401, detail="A senha atual está incorreta")
+
+    senha_nova = "".join(dados.emojis)
+    if senha_nova == senha_atual:
+        raise HTTPException(status_code=400, detail="A nova senha precisa ser diferente da atual")
+
+    usuario.senha_hash = bcrypt.hashpw(senha_nova.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    session.commit()
+
+    return {"mensagem": "Senha alterada com sucesso"}
+
+
+# Detalhe de uma turma do aluno, com os colegas. O /aluno_turma/turma/{id} que
+# já existia serve só o professor: ele exige linha na tabela `professor`, então
+# devolve 401 pro aluno — mesmo caso do bug que o botão "Jogar!" tinha.
+
+@aluno_router.get("/minhas/turmas/{id_turma}")
+async def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    minha_matricula = session.query(AlunoTurma).filter(
+        AlunoTurma.aluno_id == aluno.id,
+        AlunoTurma.turma_id == id_turma,
+        AlunoTurma.ativo == 1,
+    ).first()
+
+    turma = session.query(Turma).filter(Turma.id == id_turma).first()
+
+    # Mensagem igual nos dois casos de propósito: quem não é da turma não
+    # descobre nem se ela existe testando ids na URL
+    if not minha_matricula or not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+    professor = session.query(Professor).filter(Professor.id == turma.professor_id).first()
+
+    matriculas = session.query(AlunoTurma).filter(
+        AlunoTurma.turma_id == id_turma,
+        AlunoTurma.ativo == 1,
+    ).all()
+
+    # Uma consulta só pra todos os colegas, em vez de uma por matrícula
+    aluno_ids = [m.aluno_id for m in matriculas]
+    alunos = session.query(Aluno).filter(Aluno.id.in_(aluno_ids)).all() if aluno_ids else []
+
+    colegas = [
+        {
+            "aluno_id": a.id,
+            "nome": a.apelido or a.nome_completo,
+            "avatar_url": a.avatar_url,
+            "xp_total": a.xp_total or 0,
+            "nivel_atual": a.nivel_atual or 1,
+            "sou_eu": a.id == aluno.id,
+        }
+        for a in alunos
+    ]
+
+    # Ordena por XP e desempata pelo nome. Hoje ninguém tem XP (nada no backend
+    # escreve nesse campo), então o resultado sai alfabético — e no dia em que
+    # as partidas forem gravadas essa mesma linha já entrega a classificação.
+    colegas.sort(key=lambda c: (-c["xp_total"], c["nome"].lower()))
+
+    return {
+        "id": turma.id,
+        "nome": turma.nome,
+        "ano_escolar": turma.ano_escolar,
+        "ano_letivo": turma.ano_letivo,
+        "codigo_acesso": turma.codigo_acesso,
+        "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
+        "professor_avatar_url": professor.avatar_url if professor else None,
+        "colegas": colegas,
+    }
