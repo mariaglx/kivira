@@ -231,6 +231,33 @@ export function useTurmaForm() {
   const fecharSenhaResetada = () => setSenhaResetada(null);
   const fecharErroAcaoAluno = () => setErroAcaoAluno(null);
 
+  // Fila de impressão de credenciais — só existe no navegador (sessionStorage),
+  // nunca no banco. É a única forma de "guardar" a senha em texto puro, já que
+  // depois de gerada ela só existe como hash. Sobrevive a um F5 na mesma aba,
+  // mas some ao fechar — suficiente pro caso de uso (cadastrar a turma toda numa
+  // sentada e imprimir no fim).
+  const chaveFilaImpressao = `fila_impressao_turma_${id}`;
+
+  const [filaImpressao, setFilaImpressao] = useState(() => {
+    if (!modoEdicao) return [];
+    try {
+      return JSON.parse(sessionStorage.getItem(chaveFilaImpressao)) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (!modoEdicao) return;
+    sessionStorage.setItem(chaveFilaImpressao, JSON.stringify(filaImpressao));
+  }, [filaImpressao, chaveFilaImpressao, modoEdicao]);
+
+  const adicionarNaFilaImpressao = (username, senha_temporaria) => {
+    setFilaImpressao((atual) => [...atual, { username, senha_temporaria }]);
+  };
+
+  const limparFilaImpressao = () => setFilaImpressao([]);
+
   return {
     id,
     modoEdicao,
@@ -265,5 +292,8 @@ export function useTurmaForm() {
     fecharSenhaResetada,
     erroAcaoAluno,
     fecharErroAcaoAluno,
+    filaImpressao,
+    adicionarNaFilaImpressao,
+    limparFilaImpressao,
   };
 }

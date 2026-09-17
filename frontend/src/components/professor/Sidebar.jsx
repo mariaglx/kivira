@@ -22,7 +22,7 @@ export function Sidebar() {
   const ativo = detectarAtivo(pathname);
 
   return (
-    <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg sticky top-0 h-screen self-start">
+    <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg sticky top-0 h-screen self-start print:hidden">
       <div>
         <div className="flex items-center mb-3 px-1">
           <LogoKiviraRosa className="w-36 h-auto" />
