@@ -4,9 +4,11 @@
 # que ollama_service.py/pixabay_service.py já usam.
 
 import io
+from urllib.parse import urlparse
 
 import cloudinary
 import cloudinary.uploader
+import httpx
 from fastapi import HTTPException
 from PIL import Image, UnidentifiedImageError
 
@@ -22,6 +24,11 @@ cloudinary.config(
 TAMANHO_MAXIMO_BYTES = 5 * 1024 * 1024  # 5MB
 FORMATOS_ACEITOS = {"JPEG", "PNG", "WEBP", "GIF"}
 PASTA_CLOUDINARY = "kivira/atividades"
+
+# Só esses domínios podem ser baixados pela rota de "salvar imagem do Pixabay".
+# Sem essa lista a rota viraria um proxy aberto: bastaria mandar uma URL qualquer
+# pro servidor buscar endereços internos da rede em nome dele (SSRF).
+DOMINIOS_PIXABAY = {"pixabay.com", "cdn.pixabay.com"}
 
 
 def _validar_e_reencodar_imagem(conteudo: bytes) -> tuple[bytes, str]:
@@ -79,3 +86,36 @@ async def enviar_imagem_atividade(conteudo: bytes) -> str:
         )
 
     return resultado["secure_url"]
+
+
+async def enviar_imagem_do_pixabay(url: str) -> str:
+    """Baixa a imagem escolhida na busca do Pixabay e reenvia pro Cloudinary,
+    devolvendo a URL definitiva.
+
+    Motivo: as URLs que a API do Pixabay devolve (`pixabay.com/get/<hash>_640.jpg`)
+    são temporárias e expiram — guardar esse link direto no banco fazia a atividade
+    aparecer sem imagem depois de mais ou menos um dia. Passando pelo Cloudinary a
+    imagem vira nossa e ainda herda a validação/re-codificação de
+    `enviar_imagem_atividade`."""
+    endereco = urlparse(url)
+    if endereco.scheme != "https" or endereco.hostname not in DOMINIOS_PIXABAY:
+        raise HTTPException(status_code=400, detail="Endereço de imagem não permitido")
+
+    try:
+        # follow_redirects=False de propósito: seguir redirecionamento deixaria
+        # o Pixabay (ou alguém que o imite) apontar o download pra outro destino,
+        # furando a checagem de domínio acima
+        async with httpx.AsyncClient(timeout=20, follow_redirects=False) as cliente:
+            resposta = await cliente.get(url)
+            resposta.raise_for_status()
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível baixar a imagem escolhida. Tente outra.",
+        )
+
+    tamanho_informado = resposta.headers.get("content-length")
+    if tamanho_informado and int(tamanho_informado) > TAMANHO_MAXIMO_BYTES:
+        raise HTTPException(status_code=400, detail="Imagem muito grande (máximo 5MB)")
+
+    return await enviar_imagem_atividade(resposta.content)

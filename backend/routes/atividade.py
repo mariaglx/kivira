@@ -13,8 +13,8 @@ from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import admin_ou_professor
-from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema
-from services.cloudinary_service import enviar_imagem_atividade
+from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema
+from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
@@ -175,6 +175,14 @@ async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Arquivo vazio")
 
     url = await enviar_imagem_atividade(conteudo)
+    return {"url": url}
+
+# Guarda no Cloudinary uma imagem escolhida na busca do Pixabay. Também precisa vir
+# antes de "/{id_atividade}" pelo mesmo motivo da rota acima.
+
+@atividade_router.post("/imagem_do_pixabay")
+async def salvar_imagem_do_pixabay(dados: SalvarImagemPixabaySchema):
+    url = await enviar_imagem_do_pixabay(dados.url)
     return {"url": url}
 
 # Retorna os dados de uma atividade a partir do ID dela

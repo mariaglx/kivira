@@ -180,6 +180,7 @@ export function CriarAtividade() {
     setAbaImagem,
     enviandoImagem,
     erroUploadImagem,
+    urlPixabaySelecionada,
     setErroUploadImagem,
     enviarImagemDoComputador,
   } = useCriarAtividade();
@@ -1058,9 +1059,10 @@ export function CriarAtividade() {
                       key={imagem.id}
                       type="button"
                       onClick={() => selecionarImagemPixabay(imagem.url_imagem)}
+                      disabled={enviandoImagem}
                       aria-label={`Selecionar imagem: ${imagem.tags}`}
-                      className={`aspect-square rounded-xl overflow-hidden transition ${
-                        formData.imagem_atividade_url === imagem.url_imagem
+                      className={`aspect-square rounded-xl overflow-hidden transition disabled:opacity-40 ${
+                        urlPixabaySelecionada === imagem.url_imagem
                           ? "ring-4 ring-coral"
                           : "ring-2 ring-transparent hover:ring-coral/40"
                       }`}
@@ -1073,6 +1075,19 @@ export function CriarAtividade() {
                     </button>
                   ))}
                 </div>
+
+                {/* A imagem escolhida é baixada e guardada no Cloudinary antes de
+                    entrar na atividade — leva um instante, então avisa */}
+                {enviandoImagem && (
+                  <p className="text-sm text-azul/60 mt-3 text-center">
+                    Salvando imagem escolhida...
+                  </p>
+                )}
+                {erroUploadImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mt-3">
+                    <span>{erroUploadImagem}</span>
+                  </div>
+                )}
 
                 {totalPaginasImagens > 1 && (
                   <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">
