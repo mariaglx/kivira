@@ -21,7 +21,8 @@ class Atividade(Base):
     quantidade_blocos = Column("quantidade_blocos", Integer, default=12)
     tempo_limite_seg = Column("tempo_limite_seg", Integer)
     gerado_por_ia = Column("gerado_por_ia", Boolean, default=False)
-    publicado = Column("publicado", Boolean, default=False)
+    # Sem passo de "publicar" separado: toda atividade nasce publicada
+    publicado = Column("publicado", Boolean, default=True)
     data_criacao = Column("data_criacao", DateTime, server_default=func.now())
     data_ultima_atualizacao = Column("data_ultima_atualizacao", DateTime, server_default=func.now(), onupdate=func.now())
     

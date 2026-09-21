@@ -112,7 +112,7 @@ export function Turmas() {
             {turmasFiltradas.map((turma) => (
               <div
                 key={turma.id}
-                className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
+                className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex justify-between items-start">
                   <div>

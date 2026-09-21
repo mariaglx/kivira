@@ -26,6 +26,7 @@ export function useTurmaForm() {
   const modoEdicao = !!id;
 
   const [formData, setFormData] = useState(FORM_VAZIO);
+  const [dadosOriginais, setDadosOriginais] = useState(null);
   const [codigoAcesso, setCodigoAcesso] = useState(null);
   const [carregando, setCarregando] = useState(modoEdicao);
   const [salvando, setSalvando] = useState(false);
@@ -35,6 +36,12 @@ export function useTurmaForm() {
   // Turma" não tem id ainda pra buscar nada disso
   const [alunos, setAlunos] = useState([]);
   const [atividades, setAtividades] = useState([]);
+
+  // Ranking vem pronto do servidor (ordenado por XP, com as atividades
+  // concluídas contadas lá) — o denominador é só o que está publicado, por
+  // isso não dá pra usar `atividades.length` daqui no lugar dele.
+  const [rankingAlunos, setRankingAlunos] = useState([]);
+  const [totalAtividadesPublicadas, setTotalAtividadesPublicadas] = useState(0);
 
   useEffect(() => {
     if (!modoEdicao) return;
@@ -51,21 +58,29 @@ export function useTurmaForm() {
       apiRequest(`/turma/${id}`, opcoesFetch),
       apiRequest(`/aluno_turma/turma/${id}`, opcoesFetch),
       apiRequest(`/atividade/professor/minhas?turma_id=${id}`, opcoesFetch),
+      apiRequest(`/turma/${id}/ranking`, opcoesFetch),
     ])
-      .then(([turma, dadosAlunos, dadosAtividades]) => {
+      .then(([turma, dadosAlunos, dadosAtividades, dadosRanking]) => {
         if (cancelado) return;
-        setFormData({
+        const carregado = {
           nome: turma.nome || "",
           ano_escolar: turma.ano_escolar || "",
           ano_letivo: turma.ano_letivo || new Date().getFullYear(),
           descricao: turma.descricao || "",
           ativo: turma.ativo ?? true,
-        });
+        };
+        setFormData(carregado);
+        // Foto do que veio do banco: é contra ela que a tela decide se há
+        // alteração pendente. Alunos e atividades ficam de fora de propósito —
+        // eles são salvos na hora, por conta própria, não dependem deste form.
+        setDadosOriginais(carregado);
         setCodigoAcesso(turma.codigo_acesso || null);
         setAlunos(
           ordenarPorTexto(dadosAlunos, (a) => a.apelido || a.nome_completo),
         );
         setAtividades(ordenarPorTexto(dadosAtividades, (a) => a.titulo));
+        setRankingAlunos(dadosRanking.ranking || []);
+        setTotalAtividadesPublicadas(dadosRanking.total_atividades || 0);
       })
       .catch((err) => {
         if (err.name === "AbortError") return;
@@ -85,6 +100,11 @@ export function useTurmaForm() {
     apiRequest(`/aluno_turma/turma/${id}`).then((lista) =>
       setAlunos(ordenarPorTexto(lista, (a) => a.apelido || a.nome_completo)),
     );
+    // Entrar/sair da turma muda quem aparece no ranking, então ele recarrega junto
+    apiRequest(`/turma/${id}/ranking`).then((dados) => {
+      setRankingAlunos(dados.ranking || []);
+      setTotalAtividadesPublicadas(dados.total_atividades || 0);
+    });
   };
 
   const handleChange = (e) => {
@@ -93,6 +113,20 @@ export function useTurmaForm() {
       ...atual,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  // Só os campos do formulário entram na conta. Adicionar ou remover aluno não
+  // "suja" a turma: essas ações já vão pro banco na hora, por rota própria.
+  const houveAlteracao =
+    !modoEdicao ||
+    (dadosOriginais !== null &&
+      JSON.stringify(formData) !== JSON.stringify(dadosOriginais));
+
+  // "Cancelar" ao lado de "Salvar" desfaz a edição em vez de sair da tela —
+  // mesma regra já adotada na tela de atividade
+  const desfazerAlteracoes = () => {
+    if (dadosOriginais) setFormData(dadosOriginais);
+    setErro(null);
   };
 
   const handleSubmit = async (e) => {
@@ -112,7 +146,11 @@ export function useTurmaForm() {
 
       if (modoEdicao) {
         await apiRequest(`/turma/${id}`, { method: "PATCH", data: corpo });
-        navigate("/professor/turmas");
+        // Fica na tela: o professor costuma continuar mexendo em alunos e
+        // atividades da turma depois de salvar. O que veio de volta vira o novo
+        // "original", então os botões somem sozinhos — é esse o aviso de que
+        // salvou, sem precisar de modal.
+        setDadosOriginais(formData);
       } else {
         const resposta = await apiRequest("/turma/criar", {
           method: "POST",
@@ -237,6 +275,30 @@ export function useTurmaForm() {
   const fecharSenhaResetada = () => setSenhaResetada(null);
   const fecharErroAcaoAluno = () => setErroAcaoAluno(null);
 
+  // Exclusão da turma. O banco cuida das dependências sozinho e de formas
+  // diferentes: `aluno_turma` é CASCADE (as matrículas somem, os alunos não),
+  // `atividade` e `sessao_jogo` são SET NULL (sobrevivem, só perdem o vínculo).
+  // Por isso a confirmação na tela pode dizer exatamente o que se perde.
+  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+
+  const abrirExclusao = () => setModalExclusaoAberto(true);
+  const fecharExclusao = () => setModalExclusaoAberto(false);
+
+  const excluirTurma = async () => {
+    setExcluindo(true);
+    setErro(null);
+    try {
+      await apiRequest(`/turma/${id}`, { method: "DELETE" });
+      navigate("/professor/turmas");
+    } catch (err) {
+      setModalExclusaoAberto(false);
+      setErro(err.message || "Não foi possível excluir a turma");
+    } finally {
+      setExcluindo(false);
+    }
+  };
+
   // Fila de impressão de credenciais — só existe no navegador (sessionStorage),
   // nunca no banco. É a única forma de "guardar" a senha em texto puro, já que
   // depois de gerada ela só existe como hash. Sobrevive a um F5 na mesma aba,
@@ -271,6 +333,8 @@ export function useTurmaForm() {
     codigoAcesso,
     alunos,
     atividades,
+    rankingAlunos,
+    totalAtividadesPublicadas,
     handleChange,
     handleSubmit,
     carregando,
@@ -301,5 +365,12 @@ export function useTurmaForm() {
     filaImpressao,
     adicionarNaFilaImpressao,
     limparFilaImpressao,
+    houveAlteracao,
+    desfazerAlteracoes,
+    modalExclusaoAberto,
+    abrirExclusao,
+    fecharExclusao,
+    excluirTurma,
+    excluindo,
   };
 }

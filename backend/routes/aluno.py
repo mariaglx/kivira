@@ -1,11 +1,14 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao aluno.
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from models.usuario import Usuario
 from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
 from models.professor import Professor
+from models.atividade import Atividade
+from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
@@ -378,6 +381,40 @@ async def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: 
     professores = session.query(Professor).filter(Professor.id.in_(professor_ids)).all()
     professor_por_id = {p.id: p for p in professores}
 
+    # Quantos colegas (matrícula ativa, o próprio aluno incluído — mesma conta
+    # que "Colegas de turma (N)" já mostra na tela de dentro da turma) cada
+    # turma tem, numa consulta só agrupada em vez de uma por turma.
+    colegas_por_turma = dict(
+        session.query(AlunoTurma.turma_id, func.count(AlunoTurma.id))
+        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1)
+        .group_by(AlunoTurma.turma_id)
+        .all()
+    )
+
+    # Quantas atividades publicadas de cada turma esse aluno ainda não
+    # concluiu — mesmo critério de "concluida" usado em /atividade/aluno/minhas,
+    # só que somado por turma em vez de devolvido atividade por atividade.
+    atividades = session.query(Atividade).filter(
+        Atividade.turma_id.in_(turma_ids),
+        Atividade.publicado == True,
+    ).all()
+    atividade_ids = [a.id for a in atividades]
+    atividades_concluidas_ids = set()
+    if atividade_ids:
+        atividades_concluidas_ids = {
+            id_atividade
+            for (id_atividade,) in session.query(SessaoJogo.atividade_id).filter(
+                SessaoJogo.aluno_id == aluno.id,
+                SessaoJogo.atividade_id.in_(atividade_ids),
+                SessaoJogo.status == "concluido",
+            ).distinct().all()
+        }
+
+    pendentes_por_turma = {}
+    for a in atividades:
+        if a.id not in atividades_concluidas_ids:
+            pendentes_por_turma[a.turma_id] = pendentes_por_turma.get(a.turma_id, 0) + 1
+
     resultado = []
     for turma in turmas:
         professor = professor_por_id.get(turma.professor_id)
@@ -389,6 +426,8 @@ async def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: 
             "ativo": turma.ativo,
             "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
             "professor_avatar_url": professor.avatar_url if professor else None,
+            "total_colegas": colegas_por_turma.get(turma.id, 0),
+            "atividades_pendentes": pendentes_por_turma.get(turma.id, 0),
         })
 
     return resultado
@@ -469,9 +508,9 @@ async def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_k
         for a in alunos
     ]
 
-    # Ordena por XP e desempata pelo nome. Hoje ninguém tem XP (nada no backend
-    # escreve nesse campo), então o resultado sai alfabético — e no dia em que
-    # as partidas forem gravadas essa mesma linha já entrega a classificação.
+    # Ordena por XP e desempata pelo nome. Desde a sessao_jogo (18/09), quem já
+    # jogou tem XP de verdade aqui — quem nunca jogou fica em 0 e cai no fim,
+    # empatado em ordem alfabética com os outros zerados.
     colegas.sort(key=lambda c: (-c["xp_total"], c["nome"].lower()))
 
     return {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
 import { Trash2Icon } from "../../components/icons/trash-2";
+import { StarIcon } from "../../components/icons/star";
 
 // Modal de "revelar credenciais" — usado tanto pra mostrar o aluno recém
 // cadastrado quanto pra mostrar a senha nova depois de um reset. É a mesma
@@ -133,8 +134,22 @@ export function TurmaForm() {
     filaImpressao,
     adicionarNaFilaImpressao,
     limparFilaImpressao,
+    houveAlteracao,
+    desfazerAlteracoes,
+    modalExclusaoAberto,
+    abrirExclusao,
+    fecharExclusao,
+    excluirTurma,
+    excluindo,
+    rankingAlunos,
+    totalAtividadesPublicadas,
   } = useTurmaForm();
   const [campoCopiado, setCampoCopiado] = useState(null);
+  const [rankingAberto, setRankingAberto] = useState(false);
+
+  // Enquanto ninguém pontuou, a ordem do ranking é só alfabética — numerar as
+  // posições aí daria a impressão de uma classificação que não existe ainda
+  const temXp = rankingAlunos.some((aluno) => aluno.xp_total > 0);
 
   // Toda vez que um novo cadastro ou reset acontece, o checkbox volta a vir
   // marcado — é o caso mais comum (professor cadastrando a turma inteira).
@@ -179,9 +194,55 @@ export function TurmaForm() {
           </Link>
         </header>
 
-        <h2 className="text-2xl font-bold tracking-tight">
-          {modoEdicao ? `Turma: ${formData.nome}` : "Nova Turma"}
-        </h2>
+        {/* Todas as ações sobre a turma inteira moram no cabeçalho, longe dos
+            campos: o excluir não encosta em nenhum campo específico, e o
+            salvar/cancelar ficam sempre no mesmo canto, fácil de achar */}
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold tracking-tight">
+            {modoEdicao ? `Turma: ${formData.nome}` : "Nova Turma"}
+          </h2>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {modoEdicao && (
+              <button
+                type="button"
+                onClick={abrirExclusao}
+                className="btn btn-ghost btn-sm rounded-xl text-vermelho hover:bg-vermelho/10 transition"
+              >
+                <Trash2Icon size={16} isAnimated={false} />
+                Excluir turma
+              </button>
+            )}
+
+            {/* Só aparecem quando há alteração pendente nos campos da turma.
+                Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
+            {houveAlteracao && (
+              <>
+                <button
+                  type="button"
+                  disabled={salvando}
+                  onClick={() =>
+                    modoEdicao ? desfazerAlteracoes() : navigate("/professor/turmas")
+                  }
+                  className="btn btn-ghost btn-sm rounded-xl font-bold text-azul/60 hover:bg-azul/5 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Cancelar
+                </button>
+                {/* form="form-turma" liga o botão ao formulário mesmo estando
+                    fora dele — sem isso o submit nativo (e a validação dos
+                    campos required) deixaria de funcionar */}
+                <button
+                  type="submit"
+                  form="form-turma"
+                  disabled={salvando}
+                  className="btn btn-sm bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-4 font-bold shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {salvando ? "Salvando..." : modoEdicao ? "Salvar alterações" : "Criar turma"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
 
         {erro && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl max-w-md">
@@ -192,6 +253,7 @@ export function TurmaForm() {
         <div className="flex gap-6 items-start">
           {/* COLUNA ESQUERDA — dados da turma */}
           <form
+            id="form-turma"
             onSubmit={handleSubmit}
             className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 sticky top-8"
           >
@@ -295,21 +357,6 @@ export function TurmaForm() {
               </label>
             )}
 
-            <div className="flex gap-3 justify-end pt-2">
-              <Link
-                to="/professor/turmas"
-                className="px-5 py-2.5 rounded-xl font-bold text-sm text-azul/60 hover:bg-azul/5 transition-all"
-              >
-                Cancelar
-              </Link>
-              <button
-                type="submit"
-                disabled={salvando}
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {salvando ? "Salvando..." : modoEdicao ? "Salvar alterações" : "Criar turma"}
-              </button>
-            </div>
           </form>
 
           {/* COLUNA DIREITA — alunos e atividades da turma (só existem já criada) */}
@@ -342,6 +389,14 @@ export function TurmaForm() {
                         </button>
                       </div>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => setRankingAberto(true)}
+                      className="btn bg-ouro-bg hover:bg-ouro-bg/70 text-ouro-fg-escuro border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all active:scale-95"
+                    >
+                      <StarIcon size={13} isAnimated={false} />
+                      Ver ranking
+                    </button>
                     <button
                       type="button"
                       onClick={abrirModalAluno}
@@ -596,6 +651,150 @@ export function TurmaForm() {
             fecharSenhaResetada();
           }}
         />
+      )}
+
+      {/* Ranking da turma — só leitura, ordenado por XP. Mora num modal e não
+          num card fixo porque é consulta eventual: no dia a dia o professor está
+          aqui pra gerenciar alunos/atividades, não pra acompanhar pontuação */}
+      {rankingAberto && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-md w-full p-6 animate__animated animate__zoomIn">
+            <div className="flex items-start justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <StarIcon size={18} isAnimated={false} className="text-ouro-fg-escuro" />
+                <p className="font-extrabold text-azul text-lg">Ranking da turma</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setRankingAberto(false)}
+                className="btn btn-ghost btn-sm btn-circle text-azul/60"
+              >
+                ×
+              </button>
+            </div>
+
+            {rankingAlunos.length === 0 ? (
+              <p className="text-sm text-azul/60 py-2">
+                Sem alunos na turma ainda — o ranking aparece quando eles entrarem.
+              </p>
+            ) : (
+              <>
+                {/* Rótulos em vez de explicar em texto corrido o que cada número
+                    significa: a coluna se explica sozinha em cima do dado */}
+                <div className="flex items-center gap-3 mt-4 pb-2 border-b border-cinza-claro/40">
+                  <span className="w-6 shrink-0" />
+                  <span className="w-8 shrink-0" />
+                  <span className="grow text-[10px] font-bold uppercase tracking-wider text-azul/40">
+                    Aluno
+                  </span>
+                  <span className="w-20 text-right text-[10px] font-bold uppercase tracking-wider text-azul/40 shrink-0">
+                    Atividades
+                  </span>
+                  <span className="w-16 text-right text-[10px] font-bold uppercase tracking-wider text-azul/40 shrink-0">
+                    XP
+                  </span>
+                </div>
+
+                <ul className="flex flex-col max-h-96 overflow-y-auto">
+                {rankingAlunos.map((aluno, indice) => (
+                  <li
+                    key={aluno.aluno_id}
+                    className="flex items-center gap-3 py-2.5 border-b border-cinza-claro/20 last:border-0"
+                  >
+                    <span
+                      className={`w-6 shrink-0 text-center text-sm font-extrabold ${
+                        temXp ? (indice < 3 ? "text-ouro-fg" : "text-azul/35") : "text-azul/25"
+                      }`}
+                    >
+                      {temXp ? indice + 1 : "–"}
+                    </span>
+
+                    {aluno.avatar_url ? (
+                      <img
+                        src={`/avatares/${aluno.avatar_url}`}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg bg-coral text-branco text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
+                        {(aluno.nome || "?").charAt(0)}
+                      </div>
+                    )}
+
+                    <span className="text-sm font-semibold text-azul grow min-w-0 truncate">
+                      {aluno.nome}
+                    </span>
+
+                    <span className="w-20 text-right text-[11px] font-bold text-azul/45 shrink-0">
+                      {aluno.atividades_concluidas} de {totalAtividadesPublicadas}
+                    </span>
+
+                    <span
+                      className={`text-[13px] font-extrabold shrink-0 w-16 text-right ${
+                        aluno.xp_total > 0 ? "text-ouro-fg-escuro" : "text-azul/30"
+                      }`}
+                    >
+                      {aluno.xp_total} XP
+                    </span>
+                  </li>
+                ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Exclusão da turma. O texto diz o que o banco realmente faz com cada
+          dependência, em vez de um aviso genérico de "essa ação é permanente" */}
+      {modalExclusaoAberto && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
+              <Trash2Icon size={28} isAnimated={false} />
+            </div>
+
+            <h3 className="text-xl font-extrabold text-azul mt-3">
+              Excluir a turma?
+            </h3>
+            <p className="text-sm text-azul/60 mt-2">
+              <strong className="text-azul">{formData.nome}</strong> será
+              removida e não tem como desfazer.
+            </p>
+
+            <div className="text-xs text-azul/60 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
+              <span>
+                Os <strong className="text-azul">{alunos.length} aluno(s)</strong> saem
+                da turma, mas as contas deles continuam existindo.
+              </span>
+              <span>
+                As <strong className="text-azul">{atividades.length} atividade(s)</strong> não
+                são apagadas — ficam sem turma, pra você reaproveitar.
+              </span>
+              <span>O histórico de partidas dos alunos é preservado.</span>
+            </div>
+
+            <div className="flex gap-3 w-full mt-5">
+              <button
+                type="button"
+                onClick={fecharExclusao}
+                disabled={excluindo}
+                className="btn flex-1 bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={excluirTurma}
+                disabled={excluindo}
+                className="btn flex-1 bg-vermelho hover:bg-vermelho/90 text-branco border-none rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {excluindo ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Confirmação de remoção — substitui o window.confirm() nativo, que não

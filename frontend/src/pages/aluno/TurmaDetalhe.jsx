@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Sidebar } from "../../components/aluno/Sidebar";
 import { useTurmaAluno } from "../../controllers/useTurmaAluno";
+import { StarIcon } from "../../components/icons/star";
 
 function Avatar({ arquivo, nome, tamanho = "w-9 h-9", texto = "text-sm" }) {
   if (arquivo) {
@@ -78,9 +79,6 @@ export function TurmaDetalhe() {
               {/* COLUNA ESQUERDA — dados da turma */}
               <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
                 <Campo rotulo="Nome da turma">{turma.nome}</Campo>
-                <Campo rotulo="Ano escolar">
-                  {turma.ano_escolar} · {turma.ano_letivo}
-                </Campo>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
@@ -96,19 +94,14 @@ export function TurmaDetalhe() {
                     </span>
                   </div>
                 </div>
-
-                <Campo rotulo="Código de acesso">
-                  <span className="font-mono font-extrabold tracking-widest">
-                    {turma.codigo_acesso}
-                  </span>
-                </Campo>
               </div>
 
-              {/* COLUNA DIREITA — os colegas */}
+              {/* COLUNA DIREITA — ranking dos colegas */}
               <div className="flex-1 min-w-80 bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
-                  <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
-                    Colegas de turma ({turma.colegas.length})
+                <div className="flex items-center gap-2 bg-ouro-bg px-6 py-3.5">
+                  <StarIcon size={16} isAnimated={false} className="text-ouro-fg-escuro" />
+                  <h3 className="font-display font-bold text-ouro-fg-escuro tracking-wide text-sm">
+                    Ranking da turma
                   </h3>
                 </div>
 

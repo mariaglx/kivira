@@ -5,6 +5,8 @@ from models.usuario import Usuario
 from models.professor import Professor
 from models.aluno_turma import AlunoTurma
 from models.atividade import Atividade
+from models.aluno import Aluno
+from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
@@ -144,6 +146,77 @@ async def buscar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
         dados_turma["codigo_acesso"] = turma.codigo_acesso
 
     return dados_turma
+
+# Ranking da turma pro professor acompanhar: mesma ordenação que o aluno vê na
+# tela dele (XP desc, desempate alfabético), só que com o número de atividades
+# concluídas junto — é o dado que mostra quem está pra trás, não só quem pontua.
+# Precisa vir ANTES de "/{id_turma}"? Não: "/{id_turma}/ranking" tem dois
+# segmentos, então não colide com a rota de um segmento só.
+
+@turma_router.get("/{id_turma}/ranking")
+async def ranking_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    turma = session.query(Turma).filter(Turma.id == id_turma).first()
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+    if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+        raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
+
+    matriculas = session.query(AlunoTurma).filter(
+        AlunoTurma.turma_id == id_turma,
+        AlunoTurma.ativo == 1,
+    ).all()
+
+    aluno_ids = [m.aluno_id for m in matriculas]
+    if not aluno_ids:
+        return {"turma_id": turma.id, "total_atividades": 0, "ranking": []}
+
+    alunos = session.query(Aluno).filter(Aluno.id.in_(aluno_ids)).all()
+
+    # Só as publicadas entram na conta — são as únicas que o aluno consegue jogar,
+    # então é o denominador honesto do "X de Y atividades"
+    atividade_ids = [
+        id_atividade
+        for (id_atividade,) in session.query(Atividade.id).filter(
+            Atividade.turma_id == id_turma,
+            Atividade.publicado == True,
+        ).all()
+    ]
+
+    # COUNT(DISTINCT atividade_id) e não count(*): quem joga a mesma atividade de
+    # novo gera várias sessões concluídas, mas continua sendo UMA atividade feita
+    concluidas_por_aluno = {}
+    if atividade_ids:
+        concluidas_por_aluno = dict(
+            session.query(SessaoJogo.aluno_id, func.count(func.distinct(SessaoJogo.atividade_id)))
+            .filter(
+                SessaoJogo.aluno_id.in_(aluno_ids),
+                SessaoJogo.atividade_id.in_(atividade_ids),
+                SessaoJogo.status == "concluido",
+            )
+            .group_by(SessaoJogo.aluno_id)
+            .all()
+        )
+
+    ranking = [
+        {
+            "aluno_id": a.id,
+            "nome": a.apelido or a.nome_completo,
+            "avatar_url": a.avatar_url,
+            "xp_total": a.xp_total or 0,
+            "nivel_atual": a.nivel_atual or 1,
+            "atividades_concluidas": concluidas_por_aluno.get(a.id, 0),
+        }
+        for a in alunos
+    ]
+    ranking.sort(key=lambda item: (-item["xp_total"], item["nome"].lower()))
+
+    return {
+        "turma_id": turma.id,
+        "total_atividades": len(atividade_ids),
+        "ranking": ranking,
+    }
 
 # Edita os dados da turma a partir de um id
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Reorder, AnimatePresence, useDragControls } from "motion/react";
 import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
@@ -144,6 +144,23 @@ function gerarPaginasVisiveis(paginaAtual, totalPaginas) {
   return paginas;
 }
 
+// Texto que representa o conteúdo editável da atividade, usado pra saber se
+// sobrou alteração pendente. O `localId` das questões fica de fora de propósito:
+// é identificador só do cliente e muda sozinho, o que faria a tela achar que
+// houve mudança quando não houve.
+function instantaneoDaAtividade(dados, listaQuestoes) {
+  return JSON.stringify({
+    dados,
+    questoes: listaQuestoes.map((q) => ({
+      ordem: q.ordem,
+      texto_questao: q.texto_questao,
+      resposta_certa: q.resposta_certa,
+      questaoId: q.questaoId ?? null,
+      opcaoId: q.opcaoId ?? null,
+    })),
+  });
+}
+
 export function CriarAtividade() {
   const { id: idRota } = useParams();
   const { state } = useLocation();
@@ -184,6 +201,7 @@ export function CriarAtividade() {
     setErroUploadImagem,
     enviarImagemDoComputador,
   } = useCriarAtividade();
+  const navigate = useNavigate();
   const [turmas, setTurmas] = useState([]);
   const [erroTurmas, setErroTurmas] = useState(null);
   const [idAtividadeCriada, setIdAtividadeCriada] = useState(null);
@@ -197,6 +215,11 @@ export function CriarAtividade() {
   const [questoesInvalidas, setQuestoesInvalidas] = useState({});
   const [tentativaInvalida, setTentativaInvalida] = useState(0);
   const inputRefs = useRef({});
+
+  // Foto do estado como ele veio do banco. Serve pra saber se sobrou alguma
+  // alteração pendente — sem isso, "Atualizar atividade" fica sempre aceso,
+  // como se houvesse algo por salvar mesmo quando não há.
+  const [estadoOriginal, setEstadoOriginal] = useState(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
 
   // Embrulha o handleChangeBloco do hook: além de atualizar o dado, limpa o erro de validação do campo que acabou de ser corrigido
@@ -445,6 +468,14 @@ export function CriarAtividade() {
 
     setQuestoesParaRemover([]);
 
+    // Acabou de salvar: o que está na tela passa a ser o novo "original", então
+    // os botões voltam a ficar apagados até a próxima edição
+    setEstadoOriginal({
+      dados: formData,
+      questoes,
+      texto: instantaneoDaAtividade(formData, questoes),
+    });
+
     setFoiCriacao(!idAtividadeCriada);
     setIdAtividadeCriada(atividadeId);
     setMostrarSucesso(true);
@@ -460,6 +491,38 @@ export function CriarAtividade() {
       </main>
     );
   }
+
+  // Em edição, os botões só acendem se algo mudou em relação ao que veio do
+  // banco. Na criação não há "original" pra comparar — ali a atividade inteira
+  // é novidade, e os botões seguem disponíveis como sempre.
+  const emEdicao = Boolean(idRota);
+  const instantaneoAtual = instantaneoDaAtividade(formData, questoes);
+
+  // Primeira renderização depois do carregamento: guarda o estado que veio do
+  // banco. Ajuste durante a renderização (e não em efeito) porque a condição
+  // deixa de ser verdadeira na renderização seguinte, sem virar laço.
+  // Guarda os objetos inteiros, não só o texto: o texto serve pra comparar, mas
+  // desfazer precisa das questões completas (inclusive o localId, que a
+  // comparação descarta).
+  if (emEdicao && estadoOriginal === null) {
+    setEstadoOriginal({ dados: formData, questoes, texto: instantaneoAtual });
+  }
+
+  const houveAlteracao =
+    !emEdicao || (estadoOriginal !== null && instantaneoAtual !== estadoOriginal.texto);
+
+  // "Cancelar" ao lado de "Atualizar" significa desfazer a edição, não sair da
+  // tela — o professor fica onde está, com a atividade como o banco a tem.
+  const desfazerAlteracoes = () => {
+    if (!estadoOriginal) return;
+    setFormData(estadoOriginal.dados);
+    setQuestoes(estadoOriginal.questoes);
+    // Questões que ele tinha marcado pra excluir deixam de estar marcadas,
+    // senão um salvamento futuro apagaria questões que "voltaram"
+    setQuestoesParaRemover([]);
+    setQuestoesInvalidas({});
+    setMensagemErro(null);
+  };
 
   return (
     <>
@@ -776,6 +839,36 @@ export function CriarAtividade() {
                   )}
                 </button>
 
+              {/* Um lugar só, duas funções que nunca coexistem: com alteração
+                  pendente aparecem Cancelar/Atualizar; sem ela, a
+                  pré-visualização. Elas se excluem de verdade — a
+                  pré-visualização lê a atividade do servidor, então enquanto
+                  houver edição por salvar ela mostraria conteúdo velho. */}
+              {houveAlteracao ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={salvando}
+                    onClick={() =>
+                      emEdicao ? desfazerAlteracoes() : navigate("/professor/atividades")
+                    }
+                    className="px-5 py-2.5 rounded-xl font-bold text-sm text-azul/60 hover:bg-azul/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={salvando}
+                    className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    {salvando
+                      ? "Salvando..."
+                      : idAtividadeCriada
+                        ? "Atualizar Atividade"
+                        : "Criar Atividade"}
+                  </button>
+                </>
+              ) : (
               <div className="relative group">
                 {idAtividadeCriada ? (
                   <Link
@@ -816,6 +909,7 @@ export function CriarAtividade() {
                   </div>
                 )}
               </div>
+              )}
               </div>
             </div>
 
@@ -866,25 +960,6 @@ export function CriarAtividade() {
               + Adicionar questão
             </button>
 
-            <div className="flex gap-3 justify-end pt-2">
-              <Link
-                to="/professor/atividades"
-                className="px-5 py-2.5 rounded-xl font-bold text-sm text-azul/60 hover:bg-azul/5 transition-all"
-              >
-                Cancelar
-              </Link>
-              <button
-                type="submit"
-                disabled={salvando}
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {salvando
-                  ? "Salvando..."
-                  : idAtividadeCriada
-                    ? "Atualizar Atividade"
-                    : "Criar Atividade"}
-              </button>
-            </div>
           </div>
         </form>
       </main>

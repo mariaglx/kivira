@@ -169,7 +169,15 @@ export function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-cinza-claro text-sm">
                   {dados.turmas_recentes.map((turma) => (
-                    <tr key={turma.id} className="hover:bg-bege/20 transition">
+                    <tr
+                      key={turma.id}
+                      // Atalho: duplo clique abre a turma. `select-none` evita
+                      // que o segundo clique selecione o texto da célula, que
+                      // é o comportamento padrão do navegador e fica feio.
+                      onDoubleClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
+                      title="Clique duas vezes para abrir a turma"
+                      className="hover:bg-bege/20 transition cursor-pointer select-none"
+                    >
                       <td className="py-4 font-semibold text-azul">
                         {turma.nome}
                       </td>

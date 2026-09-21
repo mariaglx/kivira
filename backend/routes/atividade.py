@@ -11,6 +11,7 @@ from models.aluno_turma import AlunoTurma
 from models.turma import Turma
 from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
+from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import admin_ou_professor
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema
@@ -94,6 +95,20 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
             Atividade.publicado == True,
         ).all()
 
+    # Quais dessas atividades o aluno já concluiu alguma vez — vira o selo
+    # "Concluída" na tela dele em vez de ficar sem nenhuma marcação.
+    atividade_ids = [a.id for a in atividades]
+    atividades_concluidas = set()
+    if atividade_ids:
+        atividades_concluidas = {
+            id_atividade
+            for (id_atividade,) in session.query(SessaoJogo.atividade_id).filter(
+                SessaoJogo.aluno_id == aluno.id,
+                SessaoJogo.atividade_id.in_(atividade_ids),
+                SessaoJogo.status == "concluido",
+            ).distinct().all()
+        }
+
     return [
         {
             "id": a.id,
@@ -105,6 +120,7 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
             "imagem_atividade_url": a.imagem_atividade_url,
             "quantidade_blocos": a.quantidade_blocos,
             "turma_id": a.turma_id,
+            "concluida": a.id in atividades_concluidas,
         }
         for a in atividades
     ]
@@ -142,6 +158,7 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
     nova_atividade.quantidade_blocos = atividade_schema.quantidade_blocos
     nova_atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
     nova_atividade.codigo_atividade = codigo
+    nova_atividade.publicado = True  # salvou, já está publicada — sem passo de "publicar" separado
 
     session.add(nova_atividade)
     session.commit()
@@ -436,8 +453,11 @@ async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateS
         atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
     if atividade_schema.turma_id is not None:
         atividade.turma_id = atividade_schema.turma_id
-    if atividade_schema.publicado is not None:
-        atividade.publicado = atividade_schema.publicado
+    # Salvar edição também publica (sem passo de "publicar" separado) — e de
+    # brinde já corrige, na próxima edição, qualquer atividade antiga que
+    # ficou travada em rascunho antes dessa decisão. Um PATCH explícito com
+    # publicado=false ainda funciona, se um dia for preciso despublicar.
+    atividade.publicado = True if atividade_schema.publicado is None else atividade_schema.publicado
 
     # Atividades criadas antes desse campo existir não têm código ainda —
     # gera um na primeira edição em vez de deixar travado pra sempre

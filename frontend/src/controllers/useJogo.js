@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "../services/api";
 
 // Função utilitária para embaralhar as peças no início
 function embaralhar(arr) {
@@ -11,7 +12,12 @@ function embaralhar(arr) {
 // no estilo LUK). Como o fetch da atividade é assíncrono, `perguntas` chega
 // vazia no primeiro render e só preenche depois — o efeito abaixo reage a essa
 // chegada e inicializa o resto do estado do jogo nesse momento.
-export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png") {
+//
+// `sessaoId`: quando existe (aluno jogando de verdade), virar o tabuleiro e
+// reiniciar passam pelo servidor via /sessao_jogo — é ele quem confere o
+// acerto e grava a partida. Quando é null (pré-visualização do professor),
+// o jogo continua conferindo tudo localmente, sem gravar nada.
+export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png", sessaoId = null) {
   // Compara com a referência anterior de `perguntas` pra saber se ela acabou de
   // chegar/trocar — sem useEffect (evita o "cascading render" que o eslint
   // acusa), seguindo o padrão do próprio React pra resetar estado quando um
@@ -24,6 +30,10 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
   // Novos estados para o fluxo do jogo (LUK / Kivira)
   const [fase, setFase] = useState("jogando"); // "jogando" | "virado"
   const [resultados, setResultados] = useState({}); // { numeroSlot: true/false }
+  const [processando, setProcessando] = useState(false); // aguardando resposta do servidor (virar/reiniciar)
+  const [erroPartida, setErroPartida] = useState(null);
+  // Preenchido quando o servidor confirma que a sessão concluiu (todas certas)
+  const [resultadoConclusao, setResultadoConclusao] = useState(null);
 
   if (perguntas !== perguntasAnteriores) {
     setPerguntasAnteriores(perguntas);
@@ -32,6 +42,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setResultados({});
     setPecaSelecionada(null);
     setFase("jogando");
+    setResultadoConclusao(null);
   }
 
   // Ações existentes (adaptadas para guardar o objeto da peça inteira no tabuleiro)
@@ -73,18 +84,52 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setPecaSelecionada(null);
   };
 
-  // Verifica as respostas e "vira" o tabuleiro para mostrar a imagem/resultado
-  const virarTabuleiro = () => {
-    const novosResultados = {};
-    perguntas.forEach((q) => {
-      const pecaNoSlot = tabuleiro[q.id];
-      // No sistema LUK, a peça está certa se o ID dela bate com o ID do slot
-      novosResultados[q.id] =
-        pecaNoSlot !== undefined && pecaNoSlot.id === q.id;
-    });
+  // Verifica as respostas e "vira" o tabuleiro para mostrar a imagem/resultado.
+  // Sem sessão (preview do professor): confere tudo localmente, como sempre.
+  // Com sessão (aluno jogando): o servidor confere e grava a rodada — o
+  // resultado vem de volta na resposta, o cliente não decide o próprio acerto.
+  const virarTabuleiro = async () => {
+    if (!sessaoId) {
+      const novosResultados = {};
+      perguntas.forEach((q) => {
+        const pecaNoSlot = tabuleiro[q.id];
+        // No sistema LUK, a peça está certa se o ID dela bate com o ID do slot
+        novosResultados[q.id] =
+          pecaNoSlot !== undefined && pecaNoSlot.id === q.id;
+      });
 
-    setResultados(novosResultados);
-    setFase("virado");
+      setResultados(novosResultados);
+      setFase("virado");
+      return;
+    }
+
+    setErroPartida(null);
+    setProcessando(true);
+    try {
+      const respostas = perguntas.map((q) => ({
+        ordem_slot: q.id,
+        ordem_peca: tabuleiro[q.id]?.id ?? null,
+      }));
+
+      const resposta = await apiRequest(`/sessao_jogo/${sessaoId}/conferir`, {
+        method: "POST",
+        data: { respostas },
+      });
+
+      setResultados(resposta.resultado_por_slot);
+      setFase("virado");
+      if (resposta.concluida) {
+        setResultadoConclusao({
+          xpGanho: resposta.xp_ganho,
+          xpTotalAluno: resposta.xp_total_aluno,
+          nivelAtualAluno: resposta.nivel_atual_aluno,
+        });
+      }
+    } catch (erro) {
+      setErroPartida(erro.message || "Não foi possível conferir as respostas");
+    } finally {
+      setProcessando(false);
+    }
   };
 
   // Desvira o tabuleiro e devolve APENAS as peças erradas para o usuário corrigir
@@ -141,12 +186,29 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setPecaDraggin(null);
   };
 
-  const reiniciarJogo = () => {
+  // "Começar do zero": com sessão, avisa o servidor primeiro (NÃO conta como
+  // abandono — só zera o progresso da rodada atual e soma em `reinicios`)
+  // antes de limpar o tabuleiro local. Sem sessão (preview), é só local.
+  const reiniciarJogo = async () => {
+    if (sessaoId) {
+      setErroPartida(null);
+      setProcessando(true);
+      try {
+        await apiRequest(`/sessao_jogo/${sessaoId}/reiniciar`, { method: "POST" });
+      } catch (erro) {
+        setErroPartida(erro.message || "Não foi possível reiniciar a partida");
+        setProcessando(false);
+        return;
+      }
+      setProcessando(false);
+    }
+
     setTabuleiro({});
     setResultados({});
     setPecaSelecionada(null);
     setPecaDraggin(null);
     setFase("jogando");
+    setResultadoConclusao(null);
     setPecasSoltas(embaralhar(perguntas));
   };
 
@@ -159,6 +221,9 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     resultados,
     todosSlotsPreenchidos,
     imagemAtividadeUrl,
+    processando,
+    erroPartida,
+    resultadoConclusao,
     selecionarPeca,
     encaixarNoTabuleiro,
     virarTabuleiro,
