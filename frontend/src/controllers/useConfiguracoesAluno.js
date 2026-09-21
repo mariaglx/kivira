@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 export function useConfiguracoesAluno() {
   const navigate = useNavigate();
@@ -96,9 +97,7 @@ export function useConfiguracoesAluno() {
   };
 
   const sair = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
+    limparSessao();
     navigate("/");
   };
 

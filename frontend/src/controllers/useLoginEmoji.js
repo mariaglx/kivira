@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { salvarSessao } from "../services/sessao";
 
 export function useLoginEmoji(username) {
   const navigate = useNavigate();
@@ -32,9 +33,7 @@ export function useLoginEmoji(username) {
         data: { username, senha: emojis.join("") },
       });
 
-      localStorage.setItem("access_token", login.access_token);
-      localStorage.setItem("refresh_token", login.refresh_token);
-      localStorage.setItem("user_type", "estudante");
+      salvarSessao({ accessToken: login?.access_token, refreshToken: login?.refresh_token, tipo: "estudante" });
 
       const perfil = await apiRequest("/aluno/me");
       navigate(perfil.avatar_url ? "/aluno/home" : "/aluno/escolher-avatar");

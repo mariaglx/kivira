@@ -5,6 +5,7 @@ import { UsersIcon } from "../icons/users";
 import { BlocksIcon } from "../icons/blocks";
 import { SettingsIcon } from "../icons/settings";
 import { apiRequest } from "../../services/api";
+import { limparSessao } from "../../services/sessao";
 
 // Descobre a aba ativa a partir da própria URL, ao invés de exigir que cada
 // página lembre de passar `ativo` — assim o Sidebar pode viver no layout
@@ -30,9 +31,7 @@ export function Sidebar({ professor }) {
     } catch {
       // ignora: logout local não pode ficar travado por causa do log
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
+    limparSessao();
     navigate("/login");
   };
 

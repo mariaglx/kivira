@@ -47,7 +47,6 @@ function App() {
         <Route path="/login_emoji" element={<LoginEmoji />} />
         <Route path="/primeiro_acesso" element={<PrimeiroAcesso />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/jogo" element={<JogoAndamento />} />
         <Route path="/" element={<Home />} />
 
         {/* Só professor e admin passam daqui — aluno ou visitante sem token são
@@ -67,12 +66,19 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
-        <Route path="/aluno/home" element={<HomeAluno />} />
-        <Route path="/aluno/turmas" element={<TurmasAluno />} />
-        <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
-        <Route path="/aluno/historico" element={<Historico />} />
-        <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
+        {/* Aluno (e professor/admin, que também abrem o jogo pra testar) precisam estar logados */}
+        <Route element={<RequireRole allowedRoles={["estudante", "professor", "admin"]} />}>
+          <Route path="/jogo" element={<JogoAndamento />} />
+        </Route>
+
+        <Route element={<RequireRole allowedRoles={["estudante"]} />}>
+          <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
+          <Route path="/aluno/home" element={<HomeAluno />} />
+          <Route path="/aluno/turmas" element={<TurmasAluno />} />
+          <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
+          <Route path="/aluno/historico" element={<Historico />} />
+          <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
+        </Route>
 
         {/* Só admin passa daqui (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["admin"]} />}>

@@ -41,7 +41,7 @@ def autenticar_usuario_kivira(email, senha, session):
 
 
 @kivira_auth_router.post("/login")
-async def login(
+def login(
     login_schema: LoginSchema, session: Session = Depends(pegar_sessao_kivira)
 ):
 
@@ -67,7 +67,7 @@ async def login(
 
 # Login via formulário OAuth2 - usado pelo botão "Authorize" do Swagger
 @kivira_auth_router.post("/login_form")
-async def login_form(
+def login_form(
     dados_formulario: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(pegar_sessao_kivira),
 ):
@@ -106,7 +106,7 @@ def autenticar_aluno_kivira(username, senha, session):
 
 # Login do aluno
 @kivira_auth_router.post("/login_aluno")
-async def login_aluno(
+def login_aluno(
     login_schema: LoginAlunoSchema, session: Session = Depends(pegar_sessao_kivira)
 ):
 
@@ -136,6 +136,6 @@ async def login_aluno(
 # registrar a auditoria de saída; o front chama antes de limpar o localStorage.
 
 @kivira_auth_router.post("/logout")
-async def logout(session: Session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def logout(session: Session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     registrar_log(session, usuario, acao="LOGOUT", entidade="usuario", entidade_id=usuario.id)
     return {"mensagem": "Logout registrado com sucesso"}

@@ -10,6 +10,7 @@
 from enum import Enum
 from fastapi import Depends, HTTPException, status
 from models.usuario import Usuario
+from models.professor import Professor
 from dependecies import verificar_token_kivira
 
 
@@ -51,3 +52,13 @@ def exigir_papel(*papeis_permitidos: Papel):
 somente_admin = exigir_papel(Papel.ADMIN)
 admin_ou_professor = exigir_papel(Papel.ADMIN, Papel.PROFESSOR)
 somente_aluno = exigir_papel(Papel.ALUNO)
+
+
+def pode_gerenciar(session, usuario: Usuario, recurso) -> bool:
+    """True se for admin ou o professor dono do recurso (Atividade/Turma, via professor_id)."""
+    if usuario.tipo == Papel.ADMIN.value:
+        return True
+    if recurso is None:
+        return False
+    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+    return bool(professor and professor.id == recurso.professor_id)

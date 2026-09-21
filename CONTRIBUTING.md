@@ -35,12 +35,12 @@ Para respeitar as convenções idiomáticas de cada linguagem e ecossistema, ado
 
 ## 2. Regras de Integração Backend <-> Frontend (API)
 
-Para evitar incompatibilidades de estilo entre Python (`snake_case`) e React (`camelCase`):
+O backend (Python) e o frontend (React) trocam dados no mesmo formato, sem conversão:
 
-* **JSON Payloads:** Os endpoints da API em Python devem Serializar/Deserializar os payloads em `camelCase` para envio ao frontend, ou o frontend deve fazer o mapeamento dos campos na camada de serviço/fetcher.
-* **URLs de Endpoints:** Devem ser em `kebab-case` no plural.
-  * **Bom:** `GET /api/v1/student-scores`
-  * **Ruim:** `GET /api/v1/getStudentScores` ou `/api/v1/student_scores`
+* **JSON Payloads:** os campos ficam em `snake_case`, exatamente como o backend os envia e recebe (ex.: `texto_questao`, `resposta_certa`). O frontend lê esses campos como vêm; só as variáveis JavaScript continuam em `camelCase`.
+* **URLs de Endpoints:** ficam em `snake_case`, por decisão da equipe.
+  * **Bom:** `POST /atividade/criar_atividade`, `GET /aluno_turma`
+  * **Ruim:** `POST /atividade/criarAtividade`
 
 ---
 

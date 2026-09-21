@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 // `professor`/`setProfessor` vêm de fora (contexto do Outlet, ver ProfessorLayout.jsx)
 // — antes esse hook buscava /professor/me por conta própria, duplicando a mesma
@@ -32,14 +33,6 @@ export function useConfiguracoesProfessor({ professor, setProfessor, carregandoP
       .catch((err) => {
         if (err.name === "AbortError") return;
         console.error("Erro ao carregar configurações:", err.message);
-        if (
-          err.message?.includes("Token") ||
-          err.message?.includes("401") ||
-          err.message?.includes("autorização")
-        ) {
-          localStorage.removeItem("access_token");
-          navigate("/login");
-        }
       })
       .finally(() => {
         if (!cancelado) setCarregandoMetricas(false);
@@ -89,9 +82,7 @@ export function useConfiguracoesProfessor({ professor, setProfessor, carregandoP
     setErro("");
     try {
       await apiRequest(`/professor/${professor.id}`, { method: "DELETE" });
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user_type");
+      limparSessao();
       navigate("/");
       return true;
     } catch (err) {

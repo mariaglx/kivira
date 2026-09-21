@@ -1,11 +1,7 @@
 from fastapi import FastAPI
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Kivira API")
-
-#oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login")
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/auth_kivira/login_form")
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,8 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Importação das rotas precisa ser feita depois do FastAPI() ser instanciado
-
 from routes.professor import professor_router
 from routes.aluno import aluno_router
 from routes.atividade import atividade_router
