@@ -39,7 +39,14 @@ export function useLoginEmoji(username) {
       const perfil = await apiRequest("/aluno/me");
       navigate(perfil.avatar_url ? "/aluno/home" : "/aluno/escolher-avatar");
     } catch (err) {
-      setErro(err.message || "Senha incorreta. Tente novamente.");
+      // O username já foi conferido no status-acesso da tela anterior, então
+      // credencial recusada aqui só pode ser a senha. Qualquer outro código é
+      // problema do sistema — não faz sentido culpar a criança por isso.
+      setErro(
+        err.status === 400 || err.status === 401
+          ? "Senha incorreta. Tente de novo."
+          : "Não consegui entrar agora. Tente daqui a pouco.",
+      );
       setEmojis([]);
     } finally {
       setCarregando(false);

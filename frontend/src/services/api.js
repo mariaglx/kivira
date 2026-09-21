@@ -36,9 +36,13 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
   const responseData = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // Lança o erro com a mensagem do FastAPI (data.detail)
+    // Lança o erro com a mensagem do FastAPI (data.detail). O status vai junto
+    // porque a tela precisa distinguir "credencial errada" (400/401) de
+    // "sistema com problema" (500, rede) — a mensagem sozinha não permite isso.
     const errorMessage = responseData?.detail || 'Erro na requisição';
-    throw new Error(errorMessage);
+    const erro = new Error(errorMessage);
+    erro.status = response.status;
+    throw erro;
   }
 
   return responseData;

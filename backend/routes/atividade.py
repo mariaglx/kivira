@@ -13,8 +13,8 @@ from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import admin_ou_professor
-from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema
-from services.cloudinary_service import enviar_imagem_atividade
+from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema
+from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
@@ -59,6 +59,7 @@ async def listar_atividades_do_professor(
             "tipo_atividade": a.tipo_atividade,
             "dificuldade": a.dificuldade,
             "quantidade_blocos": a.quantidade_blocos,
+            "imagem_atividade_url": a.imagem_atividade_url,
             "turma_id": a.turma_id,
             "turma_nome": nomes_por_turma.get(a.turma_id),
             "publicado": a.publicado,
@@ -176,6 +177,14 @@ async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
     url = await enviar_imagem_atividade(conteudo)
     return {"url": url}
 
+# Guarda no Cloudinary uma imagem escolhida na busca do Pixabay. Também precisa vir
+# antes de "/{id_atividade}" pelo mesmo motivo da rota acima.
+
+@atividade_router.post("/imagem_do_pixabay")
+async def salvar_imagem_do_pixabay(dados: SalvarImagemPixabaySchema):
+    url = await enviar_imagem_do_pixabay(dados.url)
+    return {"url": url}
+
 # Retorna os dados de uma atividade a partir do ID dela
 
 @atividade_router.get("/{id_atividade}")
@@ -209,8 +218,32 @@ async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pega
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    # Três perfis chegam aqui: o admin, o professor dono da atividade (modal
+    # "Ver questões") e o aluno que vai jogar. O aluno não tem linha em
+    # `professor`, então a checagem que só olhava o dono devolvia 401 pra ele
+    # sempre — e o botão "Jogar!" da home do aluno nunca funcionava.
+    if usuario.tipo == "admin":
+        autorizado = True
+
+    elif usuario.tipo == "estudante":
+        aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+
+        matricula = None
+        if aluno and atividade.turma_id:
+            matricula = session.query(AlunoTurma).filter(
+                AlunoTurma.aluno_id == aluno.id,
+                AlunoTurma.turma_id == atividade.turma_id,
+                AlunoTurma.ativo == 1,
+            ).first()
+
+        # Rascunho não publicado não vaza nem pra quem é da turma
+        autorizado = bool(matricula and atividade.publicado)
+
+    else:
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        autorizado = bool(professor and professor.id == atividade.professor_id)
+
+    if not autorizado:
         raise HTTPException(status_code=401, detail="Você não tem autorização para ver essas questões")
 
     questoes = session.query(Questao).filter(Questao.atividade_id == id_atividade).order_by(Questao.ordem).all()

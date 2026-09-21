@@ -15,6 +15,10 @@ class AtividadeSchema(BaseModel):
     quantidade_blocos: Optional[int] = 12
     tempo_limite_seg: Optional[int] = None
 
+class SalvarImagemPixabaySchema(BaseModel):
+    # URL devolvida pela busca do Pixabay; o servidor baixa e reenvia pro Cloudinary
+    url: str
+
 class AtividadeUpdateSchema(BaseModel):
     titulo: Optional[str] = Field(default=None, examples=[None])
     descricao: Optional[str] = Field(default=None, examples=[None])

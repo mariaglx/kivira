@@ -62,3 +62,13 @@
 .animate-tremida-leve {
   animation: tremida-leve 0.35s ease-in-out;
 }
+
+/* Zerar a margem impressa tira o espaço onde o navegador desenha o cabeçalho/
+   rodapé padrão (título da aba, data/hora, URL, número da página) — sem essa
+   margem reservada, ele simplesmente não tem onde escrever. Quem cuida do
+   espaçamento do conteúdo é o próprio elemento impresso (ex: `p-10`). */
+@media print {
+  @page {
+    margin: 0;
+  }
+}

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { LogoKivira } from "../../components/LogoKivira";
+import { Sidebar } from "../../components/aluno/Sidebar";
 import { useHomeAluno } from "../../controllers/useHomeAluno";
 
 const TIPO_LABEL = {
@@ -27,37 +27,10 @@ export function HomeAluno() {
   }
 
   return (
-    <div className="min-h-screen bg-bege text-azul font-sans">
-      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center">
-        <LogoKivira className="h-14 w-auto" />
+    <div className="flex min-h-screen bg-bege text-azul font-sans">
+      <Sidebar aluno={aluno} onSair={sair} />
 
-        <div className="flex items-center gap-4">
-          {aluno?.avatar_url && (
-            <img
-              src={`/avatares/${aluno.avatar_url}`}
-              alt="Seu avatar"
-              className="w-12 h-12 rounded-full border-2 border-coral object-cover"
-            />
-          )}
-          <div className="text-right">
-            <p className="font-extrabold leading-tight">
-              {aluno?.apelido || aluno?.nome_completo}
-            </p>
-            <p className="text-xs text-azul/60 font-semibold">
-              Nível {aluno?.nivel_atual} · {aluno?.xp_total} XP
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={sair}
-            className="text-xs font-bold text-azul/50 hover:text-coral transition"
-          >
-            Sair
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 pb-16">
+      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-3xl font-black mb-6">Suas atividades 🎲</h1>
 
         {atividades.length === 0 ? (

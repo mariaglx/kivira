@@ -6,7 +6,17 @@ import { Trash2Icon } from "../../components/icons/trash-2";
 // Modal de "revelar credenciais" — usado tanto pra mostrar o aluno recém
 // cadastrado quanto pra mostrar a senha nova depois de um reset. É a mesma
 // UI nos dois casos, só muda o título/texto e o que fecha
-function CredenciaisModal({ titulo, texto, username, senha, campoCopiado, onCopiar, onFechar }) {
+function CredenciaisModal({
+  titulo,
+  texto,
+  username,
+  senha,
+  campoCopiado,
+  onCopiar,
+  onFechar,
+  incluirImpressao,
+  onToggleImpressao,
+}) {
   return (
     <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
@@ -62,10 +72,20 @@ function CredenciaisModal({ titulo, texto, username, senha, campoCopiado, onCopi
           </div>
         </div>
 
+        <label className="flex items-center gap-2 text-sm font-semibold text-azul cursor-pointer mt-5">
+          <input
+            type="checkbox"
+            checked={incluirImpressao}
+            onChange={(e) => onToggleImpressao(e.target.checked)}
+            className="checkbox checkbox-sm"
+          />
+          Adicionar à impressão da turma
+        </label>
+
         <button
           type="button"
           onClick={onFechar}
-          className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all mt-5 w-full"
+          className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all mt-3 w-full"
         >
           Concluir
         </button>
@@ -110,8 +130,24 @@ export function TurmaForm() {
     erroAcaoAluno,
     fecharErroAcaoAluno,
     id,
+    filaImpressao,
+    adicionarNaFilaImpressao,
+    limparFilaImpressao,
   } = useTurmaForm();
   const [campoCopiado, setCampoCopiado] = useState(null);
+
+  // Toda vez que um novo cadastro ou reset acontece, o checkbox volta a vir
+  // marcado — é o caso mais comum (professor cadastrando a turma inteira).
+  // Comparar com a credencial anterior "durante a renderização" (em vez de um
+  // useEffect) é o padrão que o React recomenda pra ajustar estado a partir de
+  // uma prop/valor que mudou — evita o aviso de cascata de re-renders.
+  const [incluirNaImpressao, setIncluirNaImpressao] = useState(true);
+  const [ultimaCredencialVista, setUltimaCredencialVista] = useState(null);
+  const credencialAtual = alunoCriado || senhaResetada;
+  if (credencialAtual && credencialAtual !== ultimaCredencialVista) {
+    setUltimaCredencialVista(credencialAtual);
+    setIncluirNaImpressao(true);
+  }
 
   const copiar = async (texto, campo) => {
     try {
@@ -133,7 +169,7 @@ export function TurmaForm() {
 
   return (
     <>
-      <main className="flex-1 p-8 flex flex-col gap-6">
+      <main className="flex-1 p-8 flex flex-col gap-6 print:hidden">
         <header className="flex items-center gap-3">
           <Link
             to="/professor/turmas"
@@ -287,13 +323,33 @@ export function TurmaForm() {
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Alunos ({alunos.length})
                   </h3>
-                  <button
-                    type="button"
-                    onClick={abrirModalAluno}
-                    className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 shadow-sm transition-all active:scale-95"
-                  >
-                    + Adicionar aluno
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {filaImpressao.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={limparFilaImpressao}
+                          className="text-[11px] font-bold text-azul/40 hover:text-azul/70"
+                        >
+                          Limpar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => window.print()}
+                          className="btn bg-azul/10 hover:bg-azul/20 text-azul border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all active:scale-95"
+                        >
+                          Imprimir Turma ({filaImpressao.length})
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={abrirModalAluno}
+                      className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 shadow-sm transition-all active:scale-95"
+                    >
+                      + Adicionar aluno
+                    </button>
+                  </div>
                 </div>
                 <div className="px-6 py-2">
                   {alunos.length === 0 ? (
@@ -373,9 +429,22 @@ export function TurmaForm() {
                       {atividades.map((atividade) => (
                         <li
                           key={atividade.id}
-                          className="flex items-center justify-between py-2.5 border-b border-cinza-claro last:border-0"
+                          className="flex items-center gap-3 py-2.5 border-b border-cinza-claro last:border-0"
                         >
-                          <span className="text-sm font-semibold text-azul">
+                          {atividade.imagem_atividade_url ? (
+                            <img
+                              src={atividade.imagem_atividade_url}
+                              alt=""
+                              className="w-10 h-10 rounded-lg object-cover bg-bege shrink-0"
+                            />
+                          ) : (
+                            // Quadrado tracejado no lugar da imagem: sem ele, os
+                            // títulos das atividades sem imagem começariam num x
+                            // diferente e a lista ficaria desalinhada
+                            <div className="w-10 h-10 rounded-lg bg-bege border border-dashed border-cinza-claro shrink-0" />
+                          )}
+
+                          <span className="text-sm font-semibold text-azul grow min-w-0 truncate">
                             {atividade.titulo}
                           </span>
                           <span
@@ -397,6 +466,33 @@ export function TurmaForm() {
           )}
         </div>
       </main>
+
+      {/* Só existe pro navegador imprimir — some da tela normal (hidden) e só
+          aparece dentro do @media print (print:block). A borda tracejada dá a
+          linha de corte que o professor pediu pra recortar os cartões.
+          2 por linha, fluindo pela página normalmente; justify-items-center +
+          max-w no cartão evita que ele estique até a borda da coluna, dando o
+          respiro/centralização dentro de cada célula da grade. */}
+      <div className="hidden print:block w-full p-10">
+        <div className="grid grid-cols-2 gap-8 justify-items-center">
+          {filaImpressao.map((item, indice) => (
+            <div
+              key={`${item.username}-${indice}`}
+              className="border-2 border-dashed border-cinza-claro rounded-xl p-6 w-full max-w-sm text-center break-inside-avoid"
+            >
+              <p className="text-xl font-bold text-azul">
+                {formData.nome}
+              </p>
+              <p className="text-base font-semibold text-azul mt-3">
+                {item.username}
+              </p>
+              <p className="text-4xl font-extrabold tracking-[0.3em] text-azul mt-2">
+                {item.senha_temporaria}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {modalAlunoAberto && !alunoCriado && (
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
@@ -472,7 +568,14 @@ export function TurmaForm() {
           senha={alunoCriado.senha_temporaria}
           campoCopiado={campoCopiado}
           onCopiar={copiar}
-          onFechar={fecharModalAluno}
+          incluirImpressao={incluirNaImpressao}
+          onToggleImpressao={setIncluirNaImpressao}
+          onFechar={() => {
+            if (incluirNaImpressao) {
+              adicionarNaFilaImpressao(alunoCriado.username, alunoCriado.senha_temporaria);
+            }
+            fecharModalAluno();
+          }}
         />
       )}
 
@@ -484,7 +587,14 @@ export function TurmaForm() {
           senha={senhaResetada.senha_temporaria}
           campoCopiado={campoCopiado}
           onCopiar={copiar}
-          onFechar={fecharSenhaResetada}
+          incluirImpressao={incluirNaImpressao}
+          onToggleImpressao={setIncluirNaImpressao}
+          onFechar={() => {
+            if (incluirNaImpressao) {
+              adicionarNaFilaImpressao(senhaResetada.username, senhaResetada.senha_temporaria);
+            }
+            fecharSenhaResetada();
+          }}
         />
       )}
 

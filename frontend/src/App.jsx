@@ -23,6 +23,10 @@ const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
 const EscolherAvatar = lazy(() => import("./pages/aluno/EscolherAvatar"));
 const HomeAluno = lazy(() => import("./pages/aluno/HomeAluno"));
+const TurmasAluno = lazy(() => import("./pages/aluno/Turmas"));
+const TurmaDetalhe = lazy(() => import("./pages/aluno/TurmaDetalhe"));
+const Historico = lazy(() => import("./pages/aluno/Historico"));
+const ConfiguracoesAluno = lazy(() => import("./pages/aluno/Configuracoes"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
 
@@ -65,6 +69,10 @@ function App() {
 
         <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
         <Route path="/aluno/home" element={<HomeAluno />} />
+        <Route path="/aluno/turmas" element={<TurmasAluno />} />
+        <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
+        <Route path="/aluno/historico" element={<Historico />} />
+        <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
 
         {/* Só admin passa daqui (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["admin"]} />}>
