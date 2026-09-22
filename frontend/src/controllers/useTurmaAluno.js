@@ -23,7 +23,7 @@ export function useTurmaAluno() {
 
   const sair = () => {
     limparSessao();
-    navigate("/");
+    navigate("/login_aluno");
   };
 
   return { aluno, turma, erro, carregando, sair };

@@ -4,6 +4,8 @@ import { HouseIcon } from "../icons/house";
 import { UsersIcon } from "../icons/users";
 import { BookOpenIcon } from "../icons/book-open";
 import { SettingsIcon } from "../icons/settings";
+import { BarraProgresso } from "../ui/BarraProgresso";
+import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 
 // Mesma ideia do Sidebar do professor: a aba ativa sai da própria URL, então
 // nenhuma página precisa lembrar de passar `ativo`.
@@ -26,7 +28,7 @@ export function Sidebar({ aluno, onSair }) {
   const classe = (id) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl transition ${
       ativo === id
-        ? "bg-laranja text-azul font-bold shadow-md shadow-laranja/40"
+        ? "tatil bg-laranja text-azul font-bold [--sombra:var(--color-laranja-escuro)]"
         : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
     }`;
 
@@ -64,7 +66,7 @@ export function Sidebar({ aluno, onSair }) {
       {/* Perfil na base do Menu */}
       <div className="pt-4 border-t border-branco/15 flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-coral overflow-hidden flex items-center justify-center font-bold text-branco uppercase shadow-sm shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-coral overflow-hidden flex items-center justify-center font-bold text-branco uppercase ring-2 ring-laranja shrink-0">
             {aluno?.avatar_url ? (
               <img
                 src={`/avatares/${aluno.avatar_url}`}
@@ -79,10 +81,22 @@ export function Sidebar({ aluno, onSair }) {
             <p className="text-sm font-semibold truncate text-branco">
               {aluno?.apelido || aluno?.nome_completo}
             </p>
-            <p className="text-xs text-laranja truncate">
-              Nível {aluno?.nivel_atual} · {aluno?.xp_total} XP
+            <p className="text-xs text-laranja font-bold truncate">
+              Nível {aluno?.nivel_atual}
             </p>
           </div>
+        </div>
+
+        <div>
+          <BarraProgresso
+            valor={xpNoNivel(aluno?.xp_total)}
+            max={XP_POR_NIVEL}
+            trilha="bg-branco/15"
+            preenchimento="bg-laranja"
+          />
+          <p className="text-[11px] text-cinza-claro/70 mt-1">
+            {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP pro próximo nível
+          </p>
         </div>
 
         <button

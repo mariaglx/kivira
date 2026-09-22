@@ -117,15 +117,15 @@ export function TurmaDetalhe() {
                     <div
                       key={colega.aluno_id}
                       className={`flex items-center gap-3 py-2.5 border-b border-cinza-claro last:border-0 ${
-                        colega.sou_eu ? "bg-coral/8 rounded-xl px-2" : ""
+                        colega.sou_eu ? "bg-coral/10 rounded-xl px-2 ring-2 ring-coral/30" : ""
                       }`}
                     >
-                      {temXp ? (
-                        <span
-                          className={`w-6.5 shrink-0 text-[15px] font-extrabold text-center ${
-                            indice < 3 ? "text-coral" : "text-azul/35"
-                          }`}
-                        >
+                      {temXp && indice < 3 ? (
+                        <span className="w-6.5 shrink-0 text-xl text-center" title={`${indice + 1}º lugar`}>
+                          {["🥇", "🥈", "🥉"][indice]}
+                        </span>
+                      ) : temXp ? (
+                        <span className="w-6.5 shrink-0 text-[15px] font-extrabold text-center text-azul/35">
                           {indice + 1}
                         </span>
                       ) : (

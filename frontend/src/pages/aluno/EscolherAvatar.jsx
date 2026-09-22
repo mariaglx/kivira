@@ -40,10 +40,10 @@ export function EscolherAvatar() {
               key={cat}
               type="button"
               onClick={() => setCategoriaAtiva(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-bold capitalize transition ${
+              className={`tatil px-4 py-2 rounded-full text-sm font-bold capitalize ${
                 categoriaAtiva === cat
                   ? "bg-coral text-branco"
-                  : "bg-bege/60 text-azul/60 hover:bg-coral/15"
+                  : "bg-bege/60 text-azul/60 [--sombra:transparent]"
               }`}
             >
               {cat}
@@ -61,8 +61,8 @@ export function EscolherAvatar() {
               aria-pressed={selecionado === item.arquivo}
               className={`aspect-square rounded-2xl overflow-hidden transition-all ${
                 selecionado === item.arquivo
-                  ? "ring-4 ring-coral scale-95"
-                  : "ring-2 ring-transparent hover:ring-coral/40 hover:scale-105"
+                  ? "ring-4 ring-laranja scale-95 animate__animated animate__heartBeat"
+                  : "ring-2 ring-transparent hover:ring-coral/40 hover:-translate-y-1"
               }`}
             >
               <img

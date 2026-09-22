@@ -11,6 +11,11 @@
   --color-bege: #f5e6d3;
   --color-branco: #ffffff;
   --color-vermelho: #c0392b; /* ações destrutivas — excluir conta, turma, atividade */
+  --color-verde: #3fae7a; /* acerto no jogo */
+  --color-coral-escuro: #c45a48; /* sombra "tátil" dos botões coral */
+  --color-laranja-escuro: #c98f5a; /* sombra "tátil" das peças */
+  --color-azul-escuro: #15303b; /* sombra "tátil" dos botões azuis */
+  --font-display: Nunito, InterVariable, sans-serif;
 
   --font-sans: InterVariable, sans-serif;
   --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -70,5 +75,42 @@
 @media print {
   @page {
     margin: 0;
+  }
+}
+
+/* Títulos com fonte arredondada — dá o tom infantil sem mexer no texto corrido */
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Botão "tátil": sombra sólida embaixo que afunda ao clicar. A cor da sombra
+   vem de --sombra (ex: [--sombra:var(--color-coral-escuro)]). Fica em
+   `components` pra os utilitários do Tailwind (disabled:, hover:) poderem vencer. */
+@layer components {
+  .tatil {
+    box-shadow: 0 4px 0 var(--sombra, var(--color-coral-escuro));
+    transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
+  }
+  .tatil:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--sombra, var(--color-coral-escuro));
+  }
+  .tatil:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--sombra, var(--color-coral-escuro));
+  }
+  .tatil:disabled {
+    box-shadow: none;
+  }
+}
+
+/* Quem prefere menos movimento não recebe as animações do jogo */
+@media (prefers-reduced-motion: reduce) {
+  .animate-tremida-leve,
+  .tatil {
+    animation: none;
+    transition: none;
   }
 }

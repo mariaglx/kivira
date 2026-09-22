@@ -25,7 +25,7 @@ export function useConfiguracoesAluno() {
         setAluno(perfil);
         setApelido(perfil.apelido || "");
       })
-      .catch(() => navigate("/", { replace: true }))
+      .catch(() => navigate("/login_aluno", { replace: true }))
       .finally(() => setCarregando(false));
   }, [navigate]);
 
@@ -98,7 +98,7 @@ export function useConfiguracoesAluno() {
 
   const sair = () => {
     limparSessao();
-    navigate("/");
+    navigate("/login_aluno");
   };
 
   return {

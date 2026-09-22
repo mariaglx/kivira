@@ -24,6 +24,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
   // Novos estados para o fluxo do jogo (LUK / Kivira)
   const [fase, setFase] = useState("jogando"); // "jogando" | "virado"
   const [resultados, setResultados] = useState({}); // { numeroSlot: true/false }
+  const [tentativas, setTentativas] = useState(0); // quantas vezes virou o tabuleiro (define as estrelas)
 
   if (perguntas !== perguntasAnteriores) {
     setPerguntasAnteriores(perguntas);
@@ -31,6 +32,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setTabuleiro({});
     setResultados({});
     setPecaSelecionada(null);
+    setTentativas(0);
     setFase("jogando");
   }
 
@@ -84,6 +86,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     });
 
     setResultados(novosResultados);
+    setTentativas((t) => t + 1);
     setFase("virado");
   };
 
@@ -146,6 +149,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setResultados({});
     setPecaSelecionada(null);
     setPecaDraggin(null);
+    setTentativas(0);
     setFase("jogando");
     setPecasSoltas(embaralhar(perguntas));
   };
@@ -157,6 +161,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     pecaSelecionada,
     fase,
     resultados,
+    tentativas,
     todosSlotsPreenchidos,
     imagemAtividadeUrl,
     selecionarPeca,

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Sidebar } from "../../components/aluno/Sidebar";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { useConfiguracoesAluno } from "../../controllers/useConfiguracoesAluno";
+import { SettingsIcon } from "../../components/icons/settings";
 
 function Aviso({ aviso }) {
   if (!aviso) return null;
@@ -49,12 +50,15 @@ export function Configuracoes() {
       <Sidebar aluno={aluno} onSair={sair} />
 
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
-        <h1 className="text-3xl font-black mb-6">Suas configurações ⚙️</h1>
+        <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
+          Suas configurações
+          <SettingsIcon size={22} isAnimated={false} />
+        </h1>
 
         <div className="flex flex-col gap-6 max-w-3xl">
           {/* ───────── Avatar ───────── */}
-          <section className="bg-branco rounded-3xl p-6 shadow-sm border border-cinza-claro/10 flex items-center gap-5 flex-wrap">
-            <div className="w-20 h-20 rounded-2xl bg-bege border-2 border-coral overflow-hidden flex items-center justify-center text-2xl font-black text-azul/40 shrink-0">
+          <section className="bg-branco rounded-3xl p-6 shadow-sm border-2 border-transparent hover:border-laranja/60 transition-colors flex items-center gap-5 flex-wrap">
+            <div className="w-20 h-20 rounded-2xl bg-coral overflow-hidden flex items-center justify-center text-2xl font-black text-branco uppercase ring-4 ring-laranja shrink-0">
               {aluno?.avatar_url ? (
                 <img
                   src={`/avatares/${aluno.avatar_url}`}
@@ -75,7 +79,7 @@ export function Configuracoes() {
 
             <Link
               to="/aluno/escolher-avatar"
-              className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-2xl px-6 h-auto min-h-11 py-3 font-bold shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+              className="tatil bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
             >
               Trocar bichinho
             </Link>
@@ -104,7 +108,7 @@ export function Configuracoes() {
               <button
                 type="submit"
                 disabled={salvandoApelido}
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-2xl px-6 h-auto min-h-11 py-3 font-bold shadow-sm disabled:opacity-50 transition-all active:scale-95"
+                className="tatil bg-coral text-branco rounded-2xl px-6 py-3 font-bold disabled:cursor-not-allowed"
               >
                 {salvandoApelido ? "Salvando..." : "Salvar"}
               </button>
@@ -144,7 +148,7 @@ export function Configuracoes() {
               <button
                 type="submit"
                 disabled={salvandoSenha}
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-2xl py-3 h-auto min-h-11 font-bold shadow-sm disabled:opacity-50 transition-all active:scale-95"
+                className="tatil bg-coral text-branco rounded-2xl py-3 font-bold disabled:cursor-not-allowed"
               >
                 {salvandoSenha ? "Trocando..." : "Trocar minha senha"}
               </button>

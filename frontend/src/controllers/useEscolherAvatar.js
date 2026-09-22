@@ -29,7 +29,7 @@ export function useEscolherAvatar() {
         if (!cancelado) setAlunoId(aluno.id);
       })
       .catch((e) => {
-        if (!cancelado && e.name !== "AbortError") navigate("/", { replace: true });
+        if (!cancelado && e.name !== "AbortError") navigate("/login_aluno", { replace: true });
       });
 
     return () => {

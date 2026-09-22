@@ -24,7 +24,7 @@ export function useHomeAluno() {
         setAtividades(lista);
       })
       .catch((erro) => {
-        if (!cancelado && erro.name !== "AbortError") navigate("/", { replace: true });
+        if (!cancelado && erro.name !== "AbortError") navigate("/login_aluno", { replace: true });
       })
       .finally(() => {
         if (!cancelado) setCarregando(false);
@@ -43,7 +43,7 @@ export function useHomeAluno() {
       // ignora: logout local não pode ficar travado por causa do log
     }
     limparSessao();
-    navigate("/");
+    navigate("/login_aluno");
   };
 
   return { aluno, atividades, carregando, sair };

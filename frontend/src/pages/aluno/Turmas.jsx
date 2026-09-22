@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Sidebar } from "../../components/aluno/Sidebar";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
+import { UsersIcon } from "../../components/icons/users";
 
 export function Turmas() {
   const { aluno, turmas, carregando, sair } = useTurmasAluno();
@@ -18,7 +19,10 @@ export function Turmas() {
       <Sidebar aluno={aluno} onSair={sair} />
 
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
-        <h1 className="text-3xl font-black mb-6">Suas turmas 🏫</h1>
+        <h1 className="text-3xl font-black mb-6 flex items-center gap-2">
+          Suas turmas
+          <UsersIcon size={26} isAnimated={false} />
+        </h1>
 
         {turmas.length === 0 ? (
           <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">

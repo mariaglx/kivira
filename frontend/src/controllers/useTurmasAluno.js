@@ -15,13 +15,13 @@ export function useTurmasAluno() {
         setAluno(perfil);
         setTurmas(lista);
       })
-      .catch(() => navigate("/", { replace: true }))
+      .catch(() => navigate("/login_aluno", { replace: true }))
       .finally(() => setCarregando(false));
   }, [navigate]);
 
   const sair = () => {
     limparSessao();
-    navigate("/");
+    navigate("/login_aluno");
   };
 
   return { aluno, turmas, carregando, sair };
