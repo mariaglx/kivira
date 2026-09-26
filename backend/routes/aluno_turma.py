@@ -4,8 +4,8 @@ from models.aluno_turma import AlunoTurma
 from models.turma import Turma
 from models.aluno import Aluno
 from models.usuario import Usuario
-from models.professor import Professor
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from core.rbac import pode_gerenciar
 from schemas.aluno_turma import AlunoTurmaSchema, AlunoTurmaUpdateSchema
 from services.auditoria_service import registrar_log
 
@@ -13,7 +13,7 @@ aluno_turma_router = APIRouter(prefix="/aluno_turma", tags=["aluno_turma"], depe
 
 
 @aluno_turma_router.post("/criar")
-async def criar_matricula(aluno_turma_schema: AlunoTurmaSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def criar_matricula(aluno_turma_schema: AlunoTurmaSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == aluno_turma_schema.turma_id).first()
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
@@ -22,8 +22,7 @@ async def criar_matricula(aluno_turma_schema: AlunoTurmaSchema, session = Depend
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     matricula_existente = session.query(AlunoTurma).filter(
@@ -54,13 +53,12 @@ async def criar_matricula(aluno_turma_schema: AlunoTurmaSchema, session = Depend
 
 
 @aluno_turma_router.get("/turma/{id_turma}")
-async def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == id_turma).first()
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     matriculas = session.query(AlunoTurma).filter(AlunoTurma.turma_id == id_turma).all()
@@ -92,7 +90,7 @@ async def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_k
 
 
 @aluno_turma_router.get("/{id_matricula}")
-async def buscar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira)):
+def buscar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira)):
     matricula = session.query(AlunoTurma).filter(AlunoTurma.id == id_matricula).first()
     if not matricula:
         raise HTTPException(status_code=404, detail="Matrícula não encontrada")
@@ -107,14 +105,13 @@ async def buscar_matricula(id_matricula: int, session = Depends(pegar_sessao_kiv
 
 
 @aluno_turma_router.patch("/{id_matricula}")
-async def editar_matricula(id_matricula: int, aluno_turma_schema: AlunoTurmaUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def editar_matricula(id_matricula: int, aluno_turma_schema: AlunoTurmaUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     matricula = session.query(AlunoTurma).filter(AlunoTurma.id == id_matricula).first()
     if not matricula:
         raise HTTPException(status_code=404, detail="Matrícula não encontrada")
 
     turma = session.query(Turma).filter(Turma.id == matricula.turma_id).first()
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or not turma or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if aluno_turma_schema.ativo is not None:
@@ -134,14 +131,13 @@ async def editar_matricula(id_matricula: int, aluno_turma_schema: AlunoTurmaUpda
 
 
 @aluno_turma_router.delete("/{id_matricula}")
-async def deletar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     matricula = session.query(AlunoTurma).filter(AlunoTurma.id == id_matricula).first()
     if not matricula:
         raise HTTPException(status_code=404, detail="Matrícula não encontrada")
 
     turma = session.query(Turma).filter(Turma.id == matricula.turma_id).first()
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or not turma or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     id_matricula_excluida = matricula.id

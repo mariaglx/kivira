@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 export function useTurmaAluno() {
   const { id } = useParams();
@@ -21,10 +22,8 @@ export function useTurmaAluno() {
   }, [id]);
 
   const sair = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
-    navigate("/");
+    limparSessao();
+    navigate("/login_aluno");
   };
 
   return { aluno, turma, erro, carregando, sair };

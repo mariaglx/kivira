@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 export function useTurmasAluno() {
   const navigate = useNavigate();
@@ -14,15 +15,13 @@ export function useTurmasAluno() {
         setAluno(perfil);
         setTurmas(lista);
       })
-      .catch(() => navigate("/", { replace: true }))
+      .catch(() => navigate("/login_aluno", { replace: true }))
       .finally(() => setCarregando(false));
   }, [navigate]);
 
   const sair = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
-    navigate("/");
+    limparSessao();
+    navigate("/login_aluno");
   };
 
   return { aluno, turmas, carregando, sair };

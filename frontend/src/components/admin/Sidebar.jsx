@@ -3,6 +3,7 @@ import { LogoKiviraRosa } from "../LogoKiviraRosa";
 import { UsersIcon } from "../icons/users";
 import { ClipboardListIcon } from "../icons/clipboard-list";
 import { apiRequest } from "../../services/api";
+import { limparSessao } from "../../services/sessao";
 
 function detectarAtivo(pathname) {
   if (pathname.startsWith("/admin/logs-auditoria")) return "logs";
@@ -23,9 +24,7 @@ export function Sidebar() {
     } catch {
       // ignora: logout local não pode ficar travado por causa do log
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
+    limparSessao();
     navigate("/login");
   };
 

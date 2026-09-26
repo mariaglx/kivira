@@ -16,7 +16,7 @@ professor_router = APIRouter(prefix="/professor", tags=["professor"])
 
 
 @professor_router.get("/")
-async def professor():
+def professor():
     return{"mensagem":"Você acessou a rota de professor"}
 
 # Perfil do professor autenticado. Precisa vir ANTES de "/{id_professor}"
@@ -24,7 +24,7 @@ async def professor():
 # capturado por "/{id_professor}" se for registrado depois dele)
 
 @professor_router.get("/me")
-async def meu_perfil_professor(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def meu_perfil_professor(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
@@ -42,7 +42,7 @@ async def meu_perfil_professor(session = Depends(pegar_sessao_kivira), usuario: 
 # Altera a senha do próprio professor logado (precisa confirmar a senha atual)
 
 @professor_router.patch("/me/senha")
-async def alterar_minha_senha(dados: AlterarSenhaProfessorSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def alterar_minha_senha(dados: AlterarSenhaProfessorSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if not bcrypt.checkpw(dados.senha_atual.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Senha atual incorreta")
 
@@ -65,7 +65,7 @@ async def alterar_minha_senha(dados: AlterarSenhaProfessorSchema, session = Depe
 # Resumo usado no Dashboard: métricas gerais + últimas turmas do professor logado
 
 @professor_router.get("/dashboard/resumo")
-async def resumo_dashboard_professor(
+def resumo_dashboard_professor(
     incluir_turmas_recentes: bool = Query(default=True),
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -128,7 +128,7 @@ async def resumo_dashboard_professor(
 # Cria a conta de um professor
 
 @professor_router.post("/criar_conta")
-async def criar_conta(professor_schema: ProfessorSchema, session = Depends(pegar_sessao_kivira)):
+def criar_conta(professor_schema: ProfessorSchema, session = Depends(pegar_sessao_kivira)):
 
     #Verifica se já existe algum usuário com esse e-mail cadastrado no bd
     usuario = session.query(Usuario).filter(Usuario.email == professor_schema.email).first() 
@@ -163,7 +163,7 @@ async def criar_conta(professor_schema: ProfessorSchema, session = Depends(pegar
 # Retorna os dados do professor. Selecionado pelo ID do professor
 
 @professor_router.get("/{id_professor}")
-async def buscar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def buscar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.id == id_professor).first()
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
@@ -183,7 +183,7 @@ async def buscar_professor(id_professor: int, session = Depends(pegar_sessao_kiv
 # Edição dos dados do professor
 
 @professor_router.patch("/{id_professor}")
-async def editar_professor(id_professor: int, professor_schema: ProfessorUpdateSchema, session = Depends(pegar_sessao_kivira), 
+def editar_professor(id_professor: int, professor_schema: ProfessorUpdateSchema, session = Depends(pegar_sessao_kivira), 
 usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.id == id_professor).first() 
     if not professor:
@@ -223,7 +223,7 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 # Deleta o cadastro de um professor selecionado pelo ID
 
 @professor_router.delete("/{id_professor}")
-async def deletar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.id == id_professor).first()
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")

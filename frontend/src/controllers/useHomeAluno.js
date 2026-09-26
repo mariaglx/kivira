@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 export function useHomeAluno() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function useHomeAluno() {
         setAtividades(lista);
       })
       .catch((erro) => {
-        if (!cancelado && erro.name !== "AbortError") navigate("/", { replace: true });
+        if (!cancelado && erro.name !== "AbortError") navigate("/login_aluno", { replace: true });
       })
       .finally(() => {
         if (!cancelado) setCarregando(false);
@@ -41,10 +42,8 @@ export function useHomeAluno() {
     } catch {
       // ignora: logout local não pode ficar travado por causa do log
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
-    navigate("/");
+    limparSessao();
+    navigate("/login_aluno");
   };
 
   return { aluno, atividades, carregando, sair };

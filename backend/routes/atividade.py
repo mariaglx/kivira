@@ -13,22 +13,18 @@ from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
 from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import admin_ou_professor
+from core.rbac import admin_ou_professor, pode_gerenciar
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema
 from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
 
-@atividade_router.get("/")
-async def atividade():
-    return{"mensagem":"Você acessou a rota de atividades"}
-
 # Lista as atividades criadas pelo professor logado. Usado pela tela de Atividades
 # do professor pra substituir os dados mockados.
 
 @atividade_router.get("/professor/minhas")
-async def listar_atividades_do_professor(
+def listar_atividades_do_professor(
     turma_id: int | None = None,
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -72,7 +68,7 @@ async def listar_atividades_do_professor(
 # Usado pela Home do aluno pra substituir os dados mockados.
 
 @atividade_router.get("/aluno/minhas")
-async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if usuario.tipo != "estudante":
         raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
 
@@ -129,7 +125,7 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
 # alunos recebem 403 antes mesmo de rodar a lógica abaixo.
 
 @atividade_router.post("/criar_atividade", dependencies=[Depends(admin_ou_professor)])
-async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
 
     if usuario.tipo == "admin" and atividade_schema.professor_id is not None:
@@ -182,7 +178,7 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
 # à busca no Pixabay) — precisa vir ANTES de "/{id_atividade}" abaixo, senão o
 # FastAPI tentaria casar "upload_imagem" como id e devolveria 422.
 
-@atividade_router.post("/upload_imagem")
+@atividade_router.post("/upload_imagem", dependencies=[Depends(admin_ou_professor)])
 async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
     if not arquivo.content_type or not arquivo.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Envie um arquivo de imagem")
@@ -197,7 +193,7 @@ async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
 # Guarda no Cloudinary uma imagem escolhida na busca do Pixabay. Também precisa vir
 # antes de "/{id_atividade}" pelo mesmo motivo da rota acima.
 
-@atividade_router.post("/imagem_do_pixabay")
+@atividade_router.post("/imagem_do_pixabay", dependencies=[Depends(admin_ou_professor)])
 async def salvar_imagem_do_pixabay(dados: SalvarImagemPixabaySchema):
     url = await enviar_imagem_do_pixabay(dados.url)
     return {"url": url}
@@ -205,7 +201,7 @@ async def salvar_imagem_do_pixabay(dados: SalvarImagemPixabaySchema):
 # Retorna os dados de uma atividade a partir do ID dela
 
 @atividade_router.get("/{id_atividade}")
-async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira)):
+def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
@@ -230,7 +226,7 @@ async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kiv
 # modal "Ver questões" na tela de Atividades do professor
 
 @atividade_router.get("/{id_atividade}/questoes")
-async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_questoes_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
@@ -302,7 +298,7 @@ async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pega
 # agora é 1 request só, sem depender de N ida-e-voltas de rede.
 
 @atividade_router.put("/{id_atividade}/questoes", dependencies=[Depends(admin_ou_professor)])
-async def salvar_questoes_da_atividade(
+def salvar_questoes_da_atividade(
     id_atividade: int,
     payload: SalvarQuestoesSchema,
     session = Depends(pegar_sessao_kivira),
@@ -312,8 +308,7 @@ async def salvar_questoes_da_atividade(
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if payload.remover_questao_ids:
@@ -426,13 +421,12 @@ async def salvar_questoes_da_atividade(
 # Edita as informações de uma atividade a partir do ID dela
 
 @atividade_router.patch("/{id_atividade}")
-async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if atividade_schema.titulo is not None:
@@ -487,13 +481,12 @@ async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateS
 # Deleta uma atividade a partir do id dela
 
 @atividade_router.delete("/{id_atividade}")
-async def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     titulo_atividade = atividade.titulo

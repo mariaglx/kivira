@@ -9,9 +9,10 @@ from models.usuario import Usuario
 
 def registrar_log(session, usuario: Usuario, acao: str, entidade: str, entidade_id: int = None, detalhes: dict = None):
     """
-    Grava uma entrada de auditoria. Não faz commit sozinho — assume que quem
-    chamou já está numa transação (normalmente logo após o session.commit() da
-    própria operação, pra não perder o log se a operação principal falhar).
+    Grava uma entrada de auditoria e faz commit próprio.
+    ponytail: transação separada da operação principal — se o log falhar, a ação
+    já foi salva sem registro. Para ficar atômico, tirar o commit daqui e chamar
+    antes do commit da rota.
     """
     log = LogAuditoria(
         usuario_id=usuario.id,

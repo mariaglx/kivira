@@ -1,3 +1,5 @@
+import { limparSessao } from './sessao';
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export async function apiRequest(endpoint, { method = 'GET', data = null, headers = {}, signal = null } = {}) {
@@ -36,6 +38,13 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
   const responseData = await response.json().catch(() => null);
 
   if (!response.ok) {
+    // Token expirado/inválido: um único tratamento pra todas as telas. Login
+    // fica de fora porque lá 401 significa só "credencial errada".
+    if (response.status === 401 && token && !endpoint.startsWith('/auth_kivira/')) {
+      const destino = localStorage.getItem('user_type') === 'estudante' ? '/login_aluno' : '/login';
+      limparSessao();
+      window.location.assign(destino);
+    }
     // Lança o erro com a mensagem do FastAPI (data.detail). O status vai junto
     // porque a tela precisa distinguir "credencial errada" (400/401) de
     // "sistema com problema" (500, rede) — a mensagem sozinha não permite isso.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { limparSessao } from "../services/sessao";
 
 export function useConfiguracoesAluno() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export function useConfiguracoesAluno() {
         setAluno(perfil);
         setApelido(perfil.apelido || "");
       })
-      .catch(() => navigate("/", { replace: true }))
+      .catch(() => navigate("/login_aluno", { replace: true }))
       .finally(() => setCarregando(false));
   }, [navigate]);
 
@@ -96,10 +97,8 @@ export function useConfiguracoesAluno() {
   };
 
   const sair = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
-    navigate("/");
+    limparSessao();
+    navigate("/login_aluno");
   };
 
   return {

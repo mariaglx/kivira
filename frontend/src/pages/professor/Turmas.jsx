@@ -48,14 +48,6 @@ export function Turmas() {
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Erro ao carregar turmas:", err.message);
-        if (
-          err.message?.includes("Token") ||
-          err.message?.includes("401") ||
-          err.message?.includes("autorização")
-        ) {
-          localStorage.removeItem("access_token");
-          navigate("/login");
-        }
       } finally {
         if (!cancelado) setCarregando(false);
       }

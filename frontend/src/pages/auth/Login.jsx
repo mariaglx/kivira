@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
+import { salvarSessao } from "../../services/sessao";
 
 export function Login() {
   const navigate = useNavigate();
@@ -36,13 +37,7 @@ export function Login() {
         },
       });
 
-      if (data?.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("user_type", data.tipo_usuario); // Armazena o tipo de usuário
-      }
-      if (data?.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
-      }
+      salvarSessao({ accessToken: data?.access_token, refreshToken: data?.refresh_token, tipo: data?.tipo_usuario });
 
       if (data.tipo_usuario === "admin") {
         navigate("/admin");

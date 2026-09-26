@@ -88,11 +88,11 @@ export function Turmas() {
     <div className="flex min-h-screen bg-bege text-azul font-sans">
       <Sidebar aluno={aluno} onSair={sair} />
 
-      <main className="flex-1 min-w-0 px-10 py-10 pb-16">
-        <div className="mb-9">
-          <h1 className="font-display text-[34px] font-bold leading-tight">Suas turmas</h1>
-          <p className="text-azul/50 font-medium mt-1">As turmas em que você está matriculado.</p>
-        </div>
+      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
+        <h1 className="text-3xl font-black mb-6 flex items-center gap-2">
+          Suas turmas
+          <UsersIcon size={26} isAnimated={false} />
+        </h1>
 
         {turmas.length === 0 ? (
           <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">

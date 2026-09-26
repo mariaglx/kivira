@@ -10,6 +10,7 @@ from models.professor import Professor
 from models.atividade import Atividade
 from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
@@ -17,14 +18,14 @@ from services.auditoria_service import registrar_log
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
 @aluno_router.get("/")
-async def aluno():
+def aluno():
     return{"mensagem": "Você acessou a rota de aluno"}
 
 # Perfil do aluno autenticado (usado pelo front pra saber quem é o "eu" sem precisar guardar o id manualmente)
 # Precisa vir ANTES de "/{id_aluno}" pra não ser capturado por aquela rota
 
 @aluno_router.get("/me")
-async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -44,7 +45,7 @@ async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usua
 # Também precisa vir ANTES de "/{id_aluno}"
 
 @aluno_router.get("/status-acesso")
-async def status_acesso_aluno(username: str, codigo_turma: str | None = None, session = Depends(pegar_sessao_kivira)):
+def status_acesso_aluno(username: str, codigo_turma: str | None = None, session = Depends(pegar_sessao_kivira)):
     aluno = session.query(Aluno).filter(Aluno.username == username).first()
 
     # Com código (veio do card da Home): o aluno precisa ser daquela turma.
@@ -111,7 +112,7 @@ def gerar_senha_temporaria():
 
 # Possivelmente vamos abandonar esse método por que criamos o de usuário
 @aluno_router.post("/criar_conta")
-async def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira)):
+def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira)):
 
     usuario = session.query(Usuario).filter(Usuario.email == aluno_schema.email).first()
 
@@ -144,7 +145,7 @@ async def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_
 # Retorna os dados de um aluno já cadastrado a partir do ID
 
 @aluno_router.get("/{id_aluno}")
-async def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -166,7 +167,7 @@ async def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
 # Edição dos dados do aluno
 
 @aluno_router.patch("/{id_aluno}")
-async def editar_aluno(id_aluno: int, aluno_schema: AlunoUpdateSchema, session = Depends(pegar_sessao_kivira), 
+def editar_aluno(id_aluno: int, aluno_schema: AlunoUpdateSchema, session = Depends(pegar_sessao_kivira), 
 usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first() 
     if not aluno:
@@ -202,7 +203,7 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 # Faz a exclusão de um aluno a partir do ID
 
 @aluno_router.delete("/{id_aluno}")
-async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -236,7 +237,7 @@ async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
 # sistema (não é o professor quem escolhe) e só aparece nessa resposta — o
 # professor precisa anotar/repassar pro aluno nesse momento, não dá pra recuperar depois.
 @aluno_router.post("/cadastrar")
-async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     username = gerar_username_unico(aluno_schema.nome_completo, session)
     senha_temporaria = gerar_senha_temporaria()
@@ -257,8 +258,7 @@ async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(
         if not turma:
             raise HTTPException(status_code=404, detail="Turma não encontrada")
 
-        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-        if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+        if not pode_gerenciar(session, usuario, turma):
             raise HTTPException(status_code=401, detail="Você não tem autorização para matricular alunos nessa turma")
 
         session.add(AlunoTurma(turma_id=turma.id, aluno_id=novo_aluno.id))
@@ -285,7 +285,7 @@ async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(
 # Primeiro acesso do aluno ao sistema 
 
 @aluno_router.post("/primeiro_acesso")
-async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_kivira)):
+def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_kivira)):
 
     aluno = session.query(Aluno).filter(Aluno.username == dados.username).first()
     if not aluno:
@@ -320,7 +320,7 @@ async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_s
 # Reseta a senha do Aluno caso necessário 
 
 @aluno_router.patch("/{id_aluno}/resetar_senha")
-async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
@@ -356,7 +356,7 @@ async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivi
 # o aluno só vê as próprias turmas e não tem como criar nenhuma.
 
 @aluno_router.get("/minhas/turmas")
-async def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if usuario.tipo != "estudante":
         raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
 
@@ -438,7 +438,7 @@ async def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: 
 # /{id}/resetar_senha (que é a professora gerando uma senha temporária).
 
 @aluno_router.post("/trocar_senha")
-async def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if usuario.tipo != "estudante":
         raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
 
@@ -464,7 +464,7 @@ async def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pe
 # devolve 401 pro aluno — mesmo caso do bug que o botão "Jogar!" tinha.
 
 @aluno_router.get("/minhas/turmas/{id_turma}")
-async def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if usuario.tipo != "estudante":
         raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
 

@@ -34,6 +34,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
   const [erroPartida, setErroPartida] = useState(null);
   // Preenchido quando o servidor confirma que a sessão concluiu (todas certas)
   const [resultadoConclusao, setResultadoConclusao] = useState(null);
+  const [tentativas, setTentativas] = useState(0); // quantas vezes virou o tabuleiro (define as estrelas)
 
   if (perguntas !== perguntasAnteriores) {
     setPerguntasAnteriores(perguntas);
@@ -41,6 +42,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setTabuleiro({});
     setResultados({});
     setPecaSelecionada(null);
+    setTentativas(0);
     setFase("jogando");
     setResultadoConclusao(null);
   }
@@ -99,6 +101,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
       });
 
       setResultados(novosResultados);
+      setTentativas((t) => t + 1);
       setFase("virado");
       return;
     }
@@ -117,6 +120,10 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
       });
 
       setResultados(resposta.resultado_por_slot);
+      // Conta a virada também no fluxo com servidor: é o que alimenta as
+      // estrelas da tela do aluno. Só conta quando o tabuleiro realmente vira —
+      // se a conferência falhar, a tentativa não entra.
+      setTentativas((t) => t + 1);
       setFase("virado");
       if (resposta.concluida) {
         setResultadoConclusao({
@@ -207,6 +214,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     setResultados({});
     setPecaSelecionada(null);
     setPecaDraggin(null);
+    setTentativas(0);
     setFase("jogando");
     setResultadoConclusao(null);
     setPecasSoltas(embaralhar(perguntas));
@@ -219,6 +227,7 @@ export function useJogo(perguntas = [], imagemAtividadeUrl = "/img/resultado.png
     pecaSelecionada,
     fase,
     resultados,
+    tentativas,
     todosSlotsPreenchidos,
     imagemAtividadeUrl,
     processando,

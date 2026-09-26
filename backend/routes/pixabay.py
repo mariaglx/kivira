@@ -3,12 +3,12 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from dependecies import verificar_token_kivira
+from core.rbac import admin_ou_professor
 from schemas.pixabay import BuscarImagensPixabayResponse
 from services.pixabay_service import buscar_imagens_pixabay
 
 pixabay_router = APIRouter(
-    prefix="/pixabay", tags=["pixabay"], dependencies=[Depends(verificar_token_kivira)]
+    prefix="/pixabay", tags=["pixabay"], dependencies=[Depends(admin_ou_professor)]
 )
 
 

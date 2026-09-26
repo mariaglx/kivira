@@ -25,14 +25,6 @@ export function Dashboard() {
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Erro ao carregar dados do dashboard:", err.message);
-        if (
-          err.message?.includes("Token") ||
-          err.message?.includes("401") ||
-          err.message?.includes("autorização")
-        ) {
-          localStorage.removeItem("access_token");
-          navigate("/login");
-        }
       } finally {
         if (!cancelado) setCarregando(false);
       }

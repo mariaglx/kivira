@@ -52,9 +52,6 @@ export function LogsAuditoria() {
         console.error("Erro ao carregar logs de auditoria:", err.message);
         if (err.message?.includes("permissão") || err.message?.includes("403")) {
           setErro("Você não tem permissão para acessar esta área.");
-        } else if (err.message?.includes("Token") || err.message?.includes("401") || err.message?.includes("Acesso")) {
-          localStorage.removeItem("access_token");
-          navigate("/login");
         } else {
           setErro("Não foi possível carregar os logs de auditoria.");
         }

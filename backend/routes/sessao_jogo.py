@@ -57,7 +57,7 @@ def _questoes_por_ordem(session, atividade_id):
 # atividade (saiu sem terminar), ela é marcada abandonada agora — é assim que
 # abandono vira dado, sem precisar de job noturno nenhum.
 @sessao_jogo_router.post("/iniciar")
-async def iniciar_sessao(
+def iniciar_sessao(
     payload: IniciarSessaoSchema,
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -110,7 +110,7 @@ async def iniciar_sessao(
 # slot; o servidor confere, grava o detalhe por questão e, se tudo estiver
 # certo, conclui a sessão e credita o XP na mesma transação.
 @sessao_jogo_router.post("/{id_sessao}/conferir")
-async def conferir_sessao(
+def conferir_sessao(
     id_sessao: int,
     payload: ConferirSessaoSchema,
     session = Depends(pegar_sessao_kivira),
@@ -160,7 +160,7 @@ async def conferir_sessao(
 # tiver acabado de verdade — senão um relógio adiantado (ou adulterado)
 # encerraria a partida de outra criança antes da hora.
 @sessao_jogo_router.post("/{id_sessao}/tempo_esgotado")
-async def encerrar_sessao_por_tempo(
+def encerrar_sessao_por_tempo(
     id_sessao: int,
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -199,7 +199,7 @@ async def encerrar_sessao_por_tempo(
 
 # "Começar do zero": NÃO conta como abandono, é a mesma sessão continuando.
 @sessao_jogo_router.post("/{id_sessao}/reiniciar")
-async def reiniciar_sessao_jogo(
+def reiniciar_sessao_jogo(
     id_sessao: int,
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -221,7 +221,7 @@ async def reiniciar_sessao_jogo(
 # encontra em "tentativas". Sessões abandonadas ou em andamento não aparecem
 # aqui, só o que o aluno realmente terminou.
 @sessao_jogo_router.get("/minhas")
-async def meu_historico(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def meu_historico(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = _buscar_aluno_do_token(session, usuario)
 
     sessoes = session.query(SessaoJogo).filter(
