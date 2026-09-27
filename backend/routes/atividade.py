@@ -2,7 +2,7 @@
 
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy import insert
+from sqlalchemy import insert, func
 from models.atividade import Atividade
 from models.professor import Professor
 from models.usuario import Usuario
@@ -14,11 +14,30 @@ from models.opcao_questao import OpcaoQuestao
 from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import admin_ou_professor, pode_gerenciar
-from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema
+from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema, ConcluirAtividadeSchema
 from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
+
+# Regras de gamificação da conclusão de atividade:
+# - estrelas vêm de quantas vezes o aluno precisou virar o tabuleiro pra
+#   conferir (mesma fórmula do front, ver estrelasPorTentativas em
+#   JogoAndamento.jsx): 3 na primeira, 2 numa correção, 1 nas demais.
+# - XP = soma dos pontos das questões (já existe em Questao.pontos) vezes um
+#   multiplicador de dificuldade, escalado pelas estrelas — perder tempo
+#   corrigindo rende menos que acertar de primeira.
+# XP_POR_NIVEL espelha o mesmo valor do front (ver frontend/src/utils/xp.js);
+# como o cálculo de nível é feito aqui, os dois precisam ficar em sincronia.
+XP_MULTIPLICADOR_DIFICULDADE = {"facil": 1, "medio": 1.5, "dificil": 2}
+XP_POR_NIVEL = 100
+
+def calcular_estrelas(tentativas):
+    return max(1, min(3, 4 - tentativas))
+
+def calcular_xp_ganho(pontuacao_base, dificuldade, estrelas):
+    multiplicador = XP_MULTIPLICADOR_DIFICULDADE.get(dificuldade, 1)
+    return round(pontuacao_base * multiplicador * estrelas / 3)
 
 # Lista as atividades criadas pelo professor logado. Usado pela tela de Atividades
 # do professor pra substituir os dados mockados.
@@ -86,24 +105,26 @@ def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: 
 
     atividades = []
     if turma_ids:
+        # order_by(id): a Trilha de Fases do front (ver HomeAluno.jsx) depende
+        # de uma ordem estável pra decidir qual fase é a próxima liberada.
         atividades = session.query(Atividade).filter(
             Atividade.turma_id.in_(turma_ids),
             Atividade.publicado == True,
-        ).all()
+        ).order_by(Atividade.id).all()
 
-    # Quais dessas atividades o aluno já concluiu alguma vez — vira o selo
-    # "Concluída" na tela dele em vez de ficar sem nenhuma marcação.
+    # Melhor tentativa (menos rodadas de conferência = mais estrelas) de cada
+    # atividade já concluída pelo aluno — uma consulta só, não uma por fase.
     atividade_ids = [a.id for a in atividades]
-    atividades_concluidas = set()
+    melhor_rodadas_por_atividade = {}
     if atividade_ids:
-        atividades_concluidas = {
-            id_atividade
-            for (id_atividade,) in session.query(SessaoJogo.atividade_id).filter(
-                SessaoJogo.aluno_id == aluno.id,
-                SessaoJogo.atividade_id.in_(atividade_ids),
-                SessaoJogo.status == "concluido",
-            ).distinct().all()
-        }
+        sessoes_concluidas = session.query(
+            SessaoJogo.atividade_id, func.min(SessaoJogo.rodadas_conferencia)
+        ).filter(
+            SessaoJogo.aluno_id == aluno.id,
+            SessaoJogo.atividade_id.in_(atividade_ids),
+            SessaoJogo.status == "concluido",
+        ).group_by(SessaoJogo.atividade_id).all()
+        melhor_rodadas_por_atividade = dict(sessoes_concluidas)
 
     return [
         {
@@ -116,7 +137,8 @@ def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: 
             "imagem_atividade_url": a.imagem_atividade_url,
             "quantidade_blocos": a.quantidade_blocos,
             "turma_id": a.turma_id,
-            "concluida": a.id in atividades_concluidas,
+            "concluida": a.id in melhor_rodadas_por_atividade,
+            "estrelas": calcular_estrelas(melhor_rodadas_por_atividade[a.id]) if a.id in melhor_rodadas_por_atividade else 0,
         }
         for a in atividades
     ]
@@ -154,7 +176,6 @@ def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_s
     nova_atividade.quantidade_blocos = atividade_schema.quantidade_blocos
     nova_atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
     nova_atividade.codigo_atividade = codigo
-    nova_atividade.publicado = True  # salvou, já está publicada — sem passo de "publicar" separado
 
     session.add(nova_atividade)
     session.commit()
@@ -290,6 +311,65 @@ def listar_questoes_da_atividade(id_atividade: int, session = Depends(pegar_sess
             }
             for q in questoes
         ],
+    }
+
+# Chamado pelo front quando o aluno vira o tabuleiro e acerta tudo (ver
+# JogoAndamento.jsx) — credita XP, atualiza o nível e grava a partida pro
+# histórico. Mesma checagem de matrícula do /questoes: só aluno matriculado
+# na turma da atividade pode concluir e ganhar XP com ela.
+@atividade_router.post("/{id_atividade}/concluir")
+def concluir_atividade(id_atividade: int, dados: ConcluirAtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    matricula = None
+    if atividade.turma_id:
+        matricula = session.query(AlunoTurma).filter(
+            AlunoTurma.aluno_id == aluno.id,
+            AlunoTurma.turma_id == atividade.turma_id,
+            AlunoTurma.ativo == 1,
+        ).first()
+
+    if not matricula or not atividade.publicado:
+        raise HTTPException(status_code=401, detail="Você não tem autorização para concluir essa atividade")
+
+    total_questoes = session.query(Questao).filter(Questao.atividade_id == atividade.id).count()
+    pontuacao_base = session.query(func.sum(Questao.pontos)).filter(Questao.atividade_id == atividade.id).scalar() or 0
+
+    estrelas = calcular_estrelas(dados.tentativas)
+    xp_ganho = calcular_xp_ganho(pontuacao_base, atividade.dificuldade, estrelas)
+    nivel_antigo = aluno.nivel_atual or 1
+
+    aluno.xp_total = (aluno.xp_total or 0) + xp_ganho
+    aluno.nivel_atual = aluno.xp_total // XP_POR_NIVEL + 1
+
+    session.add(SessaoJogo(
+        aluno_id=aluno.id,
+        atividade_id=atividade.id,
+        turma_id=atividade.turma_id,
+        status="concluido",
+        pontuacao=pontuacao_base,
+        respostas_corretas=total_questoes,
+        rodadas_conferencia=dados.tentativas,
+        acertos_primeira=1 if dados.tentativas == 1 else 0,
+        finalizado_em=func.now(),
+    ))
+    session.commit()
+
+    return {
+        "estrelas": estrelas,
+        "xp_ganho": xp_ganho,
+        "xp_total": aluno.xp_total,
+        "nivel_atual": aluno.nivel_atual,
+        "subiu_nivel": aluno.nivel_atual > nivel_antigo,
     }
 
 # Salva todas as questões (+ respostas) de uma atividade numa tacada só. Substitui
@@ -447,11 +527,8 @@ def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema,
         atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
     if atividade_schema.turma_id is not None:
         atividade.turma_id = atividade_schema.turma_id
-    # Salvar edição também publica (sem passo de "publicar" separado) — e de
-    # brinde já corrige, na próxima edição, qualquer atividade antiga que
-    # ficou travada em rascunho antes dessa decisão. Um PATCH explícito com
-    # publicado=false ainda funciona, se um dia for preciso despublicar.
-    atividade.publicado = True if atividade_schema.publicado is None else atividade_schema.publicado
+    if atividade_schema.publicado is not None:
+        atividade.publicado = atividade_schema.publicado
 
     # Atividades criadas antes desse campo existir não têm código ainda —
     # gera um na primeira edição em vez de deixar travado pra sempre

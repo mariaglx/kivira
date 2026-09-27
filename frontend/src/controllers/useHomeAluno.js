@@ -1,30 +1,24 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import { limparSessao } from "../services/sessao";
 
+// `aluno` vem de fora (contexto do Outlet, ver AlunoLayout.jsx) — esse hook
+// busca só o que é específico desta tela: as atividades disponíveis.
 export function useHomeAluno() {
-  const navigate = useNavigate();
-  const [aluno, setAluno] = useState(null);
   const [atividades, setAtividades] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     let cancelado = false;
     const controller = new AbortController();
-    const opcoesFetch = { signal: controller.signal };
 
-    Promise.all([
-      apiRequest("/aluno/me", opcoesFetch),
-      apiRequest("/atividade/aluno/minhas", opcoesFetch),
-    ])
-      .then(([perfil, lista]) => {
-        if (cancelado) return;
-        setAluno(perfil);
-        setAtividades(lista);
+    apiRequest("/atividade/aluno/minhas", { signal: controller.signal })
+      .then((lista) => {
+        if (!cancelado) setAtividades(lista);
       })
       .catch((erro) => {
-        if (!cancelado && erro.name !== "AbortError") navigate("/login_aluno", { replace: true });
+        if (!cancelado && erro.name !== "AbortError") {
+          console.error("Erro ao carregar atividades:", erro.message);
+        }
       })
       .finally(() => {
         if (!cancelado) setCarregando(false);
@@ -34,17 +28,7 @@ export function useHomeAluno() {
       cancelado = true;
       controller.abort();
     };
-  }, [navigate]);
+  }, []);
 
-  const sair = async () => {
-    try {
-      await apiRequest("/auth_kivira/logout", { method: "POST" });
-    } catch {
-      // ignora: logout local não pode ficar travado por causa do log
-    }
-    limparSessao();
-    navigate("/login_aluno");
-  };
-
-  return { aluno, atividades, carregando, sair };
+  return { atividades, carregando };
 }

@@ -49,3 +49,10 @@ class QuestaoComRespostaSchema(BaseModel):
 class SalvarQuestoesSchema(BaseModel):
     questoes: List[QuestaoComRespostaSchema]
     remover_questao_ids: Optional[List[int]] = []
+
+# Enviado pelo front quando o aluno vira o tabuleiro e acerta tudo (ver
+# JogoAndamento.jsx). `tentativas` é quantas vezes ele virou o tabuleiro pra
+# conferir — as estrelas e o XP são calculados a partir dela no backend (não
+# confiamos num valor de estrelas mandado pronto pelo cliente).
+class ConcluirAtividadeSchema(BaseModel):
+    tentativas: int = Field(ge=1, default=1)

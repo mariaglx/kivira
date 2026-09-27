@@ -5,11 +5,13 @@ const EMOJIS_DISPONIVEIS = [
 ];
 
 // Seletor de senha por emojis: o aluno escolhe (nessa ordem) até `max` emojis,
-// que juntos formam a "senha" no backend (string concatenada dos emojis)
-export function SeletorEmoji({ selecionados, onAlternar, max = 3 }) {
+// que juntos formam a "senha" no backend (string concatenada dos emojis).
+// `onApagar` é opcional — só aparece o botão de apagar o último emoji quando
+// o chamador passa essa função (ex: o wizard de Configurações).
+export function SeletorEmoji({ selecionados, onAlternar, onApagar, max = 3 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-center gap-3">
+      <div className="flex items-center justify-center gap-3">
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
@@ -22,6 +24,18 @@ export function SeletorEmoji({ selecionados, onAlternar, max = 3 }) {
             {selecionados[i] || ""}
           </div>
         ))}
+
+        {onApagar && (
+          <button
+            type="button"
+            onClick={onApagar}
+            disabled={selecionados.length === 0}
+            aria-label="Apagar último emoji"
+            className="w-14 h-14 rounded-2xl border-2 border-dashed border-cinza-claro text-azul/50 hover:text-coral hover:border-coral flex items-center justify-center text-xl disabled:opacity-30 disabled:hover:text-azul/50 disabled:hover:border-cinza-claro transition-colors"
+          >
+            ⌫
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">

@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
-import { Sidebar } from "../../components/aluno/Sidebar";
+import { Link, useOutletContext } from "react-router-dom";
 import { useTurmaAluno } from "../../controllers/useTurmaAluno";
-import { StarIcon } from "../../components/icons/star";
+import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 
 function Avatar({ arquivo, nome, tamanho = "w-9 h-9", texto = "text-sm" }) {
   if (arquivo) {
@@ -37,13 +36,17 @@ function Campo({ rotulo, children }) {
 }
 
 export function TurmaDetalhe() {
-  const { aluno, turma, erro, carregando, sair } = useTurmaAluno();
+  const { carregandoAluno } = useOutletContext();
+  const { turma, erro, carregando } = useTurmaAluno();
+  // Com 1 turma só, /aluno/turmas redireciona pra cá direto (ver Turmas.jsx)
+  // — mostrar "← Turmas" nesse caso só devolveria o aluno pro mesmo lugar.
+  const { turmas: minhasTurmas } = useTurmasAluno();
 
-  if (carregando) {
+  if (carregandoAluno || carregando) {
     return (
-      <div className="min-h-screen bg-bege flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <p className="text-azul font-bold text-lg">Carregando...</p>
-      </div>
+      </main>
     );
   }
 
@@ -52,18 +55,18 @@ export function TurmaDetalhe() {
   const temXp = turma?.colegas?.some((c) => c.xp_total > 0);
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar aluno={aluno} onSair={sair} />
-
+    <>
       <main className="flex-1 min-w-0 p-8 flex flex-col gap-6">
-        <header className="flex items-center gap-3">
-          <Link
-            to="/aluno/turmas"
-            className="text-azul/50 hover:text-azul text-sm font-bold"
-          >
-            ← Turmas
-          </Link>
-        </header>
+        {minhasTurmas.length > 1 && (
+          <header className="flex items-center gap-3">
+            <Link
+              to="/aluno/turmas"
+              className="text-azul/50 hover:text-azul text-sm font-bold"
+            >
+              ← Turmas
+            </Link>
+          </header>
+        )}
 
         {erro ? (
           <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 max-w-md">
@@ -79,6 +82,9 @@ export function TurmaDetalhe() {
               {/* COLUNA ESQUERDA — dados da turma */}
               <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
                 <Campo rotulo="Nome da turma">{turma.nome}</Campo>
+                <Campo rotulo="Ano escolar">
+                  {turma.ano_escolar} · {turma.ano_letivo}
+                </Campo>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
@@ -94,14 +100,19 @@ export function TurmaDetalhe() {
                     </span>
                   </div>
                 </div>
+
+                <Campo rotulo="Código de acesso">
+                  <span className="font-mono font-extrabold tracking-widest">
+                    {turma.codigo_acesso}
+                  </span>
+                </Campo>
               </div>
 
-              {/* COLUNA DIREITA — ranking dos colegas */}
+              {/* COLUNA DIREITA — os colegas */}
               <div className="flex-1 min-w-80 bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center gap-2 bg-ouro-bg px-6 py-3.5">
-                  <StarIcon size={16} isAnimated={false} className="text-ouro-fg-escuro" />
-                  <h3 className="font-display font-bold text-ouro-fg-escuro tracking-wide text-sm">
-                    Ranking da turma
+                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+                  <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
+                    Colegas de turma ({turma.colegas.length})
                   </h3>
                 </div>
 
@@ -154,7 +165,7 @@ export function TurmaDetalhe() {
           </>
         )}
       </main>
-    </div>
+    </>
   );
 }
 

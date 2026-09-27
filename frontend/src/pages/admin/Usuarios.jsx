@@ -1,30 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { SearchIcon } from "../../components/icons/search";
-
-const OPCOES_TIPO = [
-  { value: "", label: "Todos os papéis" },
-  { value: "admin", label: "Admin" },
-  { value: "professor", label: "Professor" },
-  { value: "estudante", label: "Aluno" },
-];
-
-const BADGE_POR_TIPO = {
-  admin: "bg-azul/10 text-azul",
-  professor: "bg-blue-100 text-blue-600",
-  estudante: "bg-green-100 text-green-600",
-};
-
-const LABEL_POR_TIPO = {
-  admin: "Admin",
-  professor: "Professor",
-  estudante: "Aluno",
-};
+import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
+import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 
 export function Usuarios() {
-  const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -53,11 +34,7 @@ export function Usuarios() {
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Erro ao carregar usuários:", err.message);
-        if (err.message?.includes("permissão") || err.message?.includes("403")) {
-          setErro("Você não tem permissão para acessar esta área.");
-        } else {
-          setErro("Não foi possível carregar os usuários.");
-        }
+        setErro(mensagemErroCarregamento(err, "Não foi possível carregar os usuários."));
       } finally {
         if (!cancelado) setCarregando(false);
       }
@@ -69,7 +46,7 @@ export function Usuarios() {
       cancelado = true;
       controller.abort();
     };
-  }, [tipoFiltro, navigate]);
+  }, [tipoFiltro]);
 
   const usuariosFiltrados = usuarios.filter((usuario) =>
     (usuario.email || "").toLowerCase().includes(busca.toLowerCase())
@@ -134,7 +111,7 @@ export function Usuarios() {
             name="tipo"
             value={tipoFiltro}
             onChange={(e) => setTipoFiltro(e.target.value)}
-            options={OPCOES_TIPO}
+            options={OPCOES_PAPEL}
             placeholder="Filtrar por papel"
           />
         </div>
@@ -167,8 +144,8 @@ export function Usuarios() {
                   <td className="px-5 py-3 text-azul/60">{usuario.id}</td>
                   <td className="px-5 py-3 font-medium text-azul">{usuario.email || "—"}</td>
                   <td className="px-5 py-3">
-                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_TIPO[usuario.tipo] || "bg-cinza-claro/20 text-azul/60"}`}>
-                      {LABEL_POR_TIPO[usuario.tipo] || usuario.tipo}
+                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/60"}`}>
+                      {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-azul/60">

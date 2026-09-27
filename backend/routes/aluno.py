@@ -1,7 +1,6 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao aluno.
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func
 from models.usuario import Usuario
 from models.aluno import Aluno
 from models.turma import Turma
@@ -9,6 +8,7 @@ from models.aluno_turma import AlunoTurma
 from models.professor import Professor
 from models.atividade import Atividade
 from models.sessao_jogo import SessaoJogo
+from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
@@ -381,40 +381,6 @@ def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuari
     professores = session.query(Professor).filter(Professor.id.in_(professor_ids)).all()
     professor_por_id = {p.id: p for p in professores}
 
-    # Quantos colegas (matrícula ativa, o próprio aluno incluído — mesma conta
-    # que "Colegas de turma (N)" já mostra na tela de dentro da turma) cada
-    # turma tem, numa consulta só agrupada em vez de uma por turma.
-    colegas_por_turma = dict(
-        session.query(AlunoTurma.turma_id, func.count(AlunoTurma.id))
-        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1)
-        .group_by(AlunoTurma.turma_id)
-        .all()
-    )
-
-    # Quantas atividades publicadas de cada turma esse aluno ainda não
-    # concluiu — mesmo critério de "concluida" usado em /atividade/aluno/minhas,
-    # só que somado por turma em vez de devolvido atividade por atividade.
-    atividades = session.query(Atividade).filter(
-        Atividade.turma_id.in_(turma_ids),
-        Atividade.publicado == True,
-    ).all()
-    atividade_ids = [a.id for a in atividades]
-    atividades_concluidas_ids = set()
-    if atividade_ids:
-        atividades_concluidas_ids = {
-            id_atividade
-            for (id_atividade,) in session.query(SessaoJogo.atividade_id).filter(
-                SessaoJogo.aluno_id == aluno.id,
-                SessaoJogo.atividade_id.in_(atividade_ids),
-                SessaoJogo.status == "concluido",
-            ).distinct().all()
-        }
-
-    pendentes_por_turma = {}
-    for a in atividades:
-        if a.id not in atividades_concluidas_ids:
-            pendentes_por_turma[a.turma_id] = pendentes_por_turma.get(a.turma_id, 0) + 1
-
     resultado = []
     for turma in turmas:
         professor = professor_por_id.get(turma.professor_id)
@@ -426,8 +392,6 @@ def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuari
             "ativo": turma.ativo,
             "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
             "professor_avatar_url": professor.avatar_url if professor else None,
-            "total_colegas": colegas_por_turma.get(turma.id, 0),
-            "atividades_pendentes": pendentes_por_turma.get(turma.id, 0),
         })
 
     return resultado
@@ -447,7 +411,11 @@ def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_se
 
     senha_atual = "".join(dados.senha_atual)
     if not bcrypt.checkpw(senha_atual.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
-        raise HTTPException(status_code=401, detail="A senha atual está incorreta")
+        # 400, não 401: um 401 fora de /auth_kivira/* é tratado pelo front (ver
+        # apiRequest em services/api.js) como sessão expirada e desloga o
+        # aluno — aqui é só um dado errado (senha atual não bate), não token
+        # inválido, e um erro de digitação não pode chutar a criança pro login.
+        raise HTTPException(status_code=400, detail="A senha atual está incorreta")
 
     senha_nova = "".join(dados.emojis)
     if senha_nova == senha_atual:
@@ -508,9 +476,9 @@ def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
         for a in alunos
     ]
 
-    # Ordena por XP e desempata pelo nome. Desde a sessao_jogo (18/09), quem já
-    # jogou tem XP de verdade aqui — quem nunca jogou fica em 0 e cai no fim,
-    # empatado em ordem alfabética com os outros zerados.
+    # Ordena por XP e desempata pelo nome. Hoje ninguém tem XP (nada no backend
+    # escreve nesse campo), então o resultado sai alfabético — e no dia em que
+    # as partidas forem gravadas essa mesma linha já entrega a classificação.
     colegas.sort(key=lambda c: (-c["xp_total"], c["nome"].lower()))
 
     return {
@@ -523,3 +491,44 @@ def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
         "professor_avatar_url": professor.avatar_url if professor else None,
         "colegas": colegas,
     }
+
+
+# Histórico de partidas do aluno logado, mais recentes primeiro — usado pela
+# tela /aluno/historico (ver Historico.jsx)
+
+@aluno_router.get("/minhas/sessoes")
+def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    sessoes = session.query(SessaoJogo).filter(
+        SessaoJogo.aluno_id == aluno.id,
+        SessaoJogo.status == "concluido",
+    ).order_by(SessaoJogo.finalizado_em.desc()).limit(50).all()
+
+    atividade_ids = {s.atividade_id for s in sessoes}
+    atividades = session.query(Atividade).filter(Atividade.id.in_(atividade_ids)).all() if atividade_ids else []
+    atividade_por_id = {a.id: a for a in atividades}
+
+    # Estrelas e XP não ficam gravados na sessão — são recalculados aqui com a
+    # mesma fórmula usada em POST /atividade/{id}/concluir (ver atividade.py),
+    # a partir do que a sessão guarda (pontuação e rodadas de conferência).
+    resultado = []
+    for s in sessoes:
+        atividade = atividade_por_id.get(s.atividade_id)
+        estrelas = calcular_estrelas(s.rodadas_conferencia)
+        resultado.append({
+            "id": s.id,
+            "atividade_id": s.atividade_id,
+            "atividade_titulo": atividade.titulo if atividade else None,
+            "dificuldade": atividade.dificuldade if atividade else None,
+            "estrelas": estrelas,
+            "xp_ganho": calcular_xp_ganho(s.pontuacao, atividade.dificuldade, estrelas) if atividade else 0,
+            "data_criacao": s.finalizado_em,
+        })
+
+    return resultado
