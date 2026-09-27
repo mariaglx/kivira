@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
-import { UserIcon } from "../../components/icons/user";
+import { User } from "lucide-react";
 import { useLoginEmoji } from "../../controllers/useLoginEmoji";
 
 export function LoginEmoji() {
@@ -72,7 +72,7 @@ export function LoginEmoji() {
             to="/login_aluno"
             className="flex items-center gap-1.5 bg-branco border border-cinza-claro rounded-xl px-3 min-h-11 shrink-0 text-sm font-bold text-azul hover:border-coral hover:text-coral transition"
           >
-            <UserIcon size={16} isAnimated={false} />
+            <User size={16} />
             Trocar
           </Link>
         </div>

@@ -1,8 +1,7 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useHistoricoAluno } from "../../controllers/useHistoricoAluno";
 import { DIFICULDADE_LABEL, DIFICULDADE_EMOJI } from "../../utils/dificuldade";
-import { BlocksIcon } from "../../components/icons/blocks";
-import { BookOpenIcon } from "../../components/icons/book-open";
+import { Blocks, BookOpen } from "lucide-react";
 
 function formatarData(dataIso) {
   return new Date(dataIso).toLocaleDateString("pt-BR", {
@@ -30,12 +29,12 @@ export function Historico() {
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Seu histórico
-          <BookOpenIcon size={22} isAnimated={false} />
+          <BookOpen size={22} />
         </h1>
 
         {sessoes.length === 0 ? (
           <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
-            <BookOpenIcon size={40} isAnimated={false} className="mx-auto mb-3 text-azul/40" />
+            <BookOpen size={40} className="mx-auto mb-3 text-azul/40" />
             <p className="text-azul/70 font-semibold text-lg">
               Ainda não dá pra ver as partidas antigas.
             </p>
@@ -48,7 +47,7 @@ export function Historico() {
               className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
             >
               Jogar agora
-              <BlocksIcon size={18} isAnimated={false} />
+              <Blocks size={18} />
             </Link>
           </div>
         ) : (

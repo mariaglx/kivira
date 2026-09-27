@@ -3,8 +3,7 @@ import { useHomeAluno } from "../../controllers/useHomeAluno";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { TrilhaFases } from "../../components/aluno/TrilhaFases";
-import { MapPinIcon } from "../../components/icons/map-pin";
-import { ClipboardListIcon } from "../../components/icons/clipboard-list";
+import { MapPin, ClipboardList } from "lucide-react";
 
 export function HomeAluno() {
   const navigate = useNavigate();
@@ -49,12 +48,12 @@ export function HomeAluno() {
 
       <h2 className="text-2xl font-black mb-2 flex items-center justify-center gap-2 max-w-2xl mx-auto">
         Sua trilha
-        <MapPinIcon size={24} isAnimated={false} />
+        <MapPin size={24} />
       </h2>
 
       {atividades.length === 0 ? (
         <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 flex flex-col items-center gap-3 max-w-2xl mx-auto">
-          <ClipboardListIcon size={32} isAnimated={false} className="text-azul/40" />
+          <ClipboardList size={32} className="text-azul/40" />
           <p className="text-azul/70 font-semibold text-lg">
             Nenhuma atividade disponível ainda. Peça pro seu professor
             publicar uma!

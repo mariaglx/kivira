@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
-import { Trash2Icon } from "../../components/icons/trash-2";
+import { Trash2 } from "lucide-react";
 
 // Modal de "revelar credenciais" — usado tanto pra mostrar o aluno recém
 // cadastrado quanto pra mostrar a senha nova depois de um reset. É a mesma
@@ -604,7 +604,7 @@ export function TurmaForm() {
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
-              <Trash2Icon size={28} isAnimated={false} />
+              <Trash2 size={28} />
             </div>
 
             <h3 className="text-xl font-extrabold text-azul mt-3">

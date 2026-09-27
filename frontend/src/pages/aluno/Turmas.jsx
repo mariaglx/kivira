@@ -1,6 +1,6 @@
 import { Link, Navigate, useOutletContext } from "react-router-dom";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
-import { UsersIcon } from "../../components/icons/users";
+import { Users } from "lucide-react";
 
 export function Turmas() {
   const { carregandoAluno } = useOutletContext();
@@ -26,7 +26,7 @@ export function Turmas() {
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-3xl font-black mb-6 flex items-center gap-2">
           Suas turmas
-          <UsersIcon size={26} isAnimated={false} />
+          <Users size={26} />
         </h1>
 
         {turmas.length === 0 ? (
