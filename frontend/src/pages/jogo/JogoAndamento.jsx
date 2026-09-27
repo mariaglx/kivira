@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useJogo } from "../../controllers/useJogo";
 import {BordaLateral} from "../../components/ui/BordaLateral";
@@ -105,6 +105,15 @@ export function JogoAndamento() {
   const [resultadoFechado, setResultadoFechado] = useState(false);
   const [slotSobre, setSlotSobre] = useState(null); // slot sob a peça que está sendo arrastada
 
+  // null enquanto não terminou; depois de virar tudo certo, guarda o XP ganho
+  // (ou o erro) que voltou de POST /atividade/{id}/concluir — só aluno ganha
+  // XP, professor/admin testando a atividade não gera nem chama o endpoint.
+  const [progressoXp, setProgressoXp] = useState(null);
+  // Garante 1 POST por vitória: acertouTudo fica "true" por vários renders
+  // enquanto o modal está aberto, e um ref (ao contrário de estado) não
+  // dispara o efeito de novo só por mudar de valor.
+  const xpEnviadoRef = useRef(false);
+
   useEffect(() => {
     if (!acertouTudo) return;
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: CORES_CONFETE });
@@ -114,8 +123,31 @@ export function JogoAndamento() {
     return () => clearTimeout(t);
   }, [acertouTudo]);
 
+  useEffect(() => {
+    if (!acertouTudo || !isAluno || xpEnviadoRef.current) return;
+    xpEnviadoRef.current = true;
+
+    let cancelado = false;
+    apiRequest(`/atividade/${atividadeId}/concluir`, {
+      method: "POST",
+      data: { estrelas: estrelasPorTentativas(tentativas), tentativas },
+    })
+      .then((resultado) => {
+        if (!cancelado) setProgressoXp(resultado);
+      })
+      .catch(() => {
+        if (!cancelado) setProgressoXp({ erro: true });
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [acertouTudo, isAluno, atividadeId, tentativas]);
+
   const jogarDeNovo = () => {
     setResultadoFechado(false);
+    setProgressoXp(null);
+    xpEnviadoRef.current = false;
     reiniciarJogo();
   };
 
@@ -414,10 +446,24 @@ export function JogoAndamento() {
                 </span>
               ))}
             </div>
-            <p className="text-azul/70 font-semibold mb-6">
+            <p className="text-azul/70 font-semibold mb-4">
               Você acertou todas as {perguntas.length} peças
               {tentativas > 1 ? ` (na tentativa ${tentativas})` : " de primeira"}!
             </p>
+
+            {isAluno && progressoXp && !progressoXp.erro && (
+              <div className="mb-6">
+                <span className="tatil inline-block bg-verde/15 text-verde font-black text-lg px-4 py-2 rounded-2xl animate__animated animate__bounceIn">
+                  +{progressoXp.xp_ganho} XP
+                </span>
+                {progressoXp.subiu_nivel && (
+                  <p className="mt-2 text-coral font-black animate__animated animate__tada">
+                    🎉 Subiu para o nível {progressoXp.nivel_atual}!
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-col gap-3">
               <button
                 onClick={jogarDeNovo}

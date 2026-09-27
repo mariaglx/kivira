@@ -1,23 +1,28 @@
-import { Link } from "react-router-dom";
-import { Sidebar } from "../../components/aluno/Sidebar";
+import { Link, Navigate, useOutletContext } from "react-router-dom";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 import { UsersIcon } from "../../components/icons/users";
 
 export function Turmas() {
-  const { aluno, turmas, carregando, sair } = useTurmasAluno();
+  const { carregandoAluno } = useOutletContext();
+  const { turmas, carregando } = useTurmasAluno();
 
-  if (carregando) {
+  if (carregandoAluno || carregando) {
     return (
-      <div className="min-h-screen bg-bege flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <p className="text-azul font-bold text-lg">Carregando...</p>
-      </div>
+      </main>
     );
   }
 
-  return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar aluno={aluno} onSair={sair} />
+  // Só uma turma: pula a lista e abre o ranking dela direto. Com mais de uma,
+  // a aba "Minha Turma" mostra essa lista pra escolher (ver TurmaDetalhe.jsx
+  // pro "← Turmas" de volta pra cá).
+  if (turmas.length === 1) {
+    return <Navigate to={`/aluno/turmas/${turmas[0].id}`} replace />;
+  }
 
+  return (
+    <>
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-3xl font-black mb-6 flex items-center gap-2">
           Suas turmas
@@ -72,7 +77,7 @@ export function Turmas() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }
 

@@ -1,21 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Input } from "../../components/ui/Input";
-
-const OPCOES_PAPEL = [
-  { value: "", label: "Todos os papéis" },
-  { value: "admin", label: "Admin" },
-  { value: "professor", label: "Professor" },
-  { value: "estudante", label: "Aluno" },
-];
-
-const BADGE_POR_PAPEL = {
-  admin: "bg-azul/10 text-azul",
-  professor: "bg-blue-100 text-blue-600",
-  estudante: "bg-green-100 text-green-600",
-};
+import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
+import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 
 function formatarData(valor) {
   if (!valor) return "—";
@@ -23,7 +11,6 @@ function formatarData(valor) {
 }
 
 export function LogsAuditoria() {
-  const navigate = useNavigate();
   const [papel, setPapel] = useState("");
   const [acao, setAcao] = useState("");
   const [entidade, setEntidade] = useState("");
@@ -50,11 +37,7 @@ export function LogsAuditoria() {
       } catch (err) {
         if (err.name === "AbortError") return;
         console.error("Erro ao carregar logs de auditoria:", err.message);
-        if (err.message?.includes("permissão") || err.message?.includes("403")) {
-          setErro("Você não tem permissão para acessar esta área.");
-        } else {
-          setErro("Não foi possível carregar os logs de auditoria.");
-        }
+        setErro(mensagemErroCarregamento(err, "Não foi possível carregar os logs de auditoria."));
       } finally {
         setCarregando(false);
       }
@@ -69,7 +52,7 @@ export function LogsAuditoria() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [papel, acao, entidade, navigate]);
+  }, [papel, acao, entidade]);
 
   return (
     <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
@@ -146,7 +129,7 @@ export function LogsAuditoria() {
                   </td>
                   <td className="px-5 py-3">
                     <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro/20 text-azul/60"}`}>
-                      {log.papel_usuario}
+                      {LABEL_POR_PAPEL[log.papel_usuario] || log.papel_usuario}
                     </span>
                   </td>
                   <td className="px-5 py-3 font-mono text-xs font-semibold text-azul">

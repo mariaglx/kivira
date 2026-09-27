@@ -1,53 +1,91 @@
-import { Link } from "react-router-dom";
-import { Sidebar } from "../../components/aluno/Sidebar";
-import { useHomeAluno } from "../../controllers/useHomeAluno";
+import { Link, useOutletContext } from "react-router-dom";
+import { useHistoricoAluno } from "../../controllers/useHistoricoAluno";
+import { DIFICULDADE_LABEL, DIFICULDADE_EMOJI } from "../../utils/dificuldade";
 import { BlocksIcon } from "../../components/icons/blocks";
 import { BookOpenIcon } from "../../components/icons/book-open";
 
-// Tela aguardando a entidade `sessao_jogo`, que ainda não existe no backend
-// (sem modelo e sem tabela). Enquanto nada registra as partidas, não há
-// histórico pra mostrar — a tela existe pra o item do menu não levar a lugar
-// nenhum, e some daqui assim que a gravação de sessões entrar.
-export function Historico() {
-  const { aluno, carregando, sair } = useHomeAluno();
+function formatarData(dataIso) {
+  return new Date(dataIso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  if (carregando) {
+export function Historico() {
+  const { carregandoAluno } = useOutletContext();
+  const { sessoes, carregando } = useHistoricoAluno();
+
+  if (carregandoAluno || carregando) {
     return (
-      <div className="min-h-screen bg-bege flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <p className="text-azul font-bold text-lg">Carregando...</p>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar aluno={aluno} onSair={sair} />
-
+    <>
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Seu histórico
           <BookOpenIcon size={22} isAnimated={false} />
         </h1>
 
-        <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
-          <BookOpenIcon size={40} isAnimated={false} className="mx-auto mb-3 text-azul/40" />
-          <p className="text-azul/70 font-semibold text-lg">
-            Ainda não dá pra ver as partidas antigas.
-          </p>
-          <p className="text-azul/55 mt-2 mb-5">
-            Quando você jogar, o Kivira vai guardar aqui os seus acertos, suas
-            estrelas e o seu XP.
-          </p>
-          <Link
-            to="/aluno/home"
-            className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
-          >
-            Jogar agora
-            <BlocksIcon size={18} isAnimated={false} />
-          </Link>
-        </div>
+        {sessoes.length === 0 ? (
+          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
+            <BookOpenIcon size={40} isAnimated={false} className="mx-auto mb-3 text-azul/40" />
+            <p className="text-azul/70 font-semibold text-lg">
+              Ainda não dá pra ver as partidas antigas.
+            </p>
+            <p className="text-azul/55 mt-2 mb-5">
+              Quando você jogar, o Kivira vai guardar aqui os seus acertos, suas
+              estrelas e o seu XP.
+            </p>
+            <Link
+              to="/aluno/home"
+              className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
+            >
+              Jogar agora
+              <BlocksIcon size={18} isAnimated={false} />
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {sessoes.map((sessao) => (
+              <div
+                key={sessao.id}
+                className="bg-branco rounded-2xl p-4 shadow-sm border border-cinza-claro/30 flex items-center gap-4"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-extrabold truncate">
+                    {sessao.atividade_titulo || "Atividade removida"}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-[11px] font-bold text-azul/60 bg-bege px-2.5 py-1 rounded-md">
+                      {DIFICULDADE_EMOJI[sessao.dificuldade]} {DIFICULDADE_LABEL[sessao.dificuldade] || sessao.dificuldade}
+                    </span>
+                    <span className="text-xs text-azul/50 font-medium">
+                      {formatarData(sessao.data_criacao)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-lg shrink-0" title={`${sessao.estrelas} de 3 estrelas`}>
+                  {"⭐".repeat(sessao.estrelas)}
+                  <span className="opacity-20">{"⭐".repeat(3 - sessao.estrelas)}</span>
+                </div>
+
+                <span className="shrink-0 bg-verde/15 text-verde font-black text-sm px-3 py-1.5 rounded-xl">
+                  +{sessao.xp_ganho} XP
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
-    </div>
+    </>
   );
 }
 

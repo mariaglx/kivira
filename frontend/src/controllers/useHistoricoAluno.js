@@ -2,22 +2,22 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
 
 // `aluno` vem de fora (contexto do Outlet, ver AlunoLayout.jsx) — esse hook
-// busca só o que é específico desta tela: a lista de turmas do aluno.
-export function useTurmasAluno() {
-  const [turmas, setTurmas] = useState([]);
+// busca só o que é específico desta tela: as partidas já jogadas.
+export function useHistoricoAluno() {
+  const [sessoes, setSessoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     let cancelado = false;
     const controller = new AbortController();
 
-    apiRequest("/aluno/minhas/turmas", { signal: controller.signal })
+    apiRequest("/aluno/minhas/sessoes", { signal: controller.signal })
       .then((lista) => {
-        if (!cancelado) setTurmas(lista);
+        if (!cancelado) setSessoes(lista);
       })
       .catch((erro) => {
         if (!cancelado && erro.name !== "AbortError") {
-          console.error("Erro ao carregar turmas:", erro.message);
+          console.error("Erro ao carregar histórico:", erro.message);
         }
       })
       .finally(() => {
@@ -30,5 +30,5 @@ export function useTurmasAluno() {
     };
   }, []);
 
-  return { turmas, carregando };
+  return { sessoes, carregando };
 }

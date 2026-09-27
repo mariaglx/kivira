@@ -1,30 +1,37 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import { limparSessao } from "../services/sessao";
 
+// `aluno` vem de fora (contexto do Outlet, ver AlunoLayout.jsx) — esse hook
+// busca só o que é específico desta tela: os detalhes desta turma.
 export function useTurmaAluno() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const [aluno, setAluno] = useState(null);
   const [turma, setTurma] = useState(null);
   const [erro, setErro] = useState(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    Promise.all([apiRequest("/aluno/me"), apiRequest(`/aluno/minhas/turmas/${id}`)])
-      .then(([perfil, dados]) => {
-        setAluno(perfil);
-        setTurma(dados);
+    let cancelado = false;
+    const controller = new AbortController();
+
+    apiRequest(`/aluno/minhas/turmas/${id}`, { signal: controller.signal })
+      .then((dados) => {
+        if (!cancelado) setTurma(dados);
       })
-      .catch((err) => setErro(err.message || "Não consegui abrir essa turma."))
-      .finally(() => setCarregando(false));
+      .catch((err) => {
+        if (!cancelado && err.name !== "AbortError") {
+          setErro(err.message || "Não consegui abrir essa turma.");
+        }
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+
+    return () => {
+      cancelado = true;
+      controller.abort();
+    };
   }, [id]);
 
-  const sair = () => {
-    limparSessao();
-    navigate("/login_aluno");
-  };
-
-  return { aluno, turma, erro, carregando, sair };
+  return { turma, erro, carregando };
 }

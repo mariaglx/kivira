@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { Sidebar } from "../../components/aluno/Sidebar";
+import { Link, useOutletContext } from "react-router-dom";
 import { useTurmaAluno } from "../../controllers/useTurmaAluno";
+import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 
 function Avatar({ arquivo, nome, tamanho = "w-9 h-9", texto = "text-sm" }) {
   if (arquivo) {
@@ -36,13 +36,17 @@ function Campo({ rotulo, children }) {
 }
 
 export function TurmaDetalhe() {
-  const { aluno, turma, erro, carregando, sair } = useTurmaAluno();
+  const { carregandoAluno } = useOutletContext();
+  const { turma, erro, carregando } = useTurmaAluno();
+  // Com 1 turma só, /aluno/turmas redireciona pra cá direto (ver Turmas.jsx)
+  // — mostrar "← Turmas" nesse caso só devolveria o aluno pro mesmo lugar.
+  const { turmas: minhasTurmas } = useTurmasAluno();
 
-  if (carregando) {
+  if (carregandoAluno || carregando) {
     return (
-      <div className="min-h-screen bg-bege flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <p className="text-azul font-bold text-lg">Carregando...</p>
-      </div>
+      </main>
     );
   }
 
@@ -51,18 +55,18 @@ export function TurmaDetalhe() {
   const temXp = turma?.colegas?.some((c) => c.xp_total > 0);
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar aluno={aluno} onSair={sair} />
-
+    <>
       <main className="flex-1 min-w-0 p-8 flex flex-col gap-6">
-        <header className="flex items-center gap-3">
-          <Link
-            to="/aluno/turmas"
-            className="text-azul/50 hover:text-azul text-sm font-bold"
-          >
-            ← Turmas
-          </Link>
-        </header>
+        {minhasTurmas.length > 1 && (
+          <header className="flex items-center gap-3">
+            <Link
+              to="/aluno/turmas"
+              className="text-azul/50 hover:text-azul text-sm font-bold"
+            >
+              ← Turmas
+            </Link>
+          </header>
+        )}
 
         {erro ? (
           <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 max-w-md">
@@ -161,7 +165,7 @@ export function TurmaDetalhe() {
           </>
         )}
       </main>
-    </div>
+    </>
   );
 }
 

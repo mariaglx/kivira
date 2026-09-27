@@ -6,6 +6,9 @@ from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
 from models.professor import Professor
+from models.atividade import Atividade
+from models.sessao_jogo import SessaoJogo
+from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
@@ -408,7 +411,11 @@ def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_se
 
     senha_atual = "".join(dados.senha_atual)
     if not bcrypt.checkpw(senha_atual.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
-        raise HTTPException(status_code=401, detail="A senha atual está incorreta")
+        # 400, não 401: um 401 fora de /auth_kivira/* é tratado pelo front (ver
+        # apiRequest em services/api.js) como sessão expirada e desloga o
+        # aluno — aqui é só um dado errado (senha atual não bate), não token
+        # inválido, e um erro de digitação não pode chutar a criança pro login.
+        raise HTTPException(status_code=400, detail="A senha atual está incorreta")
 
     senha_nova = "".join(dados.emojis)
     if senha_nova == senha_atual:
@@ -484,3 +491,44 @@ def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
         "professor_avatar_url": professor.avatar_url if professor else None,
         "colegas": colegas,
     }
+
+
+# Histórico de partidas do aluno logado, mais recentes primeiro — usado pela
+# tela /aluno/historico (ver Historico.jsx)
+
+@aluno_router.get("/minhas/sessoes")
+def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    sessoes = session.query(SessaoJogo).filter(
+        SessaoJogo.aluno_id == aluno.id,
+        SessaoJogo.status == "concluido",
+    ).order_by(SessaoJogo.finalizado_em.desc()).limit(50).all()
+
+    atividade_ids = {s.atividade_id for s in sessoes}
+    atividades = session.query(Atividade).filter(Atividade.id.in_(atividade_ids)).all() if atividade_ids else []
+    atividade_por_id = {a.id: a for a in atividades}
+
+    # Estrelas e XP não ficam gravados na sessão — são recalculados aqui com a
+    # mesma fórmula usada em POST /atividade/{id}/concluir (ver atividade.py),
+    # a partir do que a sessão guarda (pontuação e rodadas de conferência).
+    resultado = []
+    for s in sessoes:
+        atividade = atividade_por_id.get(s.atividade_id)
+        estrelas = calcular_estrelas(s.rodadas_conferencia)
+        resultado.append({
+            "id": s.id,
+            "atividade_id": s.atividade_id,
+            "atividade_titulo": atividade.titulo if atividade else None,
+            "dificuldade": atividade.dificuldade if atividade else None,
+            "estrelas": estrelas,
+            "xp_ganho": calcular_xp_ganho(s.pontuacao, atividade.dificuldade, estrelas) if atividade else 0,
+            "data_criacao": s.finalizado_em,
+        })
+
+    return resultado
