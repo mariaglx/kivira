@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { buscarAvatares } from "../../services/avatarService";
 import { useConfiguracoesProfessor } from "../../controllers/useConfiguracoesProfessor";
-import { PencilIcon } from "../../components/icons/pencil";
-import { Trash2Icon } from "../../components/icons/trash-2";
-import { XIcon } from "../../components/icons/x";
-import { UserIcon } from "../../components/icons/user";
-import { SparklesIcon } from "../../components/icons/sparkles";
-import { MapPinIcon } from "../../components/icons/map-pin";
-import { MailIcon } from "../../components/icons/mail";
-import { MessageSquareIcon } from "../../components/icons/message-square";
-import { LockIcon } from "../../components/icons/lock";
-import { KeyIcon } from "../../components/icons/key";
-import { CheckIcon } from "../../components/icons/check";
-import { TriangleAlertIcon } from "../../components/icons/triangle-alert";
+import {
+  Pencil,
+  Trash2,
+  X,
+  User,
+  Sparkles,
+  MapPin,
+  Mail,
+  MessageSquare,
+  Lock,
+  Key,
+  Check,
+  TriangleAlert,
+} from "lucide-react";
 
 export function Configuracoes() {
   const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
@@ -69,10 +71,10 @@ export function Configuracoes() {
 
   const dadosPerfil = professor
     ? [
-        { Icone: UserIcon, rotulo: "Nome completo", valor: professor.nome_completo },
-        { Icone: SparklesIcon, rotulo: "Apelido", valor: professor.apelido },
-        { Icone: MapPinIcon, rotulo: "Onde você dá aula", valor: professor.escola },
-        { Icone: MailIcon, rotulo: "E-mail da conta", valor: professor.email },
+        { Icone: User, rotulo: "Nome completo", valor: professor.nome_completo },
+        { Icone: Sparkles, rotulo: "Apelido", valor: professor.apelido },
+        { Icone: MapPin, rotulo: "Onde você dá aula", valor: professor.escola },
+        { Icone: Mail, rotulo: "E-mail da conta", valor: professor.email },
       ]
     : [];
 
@@ -197,7 +199,7 @@ export function Configuracoes() {
                   onClick={() => setModalAvatarAberto(true)}
                   className="absolute -right-2 -bottom-2 w-8 h-8 rounded-xl bg-azul text-branco border-4 border-branco flex items-center justify-center text-xs hover:bg-azul/90 transition cursor-pointer"
                 >
-                  <PencilIcon size={14} isAnimated={false} />
+                  <Pencil size={14} />
                 </button>
               </div>
 
@@ -240,7 +242,7 @@ export function Configuracoes() {
                 onClick={abrirExclusao}
                 className="btn btn-ghost btn-sm w-full rounded-xl text-vermelho hover:bg-vermelho/10 transition"
               >
-                <Trash2Icon size={16} isAnimated={false} />
+                <Trash2 size={16} />
                 Excluir minha conta
               </button>
             </div>
@@ -257,7 +259,7 @@ export function Configuracoes() {
                 onClick={() => setModalPerfilAberto(true)}
                 className="btn btn-primary btn-sm rounded-xl gap-2"
               >
-                <PencilIcon size={14} isAnimated={false} />
+                <Pencil size={14} />
                 Editar perfil
               </button>
             </div>
@@ -266,7 +268,7 @@ export function Configuracoes() {
               {dadosPerfil.map((item) => (
                 <div key={item.rotulo} className="flex flex-col gap-1">
                   <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <item.Icone size={14} isAnimated={false} className="text-coral" />
+                    <item.Icone size={14} className="text-coral" />
                     {item.rotulo}
                   </span>
                   <span className="text-sm font-semibold text-azul">
@@ -279,7 +281,7 @@ export function Configuracoes() {
             {/* Biografia */}
             <div className="flex flex-col gap-1">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                <MessageSquareIcon size={14} isAnimated={false} className="text-coral" />
+                <MessageSquare size={14} className="text-coral" />
                 Conte um pouco de você
               </span>
               <p className="text-sm text-azul/80">
@@ -301,7 +303,7 @@ export function Configuracoes() {
                 }}
                 className="btn btn-ghost btn-sm rounded-xl gap-2"
               >
-                <LockIcon size={14} isAnimated={false} />
+                <Lock size={14} />
                 Alterar senha
               </button>
             </div>
@@ -320,7 +322,7 @@ export function Configuracoes() {
                 onClick={() => setModalAvatarAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <XIcon size={16} isAnimated={false} />
+                <X size={16} />
               </button>
             </div>
 
@@ -378,14 +380,14 @@ export function Configuracoes() {
                 onClick={() => setModalPerfilAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <XIcon size={16} isAnimated={false} />
+                <X size={16} />
               </button>
             </div>
 
             <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <UserIcon size={14} isAnimated={false} className="text-coral" />
+                  <User size={14} className="text-coral" />
                   Nome completo
                 </label>
                 <input
@@ -398,7 +400,7 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <SparklesIcon size={14} isAnimated={false} className="text-coral" />
+                  <Sparkles size={14} className="text-coral" />
                   Apelido
                 </label>
                 <input
@@ -414,7 +416,7 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <MapPinIcon size={14} isAnimated={false} className="text-coral" />
+                  <MapPin size={14} className="text-coral" />
                   Onde você dá aula
                 </label>
                 <input
@@ -427,7 +429,7 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <MessageSquareIcon size={14} isAnimated={false} className="text-coral" />
+                  <MessageSquare size={14} className="text-coral" />
                   Conte um pouco de você
                 </label>
                 <textarea
@@ -463,7 +465,7 @@ export function Configuracoes() {
                 onClick={() => setModalSegurancaAberto(false)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <XIcon size={16} isAnimated={false} />
+                <X size={16} />
               </button>
             </div>
 
@@ -476,7 +478,7 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <MailIcon size={14} isAnimated={false} className="text-coral" />
+                  <Mail size={14} className="text-coral" />
                   E-mail da conta
                 </label>
                 <input
@@ -492,7 +494,7 @@ export function Configuracoes() {
 
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <LockIcon size={14} isAnimated={false} className="text-coral" />
+                  <Lock size={14} className="text-coral" />
                   Senha atual
                 </label>
                 <input
@@ -507,7 +509,7 @@ export function Configuracoes() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <KeyIcon size={14} isAnimated={false} className="text-coral" />
+                    <Key size={14} className="text-coral" />
                     Senha nova
                   </label>
                   <input
@@ -522,7 +524,7 @@ export function Configuracoes() {
 
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <CheckIcon size={14} isAnimated={false} className="text-coral" />
+                    <Check size={14} className="text-coral" />
                     Repita a senha nova
                   </label>
                   <input
@@ -549,7 +551,7 @@ export function Configuracoes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
           <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6">
             <div className="w-12 h-12 rounded-2xl bg-vermelho/10 text-vermelho flex items-center justify-center text-xl mb-4">
-              <TriangleAlertIcon size={20} isAnimated={false} />
+              <TriangleAlert size={20} />
             </div>
             <h3 className="text-lg font-extrabold text-azul">
               Excluir sua conta?

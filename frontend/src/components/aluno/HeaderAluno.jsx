@@ -5,15 +5,12 @@ import { BarraProgresso } from "../ui/BarraProgresso";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
-import { MapPinIcon } from "../icons/map-pin";
-import { SparklesIcon } from "../icons/sparkles";
-import { UsersIcon } from "../icons/users";
-import { SettingsIcon } from "../icons/settings";
+import { MapPin, Sparkles, Users, Settings } from "lucide-react";
 
 const ABAS = [
-  { to: "/aluno/home", Icone: MapPinIcon, rotulo: "Trilha de Jogos" },
-  { to: "/aluno/conquistas", Icone: SparklesIcon, rotulo: "Conquistas" },
-  { to: "/aluno/turmas", Icone: UsersIcon, rotulo: "Minha Turma" },
+  { to: "/aluno/home", Icone: MapPin, rotulo: "Trilha de Jogos" },
+  { to: "/aluno/conquistas", Icone: Sparkles, rotulo: "Conquistas" },
+  { to: "/aluno/turmas", Icone: Users, rotulo: "Minha Turma" },
 ];
 
 function AvatarAluno({ aluno, className = "w-10 h-10 text-sm" }) {
@@ -70,12 +67,8 @@ export function HeaderAluno({ aluno }) {
               }`
             }
           >
-            {({ isActive }) => (
-              <>
-                <Icone size={18} isAnimated={false} color={isActive ? "#fff" : undefined} />
-                <span className="hidden sm:inline">{rotulo}</span>
-              </>
-            )}
+            <Icone size={18} />
+            <span className="hidden sm:inline">{rotulo}</span>
           </NavLink>
         ))}
       </nav>
@@ -112,7 +105,7 @@ export function HeaderAluno({ aluno }) {
                   onClick={() => setMenuAberto(false)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-azul hover:bg-bege/60"
                 >
-                  <SettingsIcon size={16} isAnimated={false} />
+                  <Settings size={16} />
                   Ajustes
                 </Link>
                 <button

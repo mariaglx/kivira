@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../services/api";
 import { SelectCustom } from "../../components/ui/SelectCustom";
-import { SearchIcon } from "../../components/icons/search";
+import { Search } from "lucide-react";
 import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 
@@ -95,7 +95,7 @@ export function Usuarios() {
       <div className="flex flex-wrap gap-4 items-end">
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            <SearchIcon size={16} isAnimated={false} />
+            <Search size={16} />
           </span>
           <input
             type="text"

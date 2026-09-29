@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { SearchIcon } from "../../components/icons/search";
+import { Search } from "lucide-react";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
@@ -85,7 +85,7 @@ export function Turmas() {
         {/* Barra de Pesquisa */}
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-             <SearchIcon size={16} isAnimated={false} />
+             <Search size={16} />
           </span>
           <input
             type="text"

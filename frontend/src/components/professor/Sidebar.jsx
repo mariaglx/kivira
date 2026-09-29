@@ -1,9 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogoKiviraRosa } from "../LogoKiviraRosa";
-import { HouseIcon } from "../icons/house";
-import { UsersIcon } from "../icons/users";
-import { BlocksIcon } from "../icons/blocks";
-import { SettingsIcon } from "../icons/settings";
+import { House, Users, Blocks, Settings } from "lucide-react";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
 
@@ -54,7 +51,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <HouseIcon size={20} isAnimated={false} />
+            <House size={20} />
             Dashboard
           </Link>
           <Link
@@ -65,7 +62,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <UsersIcon size={20} isAnimated={false} />
+            <Users size={20} />
             Turmas
           </Link>
           <Link
@@ -76,7 +73,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <BlocksIcon size={20} isAnimated={false} />
+            <Blocks size={20} />
             Atividades
           </Link>
           <Link
@@ -87,7 +84,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <SettingsIcon size={20} isAnimated={false} />
+            <Settings size={20} />
             Configurações
           </Link>
         </nav>

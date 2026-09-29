@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SearchIcon } from "../../components/icons/search";
-import { XIcon } from "../../components/icons/x";
+import { Search, X } from "lucide-react";
 import { apiRequest } from "../../services/api";
 
 const TIPO_LABEL = {
@@ -107,7 +106,7 @@ export function Atividades() {
 
         <div className="relative w-full max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            <SearchIcon size={16} isAnimated={false} />
+            <Search size={16} />
           </span>
           <input
             type="text"
@@ -232,7 +231,7 @@ export function Atividades() {
                 onClick={() => setModalQuestoes(null)}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <XIcon size={16} isAnimated={false} />
+                <X size={16} />
               </button>
             </div>
 

@@ -1,7 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogoKiviraRosa } from "../LogoKiviraRosa";
-import { UsersIcon } from "../icons/users";
-import { ClipboardListIcon } from "../icons/clipboard-list";
+import { Users, ClipboardList } from "lucide-react";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
 
@@ -47,7 +46,7 @@ export function Sidebar() {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <UsersIcon size={20} isAnimated={false} />
+            <Users size={20} />
             Usuários
           </Link>
           <Link
@@ -58,7 +57,7 @@ export function Sidebar() {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <ClipboardListIcon size={20} />
+            <ClipboardList size={20} />
             Logs de auditoria
           </Link>
         </nav>

@@ -3,8 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { AvatarPickerModal } from "../../components/aluno/AvatarPickerModal";
 import { useConfiguracoesAluno } from "../../controllers/useConfiguracoesAluno";
-import { SettingsIcon } from "../../components/icons/settings";
-import { PencilIcon } from "../../components/icons/pencil";
+import { Settings, Pencil } from "lucide-react";
 
 function Aviso({ aviso }) {
   if (!aviso) return null;
@@ -57,7 +56,7 @@ export function Configuracoes() {
       <main className="flex-1 min-w-0 px-8 py-8 pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Meu Perfil & Ajustes
-          <SettingsIcon size={22} isAnimated={false} />
+          <Settings size={22} />
         </h1>
 
         <div className="flex flex-col gap-6 max-w-3xl">
@@ -103,9 +102,8 @@ export function Configuracoes() {
               className="flex items-center gap-3 flex-wrap mt-4"
             >
               <div className="relative grow min-w-48">
-                <PencilIcon
+                <Pencil
                   size={16}
-                  isAnimated={false}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-azul/40 pointer-events-none"
                 />
                 <input

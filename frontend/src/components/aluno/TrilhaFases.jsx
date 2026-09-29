@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { CheckIcon } from "../icons/check";
-import { LockIcon } from "../icons/lock";
-import { BlocksIcon } from "../icons/blocks";
+import { Check, Lock, Blocks } from "lucide-react";
 import { DIFICULDADE_ESTRELAS } from "../../utils/dificuldade";
 import { iconeDisciplina } from "../../utils/disciplina";
 
@@ -69,7 +67,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
         className="tatil w-full bg-coral text-branco rounded-2xl py-2.5 font-bold inline-flex items-center justify-center gap-2"
       >
         Jogar!
-        <BlocksIcon size={16} isAnimated={false} />
+        <Blocks size={16} />
       </button>
     </div>
   );
@@ -130,9 +128,9 @@ export function TrilhaFases({ atividades, onJogar }) {
                 estado === "bloqueada" ? "cursor-not-allowed opacity-60" : "hover:scale-105"
               } ${estado === "atual" ? "animate__animated animate__pulse animate__infinite" : ""}`}
             >
-              {estado === "concluida" && <CheckIcon size={30} isAnimated={false} color="#fff" />}
-              {estado === "atual" && <BlocksIcon size={34} isAnimated={false} color="#fff" />}
-              {estado === "bloqueada" && <LockIcon size={26} isAnimated={false} color="#8a8a8a" />}
+              {estado === "concluida" && <Check size={30} className="text-branco" />}
+              {estado === "atual" && <Blocks size={34} className="text-branco" />}
+              {estado === "bloqueada" && <Lock size={26} className="text-gray-400" />}
 
               <span className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-branco text-azul text-[11px] font-black flex items-center justify-center shadow border border-cinza-claro/30">
                 {indice + 1}
