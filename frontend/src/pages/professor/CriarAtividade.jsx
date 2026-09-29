@@ -1259,7 +1259,7 @@ export function CriarAtividade() {
                         <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
                       </svg>
                       <span className="text-sm font-bold text-azul">Clique pra escolher um arquivo</span>
-                      <span className="text-xs text-azul/40">JPEG, PNG, WEBP ou GIF — até 5MB</span>
+                      <span className="text-xs text-azul/40">JPEG, PNG, WEBP ou GIF, até 5MB</span>
                     </>
                   )}
                 </label>

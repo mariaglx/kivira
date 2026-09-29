@@ -301,7 +301,7 @@ export function Home() {
 
       {/* 4. FOOTER */}
       <footer className="w-full py-8 text-center text-xs text-azul/60 font-semibold border-t border-cinza-claro/40 z-10">
-        <p>© 2026 Kivira — Plataforma educacional gamificada.</p>
+        <p>© 2026 Kivira. Plataforma educacional gamificada.</p>
       </footer>
     </div>
   );

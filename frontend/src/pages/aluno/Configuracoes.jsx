@@ -141,7 +141,7 @@ export function Configuracoes() {
             {etapaSenha === 1 ? (
               <>
                 <p className="text-sm text-azul/60 mb-4 text-center font-semibold">
-                  Etapa 1 de 2 — Digite sua senha atual
+                  Etapa 1 de 2: Digite sua senha atual
                 </p>
                 <SeletorEmoji
                   selecionados={senhaAtual}
@@ -152,7 +152,7 @@ export function Configuracoes() {
             ) : (
               <>
                 <p className="text-sm text-azul/60 mb-4 text-center font-semibold">
-                  Etapa 2 de 2 — Agora escolha sua NOVA senha de 3 emojis!
+                  Etapa 2 de 2: Agora escolha sua NOVA senha de 3 emojis!
                 </p>
                 <SeletorEmoji
                   selecionados={senhaNova}
