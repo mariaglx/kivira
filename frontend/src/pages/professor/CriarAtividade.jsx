@@ -5,7 +5,7 @@ import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
-import { Search, X } from "lucide-react";
+import { Search, Trash2, X } from "lucide-react";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
 // um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
@@ -205,6 +205,8 @@ export function CriarAtividade() {
   const [erroTurmas, setErroTurmas] = useState(null);
   const [idAtividadeCriada, setIdAtividadeCriada] = useState(null);
   const [codigoAtividade, setCodigoAtividade] = useState(null);
+  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
   const [codigoCopiado, setCodigoCopiado] = useState(false);
   const [mostrarSucesso, setMostrarSucesso] = useState(false);
   const [foiCriacao, setFoiCriacao] = useState(true);
@@ -523,6 +525,22 @@ export function CriarAtividade() {
     setMensagemErro(null);
   };
 
+  const abrirExclusao = () => setModalExclusaoAberto(true);
+  const fecharExclusao = () => setModalExclusaoAberto(false);
+
+  const excluirAtividade = async () => {
+    setExcluindo(true);
+    try {
+      await apiRequest(`/atividade/${idAtividadeCriada}`, { method: "DELETE" });
+      navigate("/professor/atividades");
+    } catch (err) {
+      setModalExclusaoAberto(false);
+      setMensagemErro(err.message || "Não foi possível excluir a atividade");
+    } finally {
+      setExcluindo(false);
+    }
+  };
+
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
@@ -536,12 +554,23 @@ export function CriarAtividade() {
           </Link>
         </header>
 
-        <div>
+        <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold tracking-tight">
             {idAtividadeCriada
               ? `Atividade: ${formData.titulo}`
               : "Nova Atividade"}
           </h2>
+
+          {idAtividadeCriada && (
+            <button
+              type="button"
+              onClick={abrirExclusao}
+              className="btn btn-ghost btn-sm rounded-xl text-vermelho hover:bg-vermelho/10 transition shrink-0"
+            >
+              <Trash2 size={16} />
+              Excluir atividade
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-6 items-start">
@@ -1264,6 +1293,55 @@ export function CriarAtividade() {
                 </label>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Exclusão da atividade. O texto diz o que o banco realmente faz com
+          cada dependência, em vez de um aviso genérico de "essa ação é
+          permanente" (mesmo padrão do modal de excluir turma) */}
+      {modalExclusaoAberto && (
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
+              <Trash2 size={28} />
+            </div>
+
+            <h3 className="text-xl font-extrabold text-azul mt-3">
+              Excluir a atividade?
+            </h3>
+            <p className="text-sm text-azul/60 mt-2">
+              <strong className="text-azul">{formData.titulo}</strong> será
+              removida e não tem como desfazer.
+            </p>
+
+            <div className="text-xs text-azul/60 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
+              <span>
+                As <strong className="text-azul">{questoes.length} questão(ões)</strong> dessa
+                atividade são apagadas junto.
+              </span>
+              <span>O histórico de partidas jogadas nela também é apagado.</span>
+              <span>O XP que os alunos já ganharam com ela continua valendo.</span>
+            </div>
+
+            <div className="flex gap-3 w-full mt-5">
+              <button
+                type="button"
+                onClick={fecharExclusao}
+                disabled={excluindo}
+                className="btn flex-1 bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={excluirAtividade}
+                disabled={excluindo}
+                className="tatil flex-1 bg-vermelho hover:bg-vermelho/90 text-branco border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed [--sombra:#962c22]"
+              >
+                {excluindo ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
           </div>
         </div>
       )}
