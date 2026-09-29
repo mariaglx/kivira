@@ -9,7 +9,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 # APP_ENV controla qual banco a aplicação usa: "test" (padrão) ou "production".
 # Os dois podem conviver no mesmo .env — só troca o APP_ENV pra apontar pra um ou outro.
-APP_ENV = os.getenv("APP_ENV", "test")
+APP_ENV = os.getenv("APP_ENV", "production")
 DATABASE_URL_TEST = os.getenv("DATABASE_URL_TEST", os.getenv("DATABASE_URL", ""))
 DATABASE_URL_PROD = os.getenv("DATABASE_URL_PROD", "")
 DATABASE_URL = DATABASE_URL_PROD if APP_ENV == "production" else DATABASE_URL_TEST
