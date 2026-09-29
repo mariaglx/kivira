@@ -12,6 +12,17 @@ const ordenarPorTexto = (lista, rotulo) =>
     }),
   );
 
+// Contador de módulo (não estado/ref) só pra dar uma chave própria a cada
+// linha do formulário de cadastro — senão remover uma linha do meio reaproveita
+// a key de outra e o React pode confundir o estado dos campos
+let proximaChaveLinha = 1;
+const linhaVazia = () => ({
+  chave: proximaChaveLinha++,
+  nome: "",
+  sobrenome: "",
+  matricula: "",
+});
+
 const FORM_VAZIO = {
   nome: "",
   ano_escolar: "",
@@ -165,20 +176,23 @@ export function useTurmaForm() {
     }
   };
 
-  // Cadastro de aluno de dentro da turma — a senha de primeiro acesso é gerada
-  // pelo backend e só existe nessa resposta (não dá pra recuperar depois)
+  // Cadastro de aluno(s) de dentro da turma — uma lista de linhas (nome,
+  // sobrenome, matrícula) que cresce com o "+". 1 linha preenchida ou 30 são
+  // o mesmo caminho: sempre o endpoint em lote, mesmo pra um aluno só — não
+  // faz sentido manter dois fluxos separados pra "a mesma coisa"
   const [modalAlunoAberto, setModalAlunoAberto] = useState(false);
-  const [nomeAluno, setNomeAluno] = useState("");
-  const [sobrenomeAluno, setSobrenomeAluno] = useState("");
-  const [cadastrandoAluno, setCadastrandoAluno] = useState(false);
-  const [erroCadastroAluno, setErroCadastroAluno] = useState(null);
-  const [alunoCriado, setAlunoCriado] = useState(null); // {username, senha_temporaria}
+  const [abaModalAluno, setAbaModalAluno] = useState("cadastrar"); // "cadastrar" | "existente"
+
+  const [linhasCadastro, setLinhasCadastro] = useState(() => [linhaVazia()]);
 
   const abrirModalAluno = () => {
-    setNomeAluno("");
-    setSobrenomeAluno("");
-    setErroCadastroAluno(null);
-    setAlunoCriado(null);
+    setAbaModalAluno("cadastrar");
+    setLinhasCadastro([linhaVazia()]);
+    setResultadoLote(null);
+    setErroCadastroLote(null);
+    setBuscaAlunoExistente("");
+    setResultadosBusca([]);
+    setErroMatricularExistente(null);
     setModalAlunoAberto(true);
   };
 
@@ -186,33 +200,120 @@ export function useTurmaForm() {
     setModalAlunoAberto(false);
   };
 
-  const cadastrarAluno = async (e) => {
-    e.preventDefault();
+  const alterarLinhaCadastro = (chave, campo, valor) => {
+    setLinhasCadastro((atual) =>
+      atual.map((linha) => (linha.chave === chave ? { ...linha, [campo]: valor } : linha)),
+    );
+  };
 
-    if (!nomeAluno.trim() || !sobrenomeAluno.trim()) {
-      setErroCadastroAluno("Preencha nome e sobrenome.");
+  const adicionarLinhaCadastro = () => {
+    setLinhasCadastro((atual) => [...atual, linhaVazia()]);
+  };
+
+  // Nunca deixa a lista vazia — sem nenhuma linha não tem onde digitar o próximo
+  const removerLinhaCadastro = (chave) => {
+    setLinhasCadastro((atual) =>
+      atual.length > 1 ? atual.filter((linha) => linha.chave !== chave) : atual,
+    );
+  };
+
+  const [cadastrandoLote, setCadastrandoLote] = useState(false);
+  const [erroCadastroLote, setErroCadastroLote] = useState(null);
+  const [resultadoLote, setResultadoLote] = useState(null); // [{nome_completo, matricula, username, senha_temporaria}]
+
+  const itensLote = linhasCadastro
+    .map((linha) => ({
+      nome_completo: `${linha.nome.trim()} ${linha.sobrenome.trim()}`.trim(),
+      matricula: linha.matricula.trim() || null,
+    }))
+    .filter((item) => item.nome_completo);
+
+  const cadastrarAlunosLote = async () => {
+    if (itensLote.length === 0) return;
+
+    setErroCadastroLote(null);
+    setCadastrandoLote(true);
+    try {
+      const resposta = await apiRequest("/aluno/cadastrar_lote", {
+        method: "POST",
+        data: { turma_id: Number(id), alunos: itensLote },
+      });
+      setResultadoLote(resposta.alunos);
+      // Já cai na mesma fila de impressão do cadastro individual — não
+      // precisa que o professor marque aluno por aluno pra imprimir a turma inteira
+      resposta.alunos.forEach((aluno) =>
+        adicionarNaFilaImpressao(aluno.username, aluno.senha_temporaria),
+      );
+      recarregarAlunos();
+    } catch (erro) {
+      setErroCadastroLote(erro.message || "Não foi possível cadastrar os alunos.");
+    } finally {
+      setCadastrandoLote(false);
+    }
+  };
+
+  const reiniciarCadastroLote = () => {
+    setLinhasCadastro([linhaVazia()]);
+    setResultadoLote(null);
+    setErroCadastroLote(null);
+  };
+
+  // Matricular aluno já existente (de outra turma do mesmo professor) — busca
+  // por nome ou matrícula, com um pequeno debounce pra não bater na API a
+  // cada tecla
+  const [buscaAlunoExistente, setBuscaAlunoExistente] = useState("");
+  const [resultadosBusca, setResultadosBusca] = useState([]);
+  const [buscandoAlunoExistente, setBuscandoAlunoExistente] = useState(false);
+  const [matriculandoAlunoId, setMatriculandoAlunoId] = useState(null);
+  const [erroMatricularExistente, setErroMatricularExistente] = useState(null);
+
+  useEffect(() => {
+    const termo = buscaAlunoExistente.trim();
+    if (termo.length < 2) {
+      setResultadosBusca([]);
       return;
     }
 
-    setErroCadastroAluno(null);
-    setCadastrandoAluno(true);
+    const controller = new AbortController();
+    const espera = setTimeout(() => {
+      setBuscandoAlunoExistente(true);
+      apiRequest(`/aluno/professor/meus?busca=${encodeURIComponent(termo)}`, {
+        signal: controller.signal,
+      })
+        .then(setResultadosBusca)
+        .catch((erro) => {
+          if (erro.name !== "AbortError") setResultadosBusca([]);
+        })
+        .finally(() => setBuscandoAlunoExistente(false));
+    }, 300);
+
+    return () => {
+      clearTimeout(espera);
+      controller.abort();
+    };
+  }, [buscaAlunoExistente]);
+
+  const matricularAlunoExistente = async (alunoId) => {
+    setMatriculandoAlunoId(alunoId);
+    setErroMatricularExistente(null);
     try {
-      const resposta = await apiRequest("/aluno/cadastrar", {
+      await apiRequest("/aluno_turma/criar", {
         method: "POST",
-        data: {
-          nome_completo: `${nomeAluno.trim()} ${sobrenomeAluno.trim()}`,
-          turma_id: Number(id),
-        },
+        data: { turma_id: Number(id), aluno_id: alunoId },
       });
-      setAlunoCriado({
-        username: resposta.username,
-        senha_temporaria: resposta.senha_temporaria,
-      });
+      // Marca como matriculado na própria lista de resultados, em vez de
+      // sumir com o card — assim o professor vê a confirmação sem perder o
+      // contexto da busca, caso queira matricular outro homônimo em seguida
+      setResultadosBusca((atual) =>
+        atual.map((aluno) =>
+          aluno.id === alunoId ? { ...aluno, jaMatriculado: true } : aluno,
+        ),
+      );
       recarregarAlunos();
     } catch (erro) {
-      setErroCadastroAluno(erro.message || "Erro ao cadastrar aluno");
+      setErroMatricularExistente(erro.message || "Não foi possível matricular esse aluno.");
     } finally {
-      setCadastrandoAluno(false);
+      setMatriculandoAlunoId(null);
     }
   };
 
@@ -343,14 +444,25 @@ export function useTurmaForm() {
     modalAlunoAberto,
     abrirModalAluno,
     fecharModalAluno,
-    nomeAluno,
-    setNomeAluno,
-    sobrenomeAluno,
-    setSobrenomeAluno,
-    cadastrandoAluno,
-    erroCadastroAluno,
-    alunoCriado,
-    cadastrarAluno,
+    abaModalAluno,
+    setAbaModalAluno,
+    linhasCadastro,
+    alterarLinhaCadastro,
+    adicionarLinhaCadastro,
+    removerLinhaCadastro,
+    itensLote,
+    cadastrandoLote,
+    erroCadastroLote,
+    resultadoLote,
+    cadastrarAlunosLote,
+    reiniciarCadastroLote,
+    buscaAlunoExistente,
+    setBuscaAlunoExistente,
+    resultadosBusca,
+    buscandoAlunoExistente,
+    matriculandoAlunoId,
+    erroMatricularExistente,
+    matricularAlunoExistente,
     removendoMatriculaId,
     alunoParaRemover,
     pedirRemocaoAluno,

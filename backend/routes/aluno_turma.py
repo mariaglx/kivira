@@ -81,6 +81,7 @@ def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
             "aluno_id": aluno.id,
             "nome_completo": aluno.nome_completo,
             "apelido": aluno.apelido,
+            "matricula": aluno.matricula,
             "avatar_url": aluno.avatar_url,
             "ativo": matricula.ativo,
             "data_inscricao": matricula.data_inscricao

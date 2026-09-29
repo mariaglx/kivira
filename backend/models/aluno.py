@@ -12,6 +12,7 @@ class Aluno(Base):
     usuario_id = Column("usuario_id", Integer, ForeignKey("usuario.id"), unique=True)
     nome_completo = Column("nome_completo", String(255), nullable=False)
     apelido = Column("apelido", String(50))
+    matricula = Column("matricula", String(50))
     avatar_url = Column("avatar_url", String(500))
     data_nascimento = Column("data_nascimento", Date)
     xp_total = Column("xp_total", Integer, default=0)
