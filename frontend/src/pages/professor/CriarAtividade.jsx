@@ -5,8 +5,7 @@ import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
-import { SearchIcon } from "../../components/icons/search";
-import { XIcon } from "../../components/icons/x";
+import { Search, X } from "lucide-react";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
 // um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
@@ -180,6 +179,7 @@ export function CriarAtividade() {
     setAbaImagem,
     enviandoImagem,
     erroUploadImagem,
+    urlPixabaySelecionada,
     setErroUploadImagem,
     enviarImagemDoComputador,
   } = useCriarAtividade();
@@ -583,7 +583,7 @@ export function CriarAtividade() {
                       }
                       className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <XIcon size={16} isAnimated={false} />
+                      <X size={16} />
                     </button>
                   </div>
                 ) : (
@@ -623,7 +623,7 @@ export function CriarAtividade() {
                   onClick={() => abrirBuscaImagem("buscar")}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/60 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
                 >
-                  <SearchIcon size={14} isAnimated={false} />
+                  <Search size={14} />
                   {formData.imagem_atividade_url ? "Trocar imagem" : "Escolher imagem"}
                 </button>
               </div>
@@ -1000,7 +1000,7 @@ export function CriarAtividade() {
                 onClick={fecharBuscaImagem}
                 className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
-                <XIcon size={16} isAnimated={false} />
+                <X size={16} />
               </button>
             </div>
 
@@ -1029,7 +1029,7 @@ export function CriarAtividade() {
                     {buscandoImagens ? (
                       <span className="w-3.5 h-3.5 border-2 border-branco/40 border-t-branco rounded-full animate-spin" />
                     ) : (
-                      <SearchIcon size={16} isAnimated={false} />
+                      <Search size={16} />
                     )}
                   </button>
                 </form>
@@ -1058,9 +1058,10 @@ export function CriarAtividade() {
                       key={imagem.id}
                       type="button"
                       onClick={() => selecionarImagemPixabay(imagem.url_imagem)}
+                      disabled={enviandoImagem}
                       aria-label={`Selecionar imagem: ${imagem.tags}`}
-                      className={`aspect-square rounded-xl overflow-hidden transition ${
-                        formData.imagem_atividade_url === imagem.url_imagem
+                      className={`aspect-square rounded-xl overflow-hidden transition disabled:opacity-40 ${
+                        urlPixabaySelecionada === imagem.url_imagem
                           ? "ring-4 ring-coral"
                           : "ring-2 ring-transparent hover:ring-coral/40"
                       }`}
@@ -1073,6 +1074,19 @@ export function CriarAtividade() {
                     </button>
                   ))}
                 </div>
+
+                {/* A imagem escolhida é baixada e guardada no Cloudinary antes de
+                    entrar na atividade — leva um instante, então avisa */}
+                {enviandoImagem && (
+                  <p className="text-sm text-azul/60 mt-3 text-center">
+                    Salvando imagem escolhida...
+                  </p>
+                )}
+                {erroUploadImagem && (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mt-3">
+                    <span>{erroUploadImagem}</span>
+                  </div>
+                )}
 
                 {totalPaginasImagens > 1 && (
                   <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">

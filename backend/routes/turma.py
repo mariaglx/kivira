@@ -6,6 +6,7 @@ from models.professor import Professor
 from models.aluno_turma import AlunoTurma
 from models.atividade import Atividade
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from core.rbac import pode_gerenciar
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
@@ -20,7 +21,7 @@ turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(
 turma_publico_router = APIRouter(prefix="/turma", tags=["turma"])
 
 @turma_publico_router.get("/verificar-codigo/{codigo}")
-async def verificar_codigo_turma(codigo: str, session = Depends(pegar_sessao_kivira)):
+def verificar_codigo_turma(codigo: str, session = Depends(pegar_sessao_kivira)):
     turma = session.query(Turma).filter(
         Turma.codigo_acesso == codigo.strip().lower(),
         Turma.ativo == True,
@@ -33,7 +34,7 @@ async def verificar_codigo_turma(codigo: str, session = Depends(pegar_sessao_kiv
 
 
 @turma_router.get("/")
-async def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
     if usuario.tipo == "admin":
         turmas = session.query(Turma).all()
@@ -76,7 +77,7 @@ async def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario
 
 
 @turma_router.post("/criar")
-async def criar_turma(turma_schema: TurmaSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def criar_turma(turma_schema: TurmaSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
 
@@ -124,7 +125,7 @@ async def criar_turma(turma_schema: TurmaSchema, session = Depends(pegar_sessao_
 # Retorna os dados da Turma a partir de um di
 
 @turma_router.get("/{id_turma}")
-async def buscar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def buscar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == id_turma).first()
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
@@ -148,13 +149,12 @@ async def buscar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
 # Edita os dados da turma a partir de um id
 
 @turma_router.patch("/{id_turma}")
-async def editar_turma(id_turma: int, turma_schema: TurmaUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def editar_turma(id_turma: int, turma_schema: TurmaUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == id_turma).first()
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if turma_schema.nome is not None:
@@ -183,13 +183,12 @@ async def editar_turma(id_turma: int, turma_schema: TurmaUpdateSchema, session =
 # Faz a exclusão de uma turma a partir de um ID
 
 @turma_router.delete("/{id_turma}")
-async def deletar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == id_turma).first()
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+    if not pode_gerenciar(session, usuario, turma):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     nome_turma = turma.nome

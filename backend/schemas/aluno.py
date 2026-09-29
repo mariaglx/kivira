@@ -27,3 +27,9 @@ class PrimeiroAcessoSchema(BaseModel):
     senha_temporaria: str
     emojis: List[str]
 
+
+class TrocarSenhaAlunoSchema(BaseModel):
+    # Os 3 emojis atuais e os 3 novos. Exigir a senha atual impede que um
+    # aluno que encontre o celular do colega desbloqueado troque a senha dele.
+    senha_atual: List[str]
+    emojis: List[str]

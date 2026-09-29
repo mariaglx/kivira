@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { salvarSessao } from "../services/sessao";
 
 export function useLoginEmoji(username) {
   const navigate = useNavigate();
@@ -32,14 +33,19 @@ export function useLoginEmoji(username) {
         data: { username, senha: emojis.join("") },
       });
 
-      localStorage.setItem("access_token", login.access_token);
-      localStorage.setItem("refresh_token", login.refresh_token);
-      localStorage.setItem("user_type", "estudante");
+      salvarSessao({ accessToken: login?.access_token, refreshToken: login?.refresh_token, tipo: "estudante" });
 
       const perfil = await apiRequest("/aluno/me");
       navigate(perfil.avatar_url ? "/aluno/home" : "/aluno/escolher-avatar");
     } catch (err) {
-      setErro(err.message || "Senha incorreta. Tente novamente.");
+      // O username já foi conferido no status-acesso da tela anterior, então
+      // credencial recusada aqui só pode ser a senha. Qualquer outro código é
+      // problema do sistema — não faz sentido culpar a criança por isso.
+      setErro(
+        err.status === 400 || err.status === 401
+          ? "Senha incorreta. Tente de novo."
+          : "Não consegui entrar agora. Tente daqui a pouco.",
+      );
       setEmojis([]);
     } finally {
       setCarregando(false);

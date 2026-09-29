@@ -7,14 +7,15 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 //
 // Não decodifica o JWT nem checa expiração — só confere o que o próprio login
 // já guardou em localStorage.user_type. Um token expirado ainda é pego pelos
-// handlers de 401 que cada página já tem (removem o token e mandam pro login).
+// tratamento de 401 do apiRequest (limpa a sessão e manda pro login).
 export function RequireRole({ allowedRoles }) {
   const location = useLocation();
   const temToken = !!localStorage.getItem("access_token");
   const tipoUsuario = localStorage.getItem("user_type");
 
   if (!temToken) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    const soAluno = allowedRoles.length === 1 && allowedRoles[0] === "estudante";
+    return <Navigate to={soAluno ? "/login_aluno" : "/login"} replace state={{ from: location }} />;
   }
 
   if (!allowedRoles.includes(tipoUsuario)) {

@@ -19,7 +19,7 @@ admin_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(
 # Só o admin acessa — professor e aluno recebem 403 (garantido pelo somente_admin acima).
 
 @admin_router.get("/usuarios")
-async def listar_usuarios(
+def listar_usuarios(
     tipo: Optional[str] = Query(default=None, description="Filtra por papel: admin, professor ou estudante"),
     session = Depends(pegar_sessao_kivira),
 ):
@@ -45,7 +45,7 @@ async def listar_usuarios(
 # sistema. Suporta filtro por usuário, papel, ação e entidade pra facilitar investigação.
 
 @admin_router.get("/logs-auditoria", response_model=list[LogAuditoriaSchema])
-async def listar_logs_auditoria(
+def listar_logs_auditoria(
     usuario_id: Optional[int] = Query(default=None),
     papel: Optional[str] = Query(default=None, description="admin, professor ou estudante"),
     acao: Optional[str] = Query(default=None, description="Ex: CRIAR_ATIVIDADE, EXCLUIR_ATIVIDADE"),
@@ -77,7 +77,7 @@ async def listar_logs_auditoria(
 # daí um admin já cadastrado pode promover qualquer outro usuário por aqui.
 
 @admin_router.post("/usuarios/{usuario_id}/promover-admin")
-async def promover_para_admin(
+def promover_para_admin(
     usuario_id: int,
     session = Depends(pegar_sessao_kivira),
     usuario_logado: Usuario = Depends(verificar_token_kivira),

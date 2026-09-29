@@ -1,10 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogoKiviraRosa } from "../LogoKiviraRosa";
-import { HouseIcon } from "../icons/house";
-import { UsersIcon } from "../icons/users";
-import { BlocksIcon } from "../icons/blocks";
-import { SettingsIcon } from "../icons/settings";
+import { House, Users, Blocks, Settings } from "lucide-react";
 import { apiRequest } from "../../services/api";
+import { limparSessao } from "../../services/sessao";
 
 // Descobre a aba ativa a partir da própria URL, ao invés de exigir que cada
 // página lembre de passar `ativo` — assim o Sidebar pode viver no layout
@@ -30,14 +28,12 @@ export function Sidebar({ professor }) {
     } catch {
       // ignora: logout local não pode ficar travado por causa do log
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
+    limparSessao();
     navigate("/login");
   };
 
   return (
-    <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg sticky top-0 h-screen self-start">
+    <aside className="w-64 bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg sticky top-0 h-screen self-start print:hidden">
       <div>
         <div className="flex items-center mb-3 px-1">
           <LogoKiviraRosa className="w-36 h-auto" />
@@ -55,7 +51,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <HouseIcon size={20} isAnimated={false} />
+            <House size={20} />
             Dashboard
           </Link>
           <Link
@@ -66,7 +62,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <UsersIcon size={20} isAnimated={false} />
+            <Users size={20} />
             Turmas
           </Link>
           <Link
@@ -77,7 +73,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <BlocksIcon size={20} isAnimated={false} />
+            <Blocks size={20} />
             Atividades
           </Link>
           <Link
@@ -88,7 +84,7 @@ export function Sidebar({ professor }) {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <SettingsIcon size={20} isAnimated={false} />
+            <Settings size={20} />
             Configurações
           </Link>
         </nav>

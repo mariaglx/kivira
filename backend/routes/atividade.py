@@ -2,7 +2,7 @@
 
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy import insert
+from sqlalchemy import insert, func
 from models.atividade import Atividade
 from models.professor import Professor
 from models.usuario import Usuario
@@ -11,23 +11,39 @@ from models.aluno_turma import AlunoTurma
 from models.turma import Turma
 from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
+from models.sessao_jogo import SessaoJogo
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import admin_ou_professor
-from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema
-from services.cloudinary_service import enviar_imagem_atividade
+from core.rbac import admin_ou_professor, pode_gerenciar
+from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema, ConcluirAtividadeSchema
+from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
 
-@atividade_router.get("/")
-async def atividade():
-    return{"mensagem":"Você acessou a rota de atividades"}
+# Regras de gamificação da conclusão de atividade:
+# - estrelas vêm de quantas vezes o aluno precisou virar o tabuleiro pra
+#   conferir (mesma fórmula do front, ver estrelasPorTentativas em
+#   JogoAndamento.jsx): 3 na primeira, 2 numa correção, 1 nas demais.
+# - XP = soma dos pontos das questões (já existe em Questao.pontos) vezes um
+#   multiplicador de dificuldade, escalado pelas estrelas — perder tempo
+#   corrigindo rende menos que acertar de primeira.
+# XP_POR_NIVEL espelha o mesmo valor do front (ver frontend/src/utils/xp.js);
+# como o cálculo de nível é feito aqui, os dois precisam ficar em sincronia.
+XP_MULTIPLICADOR_DIFICULDADE = {"facil": 1, "medio": 1.5, "dificil": 2}
+XP_POR_NIVEL = 100
+
+def calcular_estrelas(tentativas):
+    return max(1, min(3, 4 - tentativas))
+
+def calcular_xp_ganho(pontuacao_base, dificuldade, estrelas):
+    multiplicador = XP_MULTIPLICADOR_DIFICULDADE.get(dificuldade, 1)
+    return round(pontuacao_base * multiplicador * estrelas / 3)
 
 # Lista as atividades criadas pelo professor logado. Usado pela tela de Atividades
 # do professor pra substituir os dados mockados.
 
 @atividade_router.get("/professor/minhas")
-async def listar_atividades_do_professor(
+def listar_atividades_do_professor(
     turma_id: int | None = None,
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
@@ -59,6 +75,7 @@ async def listar_atividades_do_professor(
             "tipo_atividade": a.tipo_atividade,
             "dificuldade": a.dificuldade,
             "quantidade_blocos": a.quantidade_blocos,
+            "imagem_atividade_url": a.imagem_atividade_url,
             "turma_id": a.turma_id,
             "turma_nome": nomes_por_turma.get(a.turma_id),
             "publicado": a.publicado,
@@ -70,7 +87,7 @@ async def listar_atividades_do_professor(
 # Usado pela Home do aluno pra substituir os dados mockados.
 
 @atividade_router.get("/aluno/minhas")
-async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     if usuario.tipo != "estudante":
         raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
 
@@ -88,10 +105,26 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
 
     atividades = []
     if turma_ids:
+        # order_by(id): a Trilha de Fases do front (ver HomeAluno.jsx) depende
+        # de uma ordem estável pra decidir qual fase é a próxima liberada.
         atividades = session.query(Atividade).filter(
             Atividade.turma_id.in_(turma_ids),
             Atividade.publicado == True,
-        ).all()
+        ).order_by(Atividade.id).all()
+
+    # Melhor tentativa (menos rodadas de conferência = mais estrelas) de cada
+    # atividade já concluída pelo aluno — uma consulta só, não uma por fase.
+    atividade_ids = [a.id for a in atividades]
+    melhor_rodadas_por_atividade = {}
+    if atividade_ids:
+        sessoes_concluidas = session.query(
+            SessaoJogo.atividade_id, func.min(SessaoJogo.rodadas_conferencia)
+        ).filter(
+            SessaoJogo.aluno_id == aluno.id,
+            SessaoJogo.atividade_id.in_(atividade_ids),
+            SessaoJogo.status == "concluido",
+        ).group_by(SessaoJogo.atividade_id).all()
+        melhor_rodadas_por_atividade = dict(sessoes_concluidas)
 
     return [
         {
@@ -104,6 +137,8 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
             "imagem_atividade_url": a.imagem_atividade_url,
             "quantidade_blocos": a.quantidade_blocos,
             "turma_id": a.turma_id,
+            "concluida": a.id in melhor_rodadas_por_atividade,
+            "estrelas": calcular_estrelas(melhor_rodadas_por_atividade[a.id]) if a.id in melhor_rodadas_por_atividade else 0,
         }
         for a in atividades
     ]
@@ -112,7 +147,7 @@ async def listar_atividades_do_aluno(session = Depends(pegar_sessao_kivira), usu
 # alunos recebem 403 antes mesmo de rodar a lógica abaixo.
 
 @atividade_router.post("/criar_atividade", dependencies=[Depends(admin_ou_professor)])
-async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
 
     if usuario.tipo == "admin" and atividade_schema.professor_id is not None:
@@ -164,7 +199,7 @@ async def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(p
 # à busca no Pixabay) — precisa vir ANTES de "/{id_atividade}" abaixo, senão o
 # FastAPI tentaria casar "upload_imagem" como id e devolveria 422.
 
-@atividade_router.post("/upload_imagem")
+@atividade_router.post("/upload_imagem", dependencies=[Depends(admin_ou_professor)])
 async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
     if not arquivo.content_type or not arquivo.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Envie um arquivo de imagem")
@@ -176,10 +211,18 @@ async def upload_imagem_atividade(arquivo: UploadFile = File(...)):
     url = await enviar_imagem_atividade(conteudo)
     return {"url": url}
 
+# Guarda no Cloudinary uma imagem escolhida na busca do Pixabay. Também precisa vir
+# antes de "/{id_atividade}" pelo mesmo motivo da rota acima.
+
+@atividade_router.post("/imagem_do_pixabay", dependencies=[Depends(admin_ou_professor)])
+async def salvar_imagem_do_pixabay(dados: SalvarImagemPixabaySchema):
+    url = await enviar_imagem_do_pixabay(dados.url)
+    return {"url": url}
+
 # Retorna os dados de uma atividade a partir do ID dela
 
 @atividade_router.get("/{id_atividade}")
-async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira)):
+def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
@@ -204,13 +247,37 @@ async def buscar_atividade(id_atividade: int, session = Depends(pegar_sessao_kiv
 # modal "Ver questões" na tela de Atividades do professor
 
 @atividade_router.get("/{id_atividade}/questoes")
-async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def listar_questoes_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    # Três perfis chegam aqui: o admin, o professor dono da atividade (modal
+    # "Ver questões") e o aluno que vai jogar. O aluno não tem linha em
+    # `professor`, então a checagem que só olhava o dono devolvia 401 pra ele
+    # sempre — e o botão "Jogar!" da home do aluno nunca funcionava.
+    if usuario.tipo == "admin":
+        autorizado = True
+
+    elif usuario.tipo == "estudante":
+        aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+
+        matricula = None
+        if aluno and atividade.turma_id:
+            matricula = session.query(AlunoTurma).filter(
+                AlunoTurma.aluno_id == aluno.id,
+                AlunoTurma.turma_id == atividade.turma_id,
+                AlunoTurma.ativo == 1,
+            ).first()
+
+        # Rascunho não publicado não vaza nem pra quem é da turma
+        autorizado = bool(matricula and atividade.publicado)
+
+    else:
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        autorizado = bool(professor and professor.id == atividade.professor_id)
+
+    if not autorizado:
         raise HTTPException(status_code=401, detail="Você não tem autorização para ver essas questões")
 
     questoes = session.query(Questao).filter(Questao.atividade_id == id_atividade).order_by(Questao.ordem).all()
@@ -246,13 +313,72 @@ async def listar_questoes_da_atividade(id_atividade: int, session = Depends(pega
         ],
     }
 
+# Chamado pelo front quando o aluno vira o tabuleiro e acerta tudo (ver
+# JogoAndamento.jsx) — credita XP, atualiza o nível e grava a partida pro
+# histórico. Mesma checagem de matrícula do /questoes: só aluno matriculado
+# na turma da atividade pode concluir e ganhar XP com ela.
+@atividade_router.post("/{id_atividade}/concluir")
+def concluir_atividade(id_atividade: int, dados: ConcluirAtividadeSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    matricula = None
+    if atividade.turma_id:
+        matricula = session.query(AlunoTurma).filter(
+            AlunoTurma.aluno_id == aluno.id,
+            AlunoTurma.turma_id == atividade.turma_id,
+            AlunoTurma.ativo == 1,
+        ).first()
+
+    if not matricula or not atividade.publicado:
+        raise HTTPException(status_code=401, detail="Você não tem autorização para concluir essa atividade")
+
+    total_questoes = session.query(Questao).filter(Questao.atividade_id == atividade.id).count()
+    pontuacao_base = session.query(func.sum(Questao.pontos)).filter(Questao.atividade_id == atividade.id).scalar() or 0
+
+    estrelas = calcular_estrelas(dados.tentativas)
+    xp_ganho = calcular_xp_ganho(pontuacao_base, atividade.dificuldade, estrelas)
+    nivel_antigo = aluno.nivel_atual or 1
+
+    aluno.xp_total = (aluno.xp_total or 0) + xp_ganho
+    aluno.nivel_atual = aluno.xp_total // XP_POR_NIVEL + 1
+
+    session.add(SessaoJogo(
+        aluno_id=aluno.id,
+        atividade_id=atividade.id,
+        turma_id=atividade.turma_id,
+        status="concluido",
+        pontuacao=pontuacao_base,
+        respostas_corretas=total_questoes,
+        rodadas_conferencia=dados.tentativas,
+        acertos_primeira=1 if dados.tentativas == 1 else 0,
+        finalizado_em=func.now(),
+    ))
+    session.commit()
+
+    return {
+        "estrelas": estrelas,
+        "xp_ganho": xp_ganho,
+        "xp_total": aluno.xp_total,
+        "nivel_atual": aluno.nivel_atual,
+        "subiu_nivel": aluno.nivel_atual > nivel_antigo,
+    }
+
 # Salva todas as questões (+ respostas) de uma atividade numa tacada só. Substitui
 # o antigo fluxo do front de "1 POST/PATCH por questão + 1 POST/PATCH por opção"
 # (chegava a 24 requests sequenciais pros 12 blocos padrão, ~50s no fim a fim) —
 # agora é 1 request só, sem depender de N ida-e-voltas de rede.
 
 @atividade_router.put("/{id_atividade}/questoes", dependencies=[Depends(admin_ou_professor)])
-async def salvar_questoes_da_atividade(
+def salvar_questoes_da_atividade(
     id_atividade: int,
     payload: SalvarQuestoesSchema,
     session = Depends(pegar_sessao_kivira),
@@ -262,8 +388,7 @@ async def salvar_questoes_da_atividade(
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if payload.remover_questao_ids:
@@ -376,13 +501,12 @@ async def salvar_questoes_da_atividade(
 # Edita as informações de uma atividade a partir do ID dela
 
 @atividade_router.patch("/{id_atividade}")
-async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     if atividade_schema.titulo is not None:
@@ -434,13 +558,12 @@ async def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateS
 # Deleta uma atividade a partir do id dela
 
 @atividade_router.delete("/{id_atividade}")
-async def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if usuario.tipo != "admin" and (not professor or professor.id != atividade.professor_id):
+    if not pode_gerenciar(session, usuario, atividade):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
 
     titulo_atividade = atividade.titulo

@@ -1,17 +1,15 @@
 from fastapi import FastAPI
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Kivira API")
-
-#oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login")
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/auth_kivira/login_form")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
         "http://localhost:3000",
         "https://kivira.vercel.app"
     ],
@@ -19,8 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Importação das rotas precisa ser feita depois do FastAPI() ser instanciado
-
 from routes.professor import professor_router
 from routes.aluno import aluno_router
 from routes.atividade import atividade_router

@@ -23,7 +23,7 @@ export function PrimeiroAcesso() {
 
   useEffect(() => {
     if (!username) {
-      navigate("/", { replace: true });
+      navigate("/login_aluno", { replace: true });
     }
   }, [username, navigate]);
 
@@ -33,7 +33,7 @@ export function PrimeiroAcesso() {
     <div className="min-h-screen bg-bege flex items-center justify-center p-4">
       <div className="bg-white py-10 px-8 sm:px-10 rounded-3xl shadow-lg w-full max-w-lg">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <LogoKivira className="h-16 w-auto" />
+          <LogoKivira className="h-16 w-auto animate__animated animate__bounceIn" />
           <h2 className="text-xl md:text-2xl font-bold text-gray-700 text-center">
             Vamos criar sua senha especial! 🎉
           </h2>

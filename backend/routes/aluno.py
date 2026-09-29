@@ -6,22 +6,26 @@ from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
 from models.professor import Professor
+from models.atividade import Atividade
+from models.sessao_jogo import SessaoJogo
+from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
-from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema
+from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
 @aluno_router.get("/")
-async def aluno():
+def aluno():
     return{"mensagem": "Você acessou a rota de aluno"}
 
 # Perfil do aluno autenticado (usado pelo front pra saber quem é o "eu" sem precisar guardar o id manualmente)
 # Precisa vir ANTES de "/{id_aluno}" pra não ser capturado por aquela rota
 
 @aluno_router.get("/me")
-async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -41,22 +45,29 @@ async def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usua
 # Também precisa vir ANTES de "/{id_aluno}"
 
 @aluno_router.get("/status-acesso")
-async def status_acesso_aluno(username: str, codigo_turma: str, session = Depends(pegar_sessao_kivira)):
+def status_acesso_aluno(username: str, codigo_turma: str | None = None, session = Depends(pegar_sessao_kivira)):
     aluno = session.query(Aluno).filter(Aluno.username == username).first()
-    turma = session.query(Turma).filter(Turma.codigo_acesso == codigo_turma.strip().lower()).first()
 
-    matricula = None
-    if aluno and turma:
-        matricula = session.query(AlunoTurma).filter(
-            AlunoTurma.aluno_id == aluno.id,
-            AlunoTurma.turma_id == turma.id,
-            AlunoTurma.ativo == 1,
-        ).first()
+    # Com código (veio do card da Home): o aluno precisa ser daquela turma.
+    # Sem código (veio do "Entrar"): basta o username existir.
+    if codigo_turma:
+        turma = session.query(Turma).filter(Turma.codigo_acesso == codigo_turma.strip().lower()).first()
 
-    # Mensagem genérica de propósito: evita confirmar pra quem está tentando adivinhar
-    # se um username existe sem saber o código certo da turma
-    if not aluno or not turma or not matricula:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado nessa turma")
+        matricula = None
+        if aluno and turma:
+            matricula = session.query(AlunoTurma).filter(
+                AlunoTurma.aluno_id == aluno.id,
+                AlunoTurma.turma_id == turma.id,
+                AlunoTurma.ativo == 1,
+            ).first()
+
+        # Mensagem genérica de propósito: evita confirmar pra quem está tentando adivinhar
+        # se um username existe sem saber o código certo da turma
+        if not aluno or not turma or not matricula:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado nessa turma")
+
+    elif not aluno:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     usuario = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 
@@ -101,7 +112,7 @@ def gerar_senha_temporaria():
 
 # Possivelmente vamos abandonar esse método por que criamos o de usuário
 @aluno_router.post("/criar_conta")
-async def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira)):
+def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira)):
 
     usuario = session.query(Usuario).filter(Usuario.email == aluno_schema.email).first()
 
@@ -134,7 +145,7 @@ async def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_
 # Retorna os dados de um aluno já cadastrado a partir do ID
 
 @aluno_router.get("/{id_aluno}")
-async def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -156,7 +167,7 @@ async def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
 # Edição dos dados do aluno
 
 @aluno_router.patch("/{id_aluno}")
-async def editar_aluno(id_aluno: int, aluno_schema: AlunoUpdateSchema, session = Depends(pegar_sessao_kivira), 
+def editar_aluno(id_aluno: int, aluno_schema: AlunoUpdateSchema, session = Depends(pegar_sessao_kivira), 
 usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first() 
     if not aluno:
@@ -192,7 +203,7 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 # Faz a exclusão de um aluno a partir do ID
 
 @aluno_router.delete("/{id_aluno}")
-async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
@@ -226,7 +237,7 @@ async def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
 # sistema (não é o professor quem escolhe) e só aparece nessa resposta — o
 # professor precisa anotar/repassar pro aluno nesse momento, não dá pra recuperar depois.
 @aluno_router.post("/cadastrar")
-async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     username = gerar_username_unico(aluno_schema.nome_completo, session)
     senha_temporaria = gerar_senha_temporaria()
@@ -247,8 +258,7 @@ async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(
         if not turma:
             raise HTTPException(status_code=404, detail="Turma não encontrada")
 
-        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-        if usuario.tipo != "admin" and (not professor or professor.id != turma.professor_id):
+        if not pode_gerenciar(session, usuario, turma):
             raise HTTPException(status_code=401, detail="Você não tem autorização para matricular alunos nessa turma")
 
         session.add(AlunoTurma(turma_id=turma.id, aluno_id=novo_aluno.id))
@@ -275,7 +285,7 @@ async def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(
 # Primeiro acesso do aluno ao sistema 
 
 @aluno_router.post("/primeiro_acesso")
-async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_kivira)):
+def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_kivira)):
 
     aluno = session.query(Aluno).filter(Aluno.username == dados.username).first()
     if not aluno:
@@ -310,7 +320,7 @@ async def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_s
 # Reseta a senha do Aluno caso necessário 
 
 @aluno_router.patch("/{id_aluno}/resetar_senha")
-async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
@@ -340,3 +350,185 @@ async def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivi
         "senha_temporaria": senha_temporaria,
     }
 
+
+
+# Turmas em que o aluno logado está matriculado. Usada pela tela /aluno/turmas —
+# o aluno só vê as próprias turmas e não tem como criar nenhuma.
+
+@aluno_router.get("/minhas/turmas")
+def listar_minhas_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    matriculas = session.query(AlunoTurma).filter(
+        AlunoTurma.aluno_id == aluno.id,
+        AlunoTurma.ativo == 1,
+    ).all()
+
+    turma_ids = [m.turma_id for m in matriculas]
+    if not turma_ids:
+        return []
+
+    turmas = session.query(Turma).filter(Turma.id.in_(turma_ids)).all()
+
+    # Uma consulta só pros professores de todas as turmas, em vez de uma por
+    # turma dentro do laço — o banco está longe e cada ida custa caro
+    professor_ids = {t.professor_id for t in turmas}
+    professores = session.query(Professor).filter(Professor.id.in_(professor_ids)).all()
+    professor_por_id = {p.id: p for p in professores}
+
+    resultado = []
+    for turma in turmas:
+        professor = professor_por_id.get(turma.professor_id)
+        resultado.append({
+            "id": turma.id,
+            "nome": turma.nome,
+            "ano_escolar": turma.ano_escolar,
+            "ano_letivo": turma.ano_letivo,
+            "ativo": turma.ativo,
+            "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
+            "professor_avatar_url": professor.avatar_url if professor else None,
+        })
+
+    return resultado
+
+
+# Troca da senha de emojis pelo próprio aluno, sabendo a senha atual. Diferente
+# do /primeiro_acesso (que só vale enquanto primeiro_acesso for True) e do
+# /{id}/resetar_senha (que é a professora gerando uma senha temporária).
+
+@aluno_router.post("/trocar_senha")
+def trocar_senha_aluno(dados: TrocarSenhaAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    if len(dados.emojis) != 3:
+        raise HTTPException(status_code=400, detail="Escolha 3 emojis para a nova senha")
+
+    senha_atual = "".join(dados.senha_atual)
+    if not bcrypt.checkpw(senha_atual.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
+        # 400, não 401: um 401 fora de /auth_kivira/* é tratado pelo front (ver
+        # apiRequest em services/api.js) como sessão expirada e desloga o
+        # aluno — aqui é só um dado errado (senha atual não bate), não token
+        # inválido, e um erro de digitação não pode chutar a criança pro login.
+        raise HTTPException(status_code=400, detail="A senha atual está incorreta")
+
+    senha_nova = "".join(dados.emojis)
+    if senha_nova == senha_atual:
+        raise HTTPException(status_code=400, detail="A nova senha precisa ser diferente da atual")
+
+    usuario.senha_hash = bcrypt.hashpw(senha_nova.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    session.commit()
+
+    return {"mensagem": "Senha alterada com sucesso"}
+
+
+# Detalhe de uma turma do aluno, com os colegas. O /aluno_turma/turma/{id} que
+# já existia serve só o professor: ele exige linha na tabela `professor`, então
+# devolve 401 pro aluno — mesmo caso do bug que o botão "Jogar!" tinha.
+
+@aluno_router.get("/minhas/turmas/{id_turma}")
+def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    minha_matricula = session.query(AlunoTurma).filter(
+        AlunoTurma.aluno_id == aluno.id,
+        AlunoTurma.turma_id == id_turma,
+        AlunoTurma.ativo == 1,
+    ).first()
+
+    turma = session.query(Turma).filter(Turma.id == id_turma).first()
+
+    # Mensagem igual nos dois casos de propósito: quem não é da turma não
+    # descobre nem se ela existe testando ids na URL
+    if not minha_matricula or not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+    professor = session.query(Professor).filter(Professor.id == turma.professor_id).first()
+
+    matriculas = session.query(AlunoTurma).filter(
+        AlunoTurma.turma_id == id_turma,
+        AlunoTurma.ativo == 1,
+    ).all()
+
+    # Uma consulta só pra todos os colegas, em vez de uma por matrícula
+    aluno_ids = [m.aluno_id for m in matriculas]
+    alunos = session.query(Aluno).filter(Aluno.id.in_(aluno_ids)).all() if aluno_ids else []
+
+    colegas = [
+        {
+            "aluno_id": a.id,
+            "nome": a.apelido or a.nome_completo,
+            "avatar_url": a.avatar_url,
+            "xp_total": a.xp_total or 0,
+            "nivel_atual": a.nivel_atual or 1,
+            "sou_eu": a.id == aluno.id,
+        }
+        for a in alunos
+    ]
+
+    # Ordena por XP e desempata pelo nome. Hoje ninguém tem XP (nada no backend
+    # escreve nesse campo), então o resultado sai alfabético — e no dia em que
+    # as partidas forem gravadas essa mesma linha já entrega a classificação.
+    colegas.sort(key=lambda c: (-c["xp_total"], c["nome"].lower()))
+
+    return {
+        "id": turma.id,
+        "nome": turma.nome,
+        "ano_escolar": turma.ano_escolar,
+        "ano_letivo": turma.ano_letivo,
+        "codigo_acesso": turma.codigo_acesso,
+        "professor_nome": (professor.apelido or professor.nome_completo) if professor else None,
+        "professor_avatar_url": professor.avatar_url if professor else None,
+        "colegas": colegas,
+    }
+
+
+# Histórico de partidas do aluno logado, mais recentes primeiro — usado pela
+# tela /aluno/historico (ver Historico.jsx)
+
+@aluno_router.get("/minhas/sessoes")
+def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if usuario.tipo != "estudante":
+        raise HTTPException(status_code=401, detail="Rota exclusiva para alunos")
+
+    aluno = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    sessoes = session.query(SessaoJogo).filter(
+        SessaoJogo.aluno_id == aluno.id,
+        SessaoJogo.status == "concluido",
+    ).order_by(SessaoJogo.finalizado_em.desc()).limit(50).all()
+
+    atividade_ids = {s.atividade_id for s in sessoes}
+    atividades = session.query(Atividade).filter(Atividade.id.in_(atividade_ids)).all() if atividade_ids else []
+    atividade_por_id = {a.id: a for a in atividades}
+
+    # Estrelas e XP não ficam gravados na sessão — são recalculados aqui com a
+    # mesma fórmula usada em POST /atividade/{id}/concluir (ver atividade.py),
+    # a partir do que a sessão guarda (pontuação e rodadas de conferência).
+    resultado = []
+    for s in sessoes:
+        atividade = atividade_por_id.get(s.atividade_id)
+        estrelas = calcular_estrelas(s.rodadas_conferencia)
+        resultado.append({
+            "id": s.id,
+            "atividade_id": s.atividade_id,
+            "atividade_titulo": atividade.titulo if atividade else None,
+            "dificuldade": atividade.dificuldade if atividade else None,
+            "estrelas": estrelas,
+            "xp_ganho": calcular_xp_ganho(s.pontuacao, atividade.dificuldade, estrelas) if atividade else 0,
+            "data_criacao": s.finalizado_em,
+        })
+
+    return resultado

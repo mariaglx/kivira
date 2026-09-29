@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 from core.config import DATABASE_URL
 
 # Configuração com suporte ao SSL exigido pelo Aiven
@@ -10,3 +10,5 @@ engine = create_engine(
 )
 
 Base = declarative_base()
+
+sessao_local = sessionmaker(bind=engine)

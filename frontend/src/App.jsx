@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ProfessorLayout } from "./components/professor/ProfessorLayout";
+import { AlunoLayout } from "./components/aluno/AlunoLayout";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { RequireRole } from "./components/RequireRole";
 
@@ -23,6 +24,11 @@ const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
 const EscolherAvatar = lazy(() => import("./pages/aluno/EscolherAvatar"));
 const HomeAluno = lazy(() => import("./pages/aluno/HomeAluno"));
+const TurmasAluno = lazy(() => import("./pages/aluno/Turmas"));
+const TurmaDetalhe = lazy(() => import("./pages/aluno/TurmaDetalhe"));
+const Historico = lazy(() => import("./pages/aluno/Historico"));
+const Conquistas = lazy(() => import("./pages/aluno/Conquistas"));
+const ConfiguracoesAluno = lazy(() => import("./pages/aluno/Configuracoes"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
 
@@ -43,7 +49,6 @@ function App() {
         <Route path="/login_emoji" element={<LoginEmoji />} />
         <Route path="/primeiro_acesso" element={<PrimeiroAcesso />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/jogo" element={<JogoAndamento />} />
         <Route path="/" element={<Home />} />
 
         {/* Só professor e admin passam daqui — aluno ou visitante sem token são
@@ -63,8 +68,26 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
-        <Route path="/aluno/home" element={<HomeAluno />} />
+        {/* Aluno (e professor/admin, que também abrem o jogo pra testar) precisam estar logados */}
+        <Route element={<RequireRole allowedRoles={["estudante", "professor", "admin"]} />}>
+          <Route path="/jogo" element={<JogoAndamento />} />
+        </Route>
+
+        <Route element={<RequireRole allowedRoles={["estudante"]} />}>
+          {/* Tela cheia, sem Sidebar (mesmo estilo do Login/PrimeiroAcesso) */}
+          <Route path="/aluno/escolher-avatar" element={<EscolherAvatar />} />
+
+          {/* Layout compartilhado: Sidebar monta uma vez só e continua viva
+              entre as navegações dentro de /aluno/* (ver AlunoLayout) */}
+          <Route element={<AlunoLayout />}>
+            <Route path="/aluno/home" element={<HomeAluno />} />
+            <Route path="/aluno/conquistas" element={<Conquistas />} />
+            <Route path="/aluno/turmas" element={<TurmasAluno />} />
+            <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
+            <Route path="/aluno/historico" element={<Historico />} />
+            <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
+          </Route>
+        </Route>
 
         {/* Só admin passa daqui (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["admin"]} />}>

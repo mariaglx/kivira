@@ -27,6 +27,7 @@ from models import (
     aluno_turma,
     avatar,
     log_auditoria,
+    sessao_jogo,
 )
 
 

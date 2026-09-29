@@ -1,10 +1,12 @@
-from sqlalchemy.orm import sessionmaker, Session
-from database import engine
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordBearer
+from database import sessao_local
 from models.usuario import Usuario
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from core.config import SECRET_KEY, ALGORITHM
-from main import oauth2_schema
+
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="/auth_kivira/login_form")
 
 
 # Conexão com o Kivira || Aqui nós vamos criar a conexão com o bd.
@@ -12,9 +14,8 @@ from main import oauth2_schema
 # 1 - A ação que solicitamos é concluída || 2 - Dá algum erro. (Não fica sessão pendurada).
 
 def pegar_sessao_kivira():
+    session = sessao_local()
     try:
-        Session = sessionmaker(bind=engine)
-        session = Session()
         yield session
     finally:
         session.close()

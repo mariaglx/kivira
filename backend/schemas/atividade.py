@@ -15,6 +15,10 @@ class AtividadeSchema(BaseModel):
     quantidade_blocos: Optional[int] = 12
     tempo_limite_seg: Optional[int] = None
 
+class SalvarImagemPixabaySchema(BaseModel):
+    # URL devolvida pela busca do Pixabay; o servidor baixa e reenvia pro Cloudinary
+    url: str
+
 class AtividadeUpdateSchema(BaseModel):
     titulo: Optional[str] = Field(default=None, examples=[None])
     descricao: Optional[str] = Field(default=None, examples=[None])
@@ -45,3 +49,10 @@ class QuestaoComRespostaSchema(BaseModel):
 class SalvarQuestoesSchema(BaseModel):
     questoes: List[QuestaoComRespostaSchema]
     remover_questao_ids: Optional[List[int]] = []
+
+# Enviado pelo front quando o aluno vira o tabuleiro e acerta tudo (ver
+# JogoAndamento.jsx). `tentativas` é quantas vezes ele virou o tabuleiro pra
+# conferir — as estrelas e o XP são calculados a partir dela no backend (não
+# confiamos num valor de estrelas mandado pronto pelo cliente).
+class ConcluirAtividadeSchema(BaseModel):
+    tentativas: int = Field(ge=1, default=1)

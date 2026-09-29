@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
@@ -15,14 +15,6 @@ export function LoginAluno() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  // Esse fluxo depende do código da turma já validado na Home — sem ele não
-  // há como checar se o usuário pertence a essa turma
-  useEffect(() => {
-    if (!turmaCodigo) {
-      navigate("/", { replace: true });
-    }
-  }, [turmaCodigo, navigate]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim()) {
@@ -34,17 +26,27 @@ export function LoginAluno() {
     setCarregando(true);
 
     try {
-      const status = await apiRequest(
-        `/aluno/status-acesso?username=${encodeURIComponent(username.trim())}&codigo_turma=${encodeURIComponent(turmaCodigo)}`
-      );
+      // Quem chega pelo card da Home traz o código da turma e continua sendo
+      // validado por matrícula; quem chega pelo "Entrar" não traz nada e é
+      // procurado só pelo username.
+      const parametros = new URLSearchParams({ username: username.trim() });
+      if (turmaCodigo) parametros.set("codigo_turma", turmaCodigo);
+
+      const status = await apiRequest(`/aluno/status-acesso?${parametros}`);
 
       if (status.primeiro_acesso) {
         navigate("/primeiro_acesso", {
           state: { username: username.trim(), turmaCodigo },
         });
       } else {
+        // O avatar_url já vem no status-acesso; sem repassar aqui, a tela de
+        // emojis não teria como mostrar o rostinho da conta
         navigate("/login_emoji", {
-          state: { username: username.trim(), turmaCodigo },
+          state: {
+            username: username.trim(),
+            turmaCodigo,
+            avatarUrl: status.avatar_url,
+          },
         });
       }
     } catch (err) {
@@ -53,8 +55,6 @@ export function LoginAluno() {
       setCarregando(false);
     }
   };
-
-  if (!turmaCodigo) return null;
 
   return (
     <div className="min-h-screen bg-bege flex items-center justify-center p-4">

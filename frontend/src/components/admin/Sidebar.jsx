@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogoKiviraRosa } from "../LogoKiviraRosa";
-import { UsersIcon } from "../icons/users";
-import { ClipboardListIcon } from "../icons/clipboard-list";
+import { Users, ClipboardList } from "lucide-react";
 import { apiRequest } from "../../services/api";
+import { limparSessao } from "../../services/sessao";
 
 function detectarAtivo(pathname) {
   if (pathname.startsWith("/admin/logs-auditoria")) return "logs";
@@ -23,9 +23,7 @@ export function Sidebar() {
     } catch {
       // ignora: logout local não pode ficar travado por causa do log
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_type");
+    limparSessao();
     navigate("/login");
   };
 
@@ -48,7 +46,7 @@ export function Sidebar() {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <UsersIcon size={20} isAnimated={false} />
+            <Users size={20} />
             Usuários
           </Link>
           <Link
@@ -59,7 +57,7 @@ export function Sidebar() {
                 : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
             }`}
           >
-            <ClipboardListIcon size={20} />
+            <ClipboardList size={20} />
             Logs de auditoria
           </Link>
         </nav>

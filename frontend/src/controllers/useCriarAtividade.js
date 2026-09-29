@@ -222,14 +222,35 @@ export function useCriarAtividade() {
     buscarImagensPixabay({ pagina });
   };
 
-  const selecionarImagemPixabay = (url) => {
-    setFormData((atual) => ({ ...atual, imagem_atividade_url: url }));
-    setModalImagemAberto(false);
-  };
-
   const TAMANHO_MAXIMO_UPLOAD = 5 * 1024 * 1024; // 5MB, precisa bater com TAMANHO_MAXIMO_BYTES em cloudinary_service.py
   const [enviandoImagem, setEnviandoImagem] = useState(false);
   const [erroUploadImagem, setErroUploadImagem] = useState(null);
+
+  // Guarda qual imagem da busca originou a imagem atual. Como o que fica salvo na
+  // atividade é a URL do Cloudinary, comparar direto com a URL do Pixabay nunca
+  // casaria — e a grade perderia o contorno de "essa é a selecionada"
+  const [urlPixabaySelecionada, setUrlPixabaySelecionada] = useState(null);
+
+  // A URL que o Pixabay devolve é temporária (expira em ~1 dia), então não dá pra
+  // guardar ela no banco: o servidor baixa a imagem e reenvia pro Cloudinary, e é
+  // essa URL definitiva que fica salva na atividade
+  const selecionarImagemPixabay = async (url) => {
+    setErroUploadImagem(null);
+    setEnviandoImagem(true);
+    try {
+      const resposta = await apiRequest("/atividade/imagem_do_pixabay", {
+        method: "POST",
+        data: { url },
+      });
+      setFormData((atual) => ({ ...atual, imagem_atividade_url: resposta.url }));
+      setUrlPixabaySelecionada(url);
+      setModalImagemAberto(false);
+    } catch (erro) {
+      setErroUploadImagem(erro.message || "Não foi possível usar essa imagem. Tente outra.");
+    } finally {
+      setEnviandoImagem(false);
+    }
+  };
 
   const enviarImagemDoComputador = async (arquivo) => {
     setErroUploadImagem(null);
@@ -253,6 +274,8 @@ export function useCriarAtividade() {
         data: formularioUpload,
       });
       setFormData((atual) => ({ ...atual, imagem_atividade_url: resposta.url }));
+      // Veio do computador, não da busca — nenhuma miniatura deve ficar marcada
+      setUrlPixabaySelecionada(null);
       setModalImagemAberto(false);
     } catch (erro) {
       setErroUploadImagem(erro.message || "Erro ao enviar imagem");
@@ -295,6 +318,7 @@ export function useCriarAtividade() {
     setAbaImagem,
     enviandoImagem,
     erroUploadImagem,
+    urlPixabaySelecionada,
     setErroUploadImagem,
     enviarImagemDoComputador,
   };

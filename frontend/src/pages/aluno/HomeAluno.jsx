@@ -1,122 +1,68 @@
-import { useNavigate } from "react-router-dom";
-import { LogoKivira } from "../../components/LogoKivira";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useHomeAluno } from "../../controllers/useHomeAluno";
-
-const TIPO_LABEL = {
-  multipla_escolha: "Múltipla escolha",
-  associacao: "Associação",
-  arrastar_soltar: "Arrastar e soltar",
-};
-
-const DIFICULDADE_STYLE = {
-  facil: "bg-green-100 text-green-600",
-  medio: "bg-amber-100 text-amber-600",
-  dificil: "bg-red-100 text-red-500",
-};
+import { BarraProgresso } from "../../components/ui/BarraProgresso";
+import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
+import { TrilhaFases } from "../../components/aluno/TrilhaFases";
+import { MapPin, ClipboardList } from "lucide-react";
 
 export function HomeAluno() {
   const navigate = useNavigate();
-  const { aluno, atividades, carregando, sair } = useHomeAluno();
+  const { aluno, carregandoAluno } = useOutletContext();
+  const { atividades, carregando } = useHomeAluno();
 
-  if (carregando) {
+  if (carregandoAluno || carregando) {
     return (
-      <div className="min-h-screen bg-bege flex items-center justify-center">
+      <main className="flex-1 flex items-center justify-center">
         <p className="text-azul font-bold text-lg">Carregando...</p>
-      </div>
+      </main>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-bege text-azul font-sans">
-      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center">
-        <LogoKivira className="h-14 w-auto" />
+  const jogar = (atividadeId) => navigate("/jogo", { state: { atividadeId } });
 
-        <div className="flex items-center gap-4">
-          {aluno?.avatar_url && (
+  return (
+    <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 pb-16">
+      <div className="bg-branco rounded-3xl p-5 mb-8 flex items-center gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-coral overflow-hidden flex items-center justify-center text-2xl font-black text-branco uppercase ring-4 ring-laranja shrink-0">
+          {aluno?.avatar_url ? (
             <img
               src={`/avatares/${aluno.avatar_url}`}
               alt="Seu avatar"
-              className="w-12 h-12 rounded-full border-2 border-coral object-cover"
+              className="w-full h-full object-cover"
             />
+          ) : (
+            (aluno?.apelido || aluno?.nome_completo || "A").charAt(0)
           )}
-          <div className="text-right">
-            <p className="font-extrabold leading-tight">
-              {aluno?.apelido || aluno?.nome_completo}
-            </p>
-            <p className="text-xs text-azul/60 font-semibold">
-              Nível {aluno?.nivel_atual} · {aluno?.xp_total} XP
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={sair}
-            className="text-xs font-bold text-azul/50 hover:text-coral transition"
-          >
-            Sair
-          </button>
         </div>
-      </header>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-black truncate">
+            Oi, {aluno?.apelido || aluno?.nome_completo}! 👋
+          </h1>
+          <p className="text-sm font-bold text-coral mb-2">Nível {aluno?.nivel_atual}</p>
+          <BarraProgresso valor={xpNoNivel(aluno?.xp_total)} max={XP_POR_NIVEL} />
+          <p className="text-xs text-azul/60 font-semibold mt-1">
+            {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP pro próximo nível
+          </p>
+        </div>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-6 pb-16">
-        <h1 className="text-3xl font-black mb-6">Suas atividades 🎲</h1>
+      <h2 className="text-2xl font-black mb-2 flex items-center justify-center gap-2 max-w-2xl mx-auto">
+        Sua trilha
+        <MapPin size={24} />
+      </h2>
 
-        {atividades.length === 0 ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
-            <p className="text-azul/70 font-semibold text-lg">
-              Nenhuma atividade disponível ainda. Peça pro seu professor
-              publicar uma! 🎨
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {atividades.map((atividade) => (
-              <div
-                key={atividade.id}
-                className="bg-branco rounded-3xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-4 hover:shadow-md transition-shadow"
-              >
-                {atividade.imagem_atividade_url && (
-                  <img
-                    src={atividade.imagem_atividade_url}
-                    alt=""
-                    className="w-full h-32 object-cover rounded-2xl"
-                  />
-                )}
-
-                <div>
-                  <h3 className="text-lg font-extrabold">
-                    {atividade.titulo}
-                  </h3>
-                  <span className="text-xs text-azul/50 font-medium">
-                    {atividade.disciplina}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-bold text-azul/60 bg-bege px-2.5 py-1 rounded-md">
-                    {TIPO_LABEL[atividade.tipo_atividade]}
-                  </span>
-                  <span
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-md ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
-                  >
-                    {atividade.dificuldade}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate("/jogo", { state: { atividadeId: atividade.id } })
-                  }
-                  className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-2xl py-3 h-auto min-h-0 font-bold shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-                >
-                  Jogar! 🚀
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+      {atividades.length === 0 ? (
+        <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 flex flex-col items-center gap-3 max-w-2xl mx-auto">
+          <ClipboardList size={32} className="text-azul/40" />
+          <p className="text-azul/70 font-semibold text-lg">
+            Nenhuma atividade disponível ainda. Peça pro seu professor
+            publicar uma!
+          </p>
+        </div>
+      ) : (
+        <TrilhaFases atividades={atividades} onJogar={jogar} />
+      )}
+    </main>
   );
 }
 

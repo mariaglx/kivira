@@ -5,7 +5,7 @@ from dependecies import pegar_sessao_kivira
 avatar_router = APIRouter(prefix="/avatar", tags=["avatar"])
 
 @avatar_router.get("/")
-async def listar_avatares(session = Depends(pegar_sessao_kivira)):
+def listar_avatares(session = Depends(pegar_sessao_kivira)):
     avatares = session.query(Avatar).filter(Avatar.ativo == True).all()
 
     return[
