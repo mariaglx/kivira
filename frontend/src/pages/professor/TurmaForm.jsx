@@ -597,7 +597,7 @@ export function TurmaForm() {
             <div className="flex gap-1 bg-cinza-claro p-1 rounded-xl mb-5">
               {[
                 { chave: "cadastrar", rotulo: "Cadastrar" },
-                { chave: "existente", rotulo: "Já matriculado" },
+                { chave: "existente", rotulo: "Já cadastrado" },
               ].map((aba) => (
                 <button
                   key={aba.chave}
@@ -859,8 +859,8 @@ export function TurmaForm() {
                         {jaNaTurmaAtual
                           ? "Já nesta turma"
                           : matriculandoAlunoId === aluno.id
-                          ? "Matriculando..."
-                          : "Matricular"}
+                          ? "Adicionando..."
+                          : "Adicionar"}
                       </button>
                     </div>
                     );
