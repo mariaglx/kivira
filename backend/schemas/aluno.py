@@ -13,6 +13,7 @@ class AlunoSchema(BaseModel):
 class AlunoUpdateSchema(BaseModel):
     nome_completo: Optional[str] = Field(default=None, examples=[None])
     apelido: Optional[str] = Field(default=None, examples=[None])
+    matricula: Optional[str] = Field(default=None, examples=[None])
     avatar_url: Optional[str] = Field(default=None, examples=[None])
     data_nascimento: Optional[date] = Field(default=None, examples=[None])
 
@@ -21,6 +22,17 @@ class CadastrarAlunoSchema(BaseModel):
     # Quando informado, o aluno já é matriculado direto nessa turma (criação
     # feita de dentro da tela da turma) — sem ele, fica só cadastrado, sem turma
     turma_id: Optional[int] = None
+    # Número da secretaria/escola — opcional, só ajuda a diferenciar alunos
+    # homônimos depois (não é gerado nem validado pelo sistema)
+    matricula: Optional[str] = None
+
+class AlunoLoteItemSchema(BaseModel):
+    nome_completo: str
+    matricula: Optional[str] = None
+
+class CadastrarAlunosLoteSchema(BaseModel):
+    turma_id: int
+    alunos: List[AlunoLoteItemSchema]
 
 class PrimeiroAcessoSchema(BaseModel):
     username: str 

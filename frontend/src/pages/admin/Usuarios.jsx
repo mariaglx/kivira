@@ -87,7 +87,7 @@ export function Usuarios() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Usuários</h2>
           <p className="text-sm text-azul/50">
-            Todos os usuários cadastrados no sistema — alunos, professores e admins.
+            Todos os usuários cadastrados no sistema: alunos, professores e admins.
           </p>
         </div>
       </header>
@@ -186,7 +186,7 @@ export function Usuarios() {
             <p className="font-extrabold text-azul text-lg mb-2">Tornar admin?</p>
             <p className="text-sm text-azul/60 mb-1">
               <span className="font-semibold text-azul">{usuarioParaPromover.email}</span> passará
-              a ter acesso irrestrito ao sistema — gestão de todos os usuários, turmas e logs de
+              a ter acesso irrestrito ao sistema: gestão de todos os usuários, turmas e logs de
               auditoria.
             </p>
             <p className="text-sm text-azul/60 mb-5">Essa ação fica registrada no log de auditoria.</p>

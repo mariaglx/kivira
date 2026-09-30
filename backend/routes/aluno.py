@@ -1,6 +1,7 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao aluno.
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import or_
 from models.usuario import Usuario
 from models.aluno import Aluno
 from models.turma import Turma
@@ -12,7 +13,7 @@ from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
-from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
+from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
@@ -154,13 +155,14 @@ def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario:
 
     return {
         "id": aluno.id,
-        "nome_completo": aluno.nome_completo, 
-        "apelido": aluno.apelido, 
-        "avatar_url": aluno.avatar_url, 
-        "data_nascimento": aluno.data_nascimento, 
-        "xp_total": aluno.xp_total, 
+        "nome_completo": aluno.nome_completo,
+        "apelido": aluno.apelido,
+        "matricula": aluno.matricula,
+        "avatar_url": aluno.avatar_url,
+        "data_nascimento": aluno.data_nascimento,
+        "xp_total": aluno.xp_total,
         "nivel_atual": aluno.nivel_atual,
-        "email": usuario_vinculado.email 
+        "email": usuario_vinculado.email
     }
 
 
@@ -179,10 +181,13 @@ usuario: Usuario = Depends(verificar_token_kivira)):
     if aluno_schema.nome_completo is not None: 
         aluno.nome_completo = aluno_schema.nome_completo
     
-    if aluno_schema.apelido is not None: 
+    if aluno_schema.apelido is not None:
         aluno.apelido = aluno_schema.apelido
 
-    if aluno_schema.avatar_url is not None: 
+    if aluno_schema.matricula is not None:
+        aluno.matricula = aluno_schema.matricula
+
+    if aluno_schema.avatar_url is not None:
         aluno.avatar_url = aluno_schema.avatar_url
 
     if aluno_schema.data_nascimento is not None: 
@@ -249,6 +254,7 @@ def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_
 
     novo_aluno = Aluno(aluno_schema.nome_completo, None, None)
     novo_aluno.username = username
+    novo_aluno.matricula = aluno_schema.matricula
     novo_aluno.usuario_id = novo_usuario.id
     session.add(novo_aluno)
     session.flush()
@@ -282,7 +288,122 @@ def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_
     }
 
 
-# Primeiro acesso do aluno ao sistema 
+# Cadastra vários alunos de uma vez numa turma (professor cola a lista de
+# chamada, uma criança por linha). Mesma regra de senha/username do cadastro
+# individual, só que em lote — devolve a credencial de cada um pra impressão.
+@aluno_router.post("/cadastrar_lote")
+def cadastrar_alunos_lote(dados: CadastrarAlunosLoteSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    turma = session.query(Turma).filter(Turma.id == dados.turma_id).first()
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+    if not pode_gerenciar(session, usuario, turma):
+        raise HTTPException(status_code=401, detail="Você não tem autorização para matricular alunos nessa turma")
+
+    itens = [item for item in dados.alunos if item.nome_completo.strip()]
+    if not itens:
+        raise HTTPException(status_code=400, detail="Nenhum nome válido foi enviado")
+
+    criados = []
+    for item in itens:
+        nome = item.nome_completo.strip()
+
+        # gerar_username_unico consulta a sessão — o flush no fim do loop
+        # garante que o username do aluno anterior já esteja visível aqui,
+        # senão dois "João Silva" na mesma lista sairiam com o mesmo username
+        username = gerar_username_unico(nome, session)
+        senha_temporaria = gerar_senha_temporaria()
+
+        senha_criptografada = bcrypt.hashpw(senha_temporaria.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        novo_usuario = Usuario(email=None, senha_hash=senha_criptografada, tipo="estudante")
+        session.add(novo_usuario)
+        session.flush()
+
+        novo_aluno = Aluno(nome, None, None)
+        novo_aluno.username = username
+        novo_aluno.matricula = item.matricula.strip() if item.matricula and item.matricula.strip() else None
+        novo_aluno.usuario_id = novo_usuario.id
+        session.add(novo_aluno)
+        session.flush()
+
+        session.add(AlunoTurma(turma_id=turma.id, aluno_id=novo_aluno.id))
+
+        criados.append({
+            "nome_completo": nome,
+            "matricula": novo_aluno.matricula,
+            "username": username,
+            "senha_temporaria": senha_temporaria,
+        })
+
+    session.commit()
+
+    registrar_log(
+        session,
+        usuario,
+        acao="CADASTRAR_ALUNOS_LOTE",
+        entidade="aluno",
+        entidade_id=turma.id,
+        detalhes={"turma_id": turma.id, "quantidade": len(criados)},
+    )
+
+    return {"mensagem": f"{len(criados)} aluno(s) cadastrado(s) com sucesso", "alunos": criados}
+
+
+# Busca entre os alunos que já são do professor logado (matriculados em
+# alguma turma dele), por nome ou matrícula — usada pra matricular um aluno
+# já existente numa segunda turma sem depender de adivinhar o username certo
+# entre homônimos. Nunca devolve aluno que não tenha nenhuma turma em comum
+# com esse professor.
+@aluno_router.get("/professor/meus")
+def buscar_meus_alunos(busca: str = "", session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    termo = busca.strip()
+    if not termo:
+        return []
+
+    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    turma_ids = [t.id for t in session.query(Turma.id).filter(Turma.professor_id == professor.id).all()]
+    if not turma_ids:
+        return []
+
+    matriculas = session.query(AlunoTurma).filter(AlunoTurma.turma_id.in_(turma_ids)).all()
+    aluno_ids = {m.aluno_id for m in matriculas}
+    if not aluno_ids:
+        return []
+
+    alunos = session.query(Aluno).filter(
+        Aluno.id.in_(aluno_ids),
+        or_(
+            Aluno.nome_completo.ilike(f"%{termo}%"),
+            Aluno.matricula.ilike(f"%{termo}%"),
+        ),
+    ).all()
+
+    # Nomes só das turmas desse professor — se o aluno também estiver numa
+    # turma de outro professor, essa outra turma nunca aparece aqui
+    turmas_por_id = dict(session.query(Turma.id, Turma.nome).filter(Turma.id.in_(turma_ids)).all())
+    ids_encontrados = {a.id for a in alunos}
+    turmas_por_aluno = {}
+    for m in matriculas:
+        if m.aluno_id in ids_encontrados:
+            turmas_por_aluno.setdefault(m.aluno_id, []).append(turmas_por_id.get(m.turma_id))
+
+    return [
+        {
+            "id": aluno.id,
+            "nome_completo": aluno.nome_completo,
+            "apelido": aluno.apelido,
+            "matricula": aluno.matricula,
+            "avatar_url": aluno.avatar_url,
+            "turmas": turmas_por_aluno.get(aluno.id, []),
+        }
+        for aluno in alunos
+    ]
+
+
+# Primeiro acesso do aluno ao sistema
 
 @aluno_router.post("/primeiro_acesso")
 def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_kivira)):
