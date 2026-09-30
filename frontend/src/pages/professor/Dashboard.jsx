@@ -47,14 +47,14 @@ export function Dashboard() {
   return (
     <>
       {/* Conteúdo Principal */}
-      <main className="flex-1 px-10 py-3 overflow-y-auto">
+      <main className="flex-1 min-w-0 px-4 md:px-10 py-3 overflow-y-auto">
         {/* Cabeçalho */}
-        <div className="flex justify-between items-start mt-5 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mt-5 mb-6 md:mb-8">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
               Dashboard
             </h1>
-            <h2 className="text-3xl font-extrabold text-azul mt-1">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-azul mt-1">
               Bom dia, {dados.professor.nome}!
             </h2>
             <p className="text-azul/70 text-sm mt-1">
@@ -67,33 +67,33 @@ export function Dashboard() {
         </div>
 
         {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+        <div className="grid grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
+          <div className="bg-branco p-3 md:p-6 rounded-2xl shadow-sm border border-cinza-claro">
             <div className="w-10 h-1.5 bg-coral rounded-full mb-3"></div>
-            <p className="text-4xl font-extrabold text-azul">
+            <p className="text-2xl md:text-4xl font-extrabold text-azul">
               {carregando ? "..." : dados.metricas.total_turmas}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-xs md:text-sm text-azul/70 font-medium mt-1">
               Turmas ativas
             </p>
           </div>
 
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+          <div className="bg-branco p-3 md:p-6 rounded-2xl shadow-sm border border-cinza-claro">
             <div className="w-10 h-1.5 bg-azul rounded-full mb-3"></div>
-            <p className="text-4xl font-extrabold text-azul">
+            <p className="text-2xl md:text-4xl font-extrabold text-azul">
               {carregando ? "..." : dados.metricas.total_atividades}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-xs md:text-sm text-azul/70 font-medium mt-1">
               Atividades criadas
             </p>
           </div>
 
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+          <div className="bg-branco p-3 md:p-6 rounded-2xl shadow-sm border border-cinza-claro">
             <div className="w-10 h-1.5 bg-laranja rounded-full mb-3"></div>
-            <p className="text-4xl font-extrabold text-azul">
+            <p className="text-2xl md:text-4xl font-extrabold text-azul">
               {carregando ? "..." : dados.metricas.total_alunos}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-xs md:text-sm text-azul/70 font-medium mt-1">
               Alunos participantes
             </p>
           </div>
@@ -104,7 +104,7 @@ export function Dashboard() {
           <p className="text-xs font-bold text-azul uppercase tracking-wider mb-4 opacity-80">
             Ações Rápidas
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 md:gap-4">
             <Button
               onClick={() => navigate("/professor/turmas/nova")}
               className="bg-coral hover:brightness-95 text-branco font-semibold px-6 py-2.5 rounded-xl shadow-sm"
@@ -122,7 +122,7 @@ export function Dashboard() {
         </div>
 
         {/* Tabela de Turmas Recentes */}
-        <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro p-6">
+        <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro p-4 md:p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
               Turmas Recentes
@@ -149,30 +149,30 @@ export function Dashboard() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-cinza-claro text-xs text-azul/60 font-bold uppercase tracking-wider">
-                    <th className="pb-3">Turma</th>
-                    <th className="pb-3">Ano</th>
-                    <th className="pb-3">Alunos</th>
-                    <th className="pb-3">Atividades</th>
-                    <th className="pb-3">Status</th>
+                    <th className="pb-3 pr-4">Turma</th>
+                    <th className="pb-3 pr-4">Ano</th>
+                    <th className="pb-3 pr-4">Alunos</th>
+                    <th className="pb-3 pr-4">Atividades</th>
+                    <th className="pb-3 pr-4">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-cinza-claro text-sm">
                   {dados.turmas_recentes.map((turma) => (
                     <tr key={turma.id} className="hover:bg-bege/20 transition">
-                      <td className="py-4 font-semibold text-azul">
+                      <td className="py-4 pr-4 font-semibold text-azul">
                         {turma.nome}
                       </td>
-                      <td className="py-4 text-azul/70">{turma.ano_escolar}</td>
-                      <td className="py-4 font-medium text-azul">
+                      <td className="py-4 pr-4 text-azul/70">{turma.ano_escolar}</td>
+                      <td className="py-4 pr-4 font-medium text-azul">
                         {turma.alunos_count}
                       </td>
-                      <td className="py-4 font-medium text-azul">
+                      <td className="py-4 pr-4 font-medium text-azul">
                         {turma.atividades_count}
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 pr-4">
                         <span
                           className={`px-3 py-1 text-xs rounded-full font-bold ${
                             turma.status === "Ativa"

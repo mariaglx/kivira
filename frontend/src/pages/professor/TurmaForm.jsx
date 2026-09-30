@@ -161,7 +161,7 @@ export function TurmaForm() {
 
   if (carregando) {
     return (
-      <main className="flex-1 p-8">
+      <main className="flex-1 min-w-0 p-4 md:p-8">
         <p className="text-azul/60">Carregando...</p>
       </main>
     );
@@ -169,7 +169,7 @@ export function TurmaForm() {
 
   return (
     <>
-      <main className="flex-1 p-8 flex flex-col gap-6 print:hidden">
+      <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 print:hidden">
         <header className="flex items-center gap-3">
           <Link
             to="/professor/turmas"
@@ -189,11 +189,11 @@ export function TurmaForm() {
           </div>
         )}
 
-        <div className="flex gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
           {/* COLUNA ESQUERDA — dados da turma */}
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 sticky top-8"
+            className="w-full lg:max-w-sm bg-branco rounded-2xl p-4 md:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8"
           >
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
@@ -314,12 +314,12 @@ export function TurmaForm() {
 
           {/* COLUNA DIREITA — alunos e atividades da turma (só existem já criada) */}
           {modoEdicao && (
-            <div className="flex-1 flex flex-col gap-5">
+            <div className="flex-1 min-w-0 flex flex-col gap-5">
               {/* Sem borda de propósito: cinza-claro/10 é 90% transparente, então
                   ela não aparece como borda — só abre 1px do bg-branco do card
                   entre a sombra e o cabeçalho pêssego, virando um fio branco */}
               <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-laranja/20 px-4 sm:px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Alunos ({alunos.length})
                   </h3>
@@ -351,7 +351,7 @@ export function TurmaForm() {
                     </button>
                   </div>
                 </div>
-                <div className="px-6 py-2">
+                <div className="px-4 sm:px-6 py-2">
                   {alunos.length === 0 ? (
                     <p className="text-sm text-azul/60 py-3">
                       Nenhum aluno matriculado ainda. Compartilhe o código de acesso ou adicione direto por aqui.
@@ -379,7 +379,7 @@ export function TurmaForm() {
                             disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="opacity-0 group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral w-6 h-6 flex items-center justify-center shrink-0"
+                            className="md:opacity-0 md:group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral w-6 h-6 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -392,7 +392,7 @@ export function TurmaForm() {
                             disabled={removendoMatriculaId === aluno.matricula_id}
                             aria-label="Remover aluno da turma"
                             title="Remover da turma"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-azul/30 hover:text-red-500 w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
+                            className="md:opacity-0 md:group-hover:opacity-100 transition-opacity text-azul/30 hover:text-red-500 w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
                           >
                             ×
                           </button>
@@ -407,7 +407,7 @@ export function TurmaForm() {
                   ela não aparece como borda — só abre 1px do bg-branco do card
                   entre a sombra e o cabeçalho pêssego, virando um fio branco */}
               <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-laranja/20 px-4 sm:px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Atividades ({atividades.length})
                   </h3>
@@ -419,7 +419,7 @@ export function TurmaForm() {
                     + Nova atividade
                   </button>
                 </div>
-                <div className="px-6 py-2">
+                <div className="px-4 sm:px-6 py-2">
                   {atividades.length === 0 ? (
                     <p className="text-sm text-azul/60 py-3">
                       Nenhuma atividade atribuída a essa turma ainda.
@@ -647,7 +647,7 @@ export function TurmaForm() {
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 w-full max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>

@@ -15,7 +15,7 @@ export function ProfessorLayout() {
   const { professor, setProfessor, carregando } = useProfessorAtual();
 
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
+    <div className="flex min-h-screen pb-16 lg:pb-0 bg-bege text-azul font-sans">
       <Sidebar professor={professor} />
       <Outlet context={{ professor, setProfessor, carregandoProfessor: carregando }} />
     </div>

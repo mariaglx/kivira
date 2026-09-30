@@ -79,11 +79,11 @@ export function Atividades() {
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
-      <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
-        <header className="flex justify-between items-start">
+      <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto">
+        <header className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Atividades</h1>
-            <h2 className="text-3xl font-extrabold text-azul mt-1">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-azul mt-1">
               Suas atividades, Professor(a)!
             </h2>
             <p className="text-azul/70 text-sm mt-1">
@@ -91,7 +91,7 @@ export function Atividades() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
             <div className="bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
               {dataHoje}
             </div>
@@ -120,11 +120,11 @@ export function Atividades() {
         {carregando ? (
           <p className="text-azul/60">Carregando atividades...</p>
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {atividadesFiltradas.map((atividade) => (
             <div
               key={atividade.id}
-              className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
+              className="bg-branco rounded-2xl p-5 md:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start">
                 <div>

@@ -21,7 +21,7 @@ export function HomeAluno() {
   const jogar = (atividadeId) => navigate("/jogo", { state: { atividadeId } });
 
   return (
-    <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 pb-16">
+    <main className="flex-1 min-w-0 px-4 sm:px-8 py-6 sm:py-8 pb-16">
       <div className="bg-branco rounded-3xl p-5 mb-8 flex items-center gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
         <div className="w-16 h-16 rounded-2xl bg-coral overflow-hidden flex items-center justify-center text-2xl font-black text-branco uppercase ring-4 ring-laranja shrink-0">
           {aluno?.avatar_url ? (
@@ -52,7 +52,7 @@ export function HomeAluno() {
       </h2>
 
       {atividades.length === 0 ? (
-        <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 flex flex-col items-center gap-3 max-w-2xl mx-auto">
+        <div className="bg-branco rounded-3xl p-6 sm:p-10 text-center shadow-sm border border-cinza-claro/30 flex flex-col items-center gap-3 max-w-2xl mx-auto">
           <ClipboardList size={32} className="text-azul/40" />
           <p className="text-azul/70 font-semibold text-lg">
             Nenhuma atividade disponível ainda. Peça pro seu professor

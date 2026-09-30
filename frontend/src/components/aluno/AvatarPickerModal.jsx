@@ -28,7 +28,7 @@ export function AvatarPickerModal({ avatarAtual, onFechar, onSalvar }) {
 
   return (
     <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-branco rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-xl animate__animated animate__zoomIn">
+      <div className="bg-branco rounded-3xl p-6 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl animate__animated animate__zoomIn">
         <h2 className="text-xl font-black text-azul text-center mb-1">
           Escolha seu bichinho! ✨
         </h2>

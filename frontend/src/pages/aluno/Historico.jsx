@@ -26,14 +26,14 @@ export function Historico() {
 
   return (
     <>
-      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-6 sm:py-8 pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Seu histórico
           <BookOpen size={22} />
         </h1>
 
         {sessoes.length === 0 ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
+          <div className="bg-branco rounded-3xl p-6 sm:p-10 text-center shadow-sm border border-cinza-claro/30">
             <BookOpen size={40} className="mx-auto mb-3 text-azul/40" />
             <p className="text-azul/70 font-semibold text-lg">
               Ainda não dá pra ver as partidas antigas.
@@ -55,10 +55,10 @@ export function Historico() {
             {sessoes.map((sessao) => (
               <div
                 key={sessao.id}
-                className="bg-branco rounded-2xl p-4 shadow-sm border border-cinza-claro/30 flex items-center gap-4"
+                className="bg-branco rounded-2xl p-4 shadow-sm border border-cinza-claro/30 flex items-center gap-3 sm:gap-4"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-extrabold truncate">
+                  <p className="font-extrabold line-clamp-2 sm:line-clamp-1 break-words">
                     {sessao.atividade_titulo || "Atividade removida"}
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">

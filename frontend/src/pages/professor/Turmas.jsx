@@ -71,7 +71,7 @@ export function Turmas() {
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
-      <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
+      <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto">
         <header className="flex justify-between items-center">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
           <button
@@ -100,11 +100,11 @@ export function Turmas() {
         {carregando ? (
           <p className="text-azul/60">Carregando turmas...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {turmasFiltradas.map((turma) => (
               <div
                 key={turma.id}
-                className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
+                className="bg-branco rounded-2xl p-5 md:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start">
                   <div>

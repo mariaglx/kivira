@@ -11,11 +11,11 @@ const EMOJIS_DISPONIVEIS = [
 export function SeletorEmoji({ selecionados, onAlternar, onApagar, max = 3 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-2 sm:gap-3">
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
-            className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-2xl ${
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center text-2xl ${
               selecionados[i]
                 ? "border-coral bg-coral/10"
                 : "border-dashed border-cinza-claro bg-bege/40"
@@ -31,7 +31,7 @@ export function SeletorEmoji({ selecionados, onAlternar, onApagar, max = 3 }) {
             onClick={onApagar}
             disabled={selecionados.length === 0}
             aria-label="Apagar último emoji"
-            className="w-14 h-14 rounded-2xl border-2 border-dashed border-cinza-claro text-azul/50 hover:text-coral hover:border-coral flex items-center justify-center text-xl disabled:opacity-30 disabled:hover:text-azul/50 disabled:hover:border-cinza-claro transition-colors"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 border-dashed border-cinza-claro text-azul/50 hover:text-coral hover:border-coral flex items-center justify-center text-xl disabled:opacity-30 disabled:hover:text-azul/50 disabled:hover:border-cinza-claro transition-colors"
           >
             ⌫
           </button>

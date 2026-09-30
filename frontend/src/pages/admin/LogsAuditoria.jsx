@@ -55,7 +55,7 @@ export function LogsAuditoria() {
   }, [papel, acao, entidade]);
 
   return (
-    <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
+    <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">Logs de auditoria</h2>
         <p className="text-sm text-azul/50">
@@ -64,7 +64,7 @@ export function LogsAuditoria() {
       </header>
 
       <div className="flex flex-wrap gap-4 items-end">
-        <div className="w-full max-w-[220px]">
+        <div className="w-full sm:max-w-[220px]">
           <SelectCustom
             name="papel"
             value={papel}
@@ -73,7 +73,7 @@ export function LogsAuditoria() {
             placeholder="Filtrar por papel"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
             Ação
           </label>
@@ -81,10 +81,10 @@ export function LogsAuditoria() {
             placeholder="Ex: CRIAR_ATIVIDADE"
             value={acao}
             onChange={(e) => setAcao(e.target.value)}
-            className="w-56"
+            className="w-full sm:w-56"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 w-full sm:w-auto">
           <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
             Entidade
           </label>
@@ -92,7 +92,7 @@ export function LogsAuditoria() {
             placeholder="Ex: atividade"
             value={entidade}
             onChange={(e) => setEntidade(e.target.value)}
-            className="w-56"
+            className="w-full sm:w-56"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export function LogsAuditoria() {
         <p className="text-azul/60">Carregando logs...</p>
       ) : (
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-azul/40 font-bold border-b border-cinza-claro/20">
                 <th className="px-5 py-3">Data</th>

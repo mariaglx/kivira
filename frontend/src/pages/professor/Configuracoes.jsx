@@ -142,7 +142,7 @@ export function Configuracoes() {
 
   if (carregando || !professor) {
     return (
-      <main className="flex-1 p-8">
+      <main className="flex-1 min-w-0 p-4 md:p-8">
         <p className="text-azul/60">Carregando...</p>
       </main>
     );
@@ -150,13 +150,13 @@ export function Configuracoes() {
 
   return (
     <>
-      <main className="flex-1 p-8 flex flex-col gap-8">
-        <header className="flex justify-between items-start">
+      <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 md:gap-8">
+        <header className="flex flex-col sm:flex-row justify-between items-start gap-3">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
               Configurações
             </h1>
-            <h2 className="text-3xl font-extrabold text-azul mt-1">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-azul mt-1">
               Configurações, {professor.apelido || professor.nome_completo}
             </h2>
             <p className="text-azul/70 text-sm mt-1">
@@ -249,7 +249,7 @@ export function Configuracoes() {
           </div>
 
           {/* Lado Direito */}
-          <div className="lg:col-span-2 bg-branco border border-cinza-claro rounded-3xl shadow-sm p-6 flex flex-col gap-6">
+          <div className="lg:col-span-2 bg-branco border border-cinza-claro rounded-3xl shadow-sm p-4 md:p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Seus dados
@@ -313,7 +313,7 @@ export function Configuracoes() {
 
       {modalAvatarAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6">
+          <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Escolher avatar</p>
               <button

@@ -185,9 +185,9 @@ export function JogoAndamento() {
 
   return (
     <div className="min-h-screen bg-bege text-azul flex flex-col">
-      <header className="flex justify-between bg-branco items-center border-b border-azul/10 py-2 px-3">
-        <div className="flex items-center gap-4">
-          <LogoKivira className="h-11 w-auto" />
+      <header className="flex flex-wrap justify-between bg-branco items-center gap-x-4 gap-y-1 border-b border-azul/10 py-2 px-3">
+        <div className="flex items-center gap-3 md:gap-4">
+          <LogoKivira className="h-8 md:h-11 w-auto" />
           <Link
             to={isAluno ? rotaVoltar : `/professor/atividades/${atividadeId}/editar`}
             className="text-azul/50 hover:text-azul text-sm font-bold"
@@ -195,8 +195,8 @@ export function JogoAndamento() {
             {isAluno ? "← Voltar" : "← Editar atividade"}
           </Link>
         </div>
-        <span className="text-md font-bold text-azul">{atividade?.titulo}</span>
-        <div className="w-48">
+        <span className="order-last w-full text-center md:order-none md:w-auto text-sm md:text-base font-bold text-azul">{atividade?.titulo}</span>
+        <div className="w-32 md:w-48">
           <BarraProgresso valor={colocadas} max={perguntas.length} segmentos />
           <div className="text-xs text-azul/60 font-bold mt-1">
             {colocadas}/{perguntas.length} peças colocadas
@@ -204,16 +204,16 @@ export function JogoAndamento() {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-col lg:flex-row flex-1">
         {/* Barra Lateral de Perguntas */}
         <BordaLateral>
           <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
             Perguntas
           </h2>
-          <ul className="flex flex-col bg-azul/5 rounded-box gap-2 p-2">
+          <ul className="flex flex-col bg-azul/5 rounded-box gap-2 p-2 mb-3 lg:mb-0">
             {perguntas.map((q) => (
               <li key={q.id}>
-                <div className="flex items-center gap-4 text-md text-azul bg-azul/10 hover:bg-azul/20 py-2.5 px-3 p rounded-lg">
+                <div className="flex items-center gap-3 md:gap-4 text-sm md:text-base text-azul bg-azul/10 hover:bg-azul/20 py-2.5 px-3 p rounded-lg">
                   <span className="font-bold text-coral">{q.id}.</span>
                   <span className="font-medium text-left">
                     {q.texto_questao}
@@ -225,7 +225,7 @@ export function JogoAndamento() {
         </BordaLateral>
 
         {/* Área Principal do Jogo */}
-        <main className="flex-1 flex bg-bege flex-col mx-4">
+        <main className="flex-1 flex bg-bege flex-col mx-3 md:mx-4">
           {/* Tabuleiro */}
           <div className="w-full">
             <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
@@ -246,7 +246,7 @@ export function JogoAndamento() {
             <div>
               <div
                 className={`grid w-full transition-all duration-300 ${
-                  fase === "virado" ? "gap-0.5" : "gap-3"
+                  fase === "virado" ? "gap-0.5" : "gap-1.5 md:gap-3"
                 }`}
                 style={{
                   gridTemplateColumns: `repeat(${gradeMosaico.colunas}, minmax(0, 1fr))`,
@@ -286,7 +286,7 @@ export function JogoAndamento() {
                         setSlotSobre(null);
                         dropNoTabuleiro(numeroSlot);
                       }}
-                      className={`w-full aspect-21/9 border-2 border-dashed rounded-xl flex flex-col items-center justify-center relative transition-all ${bordaCor}`}
+                      className={`w-full aspect-video md:aspect-21/9 border-2 border-dashed rounded-xl flex flex-col items-center justify-center relative transition-all ${bordaCor}`}
                     >
                       {/* MODO VIRADO: MOSTRA O VERSO/IMAGEM (ESTILO LUK) */}
                       {fase === "virado" && (
@@ -322,7 +322,7 @@ export function JogoAndamento() {
                       {/* Se estiver jogando e tiver peça */}
                       {fase === "jogando" && pecaNoSlot && (
                         <div className="w-[99%] h-[98%] rounded-xl flex flex-col items-center justify-center p-1 relative animate__animated animate__bounceIn" style={{ animationDuration: "0.4s" }}>
-                          <span className="text-azul text-xl font-bold text-center line-clamp-1">
+                          <span className="text-azul text-sm md:text-xl font-bold text-center line-clamp-1">
                             {pecaNoSlot.resposta_certa}
                           </span>
                         </div>
@@ -330,7 +330,7 @@ export function JogoAndamento() {
 
                       {/* Slot Vazio */}
                       {fase === "jogando" && !pecaNoSlot && (
-                        <span className="text-azul/80 text-2xl font-bold">
+                        <span className="text-azul/80 text-lg md:text-2xl font-bold">
                           {numeroSlot}
                         </span>
                       )}
@@ -347,9 +347,9 @@ export function JogoAndamento() {
               <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
                 Peças Soltas
               </h2>
-              <div className="w-full bg-branco/60 border-2 border-azul/10 rounded-xl p-3 grid grid-cols-4 gap-3">
+              <div className="w-full bg-branco/60 border-2 border-azul/10 rounded-xl p-2 md:p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
                 {pecasSoltas.length === 0 ? (
-                  <span className="text-xs text-gray-500">
+                  <span className="col-span-full text-xs text-gray-500">
                     Todas as peças foram colocadas!
                   </span>
                 ) : (
@@ -380,18 +380,18 @@ export function JogoAndamento() {
           )}
 
           {/* Barra de Ações (Botões de Virar / Corrigir) */}
-          <div className="flex justify-center mt-6 mb-6">
+          <div className="flex justify-center my-4 md:my-6">
             {acertouTudo ? (
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-3 md:gap-4">
                 <button
                   onClick={() => setResultadoFechado(false)}
-                  className="tatil bg-azul text-white px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
+                  className="tatil bg-azul text-white px-5 md:px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
                 >
                   ⭐ Ver resultado
                 </button>
                 <button
                   onClick={jogarDeNovo}
-                  className="tatil bg-coral text-white px-6 py-3 rounded-full font-bold text-sm"
+                  className="tatil bg-coral text-white px-5 md:px-6 py-3 rounded-full font-bold text-sm"
                 >
                   Jogar de novo
                 </button>
@@ -400,7 +400,7 @@ export function JogoAndamento() {
               <button
                 disabled={!todosSlotsPreenchidos}
                 onClick={virarTabuleiro}
-                className={`tatil px-6 py-3 rounded-full font-bold text-sm disabled:cursor-not-allowed ${
+                className={`tatil px-5 md:px-6 py-3 rounded-full font-bold text-sm disabled:cursor-not-allowed ${
                   todosSlotsPreenchidos
                     ? "bg-coral text-white animate__animated animate__pulse animate__infinite"
                     : "bg-azul/30 text-white"
@@ -409,17 +409,17 @@ export function JogoAndamento() {
                 Virar o Tabuleiro
               </button>
             ) : (
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-3 md:gap-4">
                 <button
                   onClick={corrigirRespostas}
-                  className="tatil bg-azul text-white px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
+                  className="tatil bg-azul text-white px-5 md:px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
                 >
                   ↩ Corrigir respostas
                 </button>
 
                 <button
                   onClick={jogarDeNovo}
-                  className="tatil bg-coral text-white px-6 py-3 rounded-full font-bold text-sm"
+                  className="tatil bg-coral text-white px-5 md:px-6 py-3 rounded-full font-bold text-sm"
                 >
                   🗑️ Começar do zero
                 </button>
@@ -431,9 +431,9 @@ export function JogoAndamento() {
 
       {mostrarResultado && (
         <div className="fixed inset-0 z-50 bg-azul/60 flex items-center justify-center p-4">
-          <div className="bg-branco rounded-3xl p-8 max-w-sm w-full text-center shadow-xl animate__animated animate__zoomIn">
+          <div className="bg-branco rounded-3xl p-6 md:p-8 max-w-sm w-full max-h-full overflow-y-auto text-center shadow-xl animate__animated animate__zoomIn">
             <h2 className="text-3xl font-black text-azul">Parabéns! 🎉</h2>
-            <div className="flex justify-center gap-2 my-5 text-5xl">
+            <div className="flex justify-center gap-2 my-4 md:my-5 text-4xl md:text-5xl">
               {[1, 2, 3].map((n) => (
                 <span
                   key={n}

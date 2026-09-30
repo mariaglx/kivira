@@ -56,7 +56,7 @@ export function TurmaDetalhe() {
 
   return (
     <>
-      <main className="flex-1 min-w-0 p-8 flex flex-col gap-6">
+      <main className="flex-1 min-w-0 px-4 py-6 sm:p-8 flex flex-col gap-6">
         {minhasTurmas.length > 1 && (
           <header className="flex items-center gap-3">
             <Link
@@ -69,18 +69,18 @@ export function TurmaDetalhe() {
         )}
 
         {erro ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 max-w-md">
+          <div className="bg-branco rounded-3xl p-6 sm:p-10 text-center shadow-sm border border-cinza-claro/30 max-w-md">
             <p className="text-azul/70 font-semibold text-lg">{erro}</p>
           </div>
         ) : (
           <>
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
               Turma: {turma.nome}
             </h2>
 
-            <div className="flex gap-6 items-start flex-wrap">
+            <div className="flex gap-4 sm:gap-6 items-start flex-wrap">
               {/* COLUNA ESQUERDA — dados da turma */}
-              <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
+              <div className="w-full sm:max-w-sm bg-branco rounded-2xl p-4 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
                 <Campo rotulo="Nome da turma">{turma.nome}</Campo>
                 <Campo rotulo="Ano escolar">
                   {turma.ano_escolar} · {turma.ano_letivo}
@@ -109,14 +109,14 @@ export function TurmaDetalhe() {
               </div>
 
               {/* COLUNA DIREITA — os colegas */}
-              <div className="flex-1 min-w-80 bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+              <div className="flex-1 min-w-full sm:min-w-80 bg-branco rounded-2xl shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between bg-laranja/20 px-4 sm:px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Colegas de turma ({turma.colegas.length})
                   </h3>
                 </div>
 
-                <div className="px-6 py-2">
+                <div className="px-4 sm:px-6 py-2">
                   {turma.colegas.map((colega, indice) => (
                     <div
                       key={colega.aluno_id}

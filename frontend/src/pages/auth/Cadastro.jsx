@@ -65,8 +65,8 @@ export function Cadastro() {
   };
 
   return (
-    <div className="min-h-screen bg-bege flex items-center justify-center">
-      <div className="bg-white pt-4 pb-8 px-8 rounded-2xl shadow-md w-full max-w-sm">
+    <div className="min-h-screen bg-bege flex items-center justify-center p-4">
+      <div className="bg-white pt-4 pb-8 px-6 sm:px-8 rounded-2xl shadow-md w-full max-w-sm">
         <div className="flex justify-center mb-4">
           <LogoKivira className="h-15 md:h-11 w-auto" />
         </div>

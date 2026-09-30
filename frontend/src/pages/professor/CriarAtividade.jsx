@@ -36,7 +36,7 @@ function QuestaoCard({
     >
       <div
         key={erro ? `erro-${tentativaInvalida}` : "ok"}
-        className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
+        className={`bg-branco rounded-2xl p-4 md:p-5 shadow-sm border flex flex-col gap-3 ${
           erro
             ? "border-red-300 animate-tremida-leve"
             : "border-cinza-claro/10"
@@ -454,7 +454,7 @@ export function CriarAtividade() {
 
   if (carregandoEdicao) {
     return (
-      <main className="flex-1 p-8">
+      <main className="flex-1 min-w-0 p-4 md:p-8">
         <p className="text-azul/60">Carregando atividade...</p>
       </main>
     );
@@ -463,7 +463,7 @@ export function CriarAtividade() {
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
-      <main className="flex-1 p-8 flex flex-col gap-6">
+      <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6">
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
@@ -481,9 +481,9 @@ export function CriarAtividade() {
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-6 items-start">
+        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6 lg:items-start">
           {/* COLUNA ESQUERDA — dados da atividade */}
-          <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 sticky top-8 mt-7">
+          <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-4 md:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Título
@@ -751,19 +751,19 @@ export function CriarAtividade() {
           </div>
 
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
-          <div className="flex-1 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Questões ({questoes.length}{" "}
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={gerarQuestoesComIA}
                   disabled={gerandoIA}
-                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center gap-2"
+                  className="rounded-xl px-3 sm:px-5 py-2.5 font-bold text-sm whitespace-nowrap text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center gap-2"
                 >
                   {gerandoIA ? (
                     <>
@@ -780,7 +780,7 @@ export function CriarAtividade() {
                   <Link
                     to="/jogo"
                     state={{ atividadeId: idAtividadeCriada }}
-                    className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
+                    className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-3 sm:px-5 py-2.5 font-bold text-sm whitespace-nowrap shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
                   >
                     <svg
                       viewBox="0 0 16 16"
@@ -795,7 +795,7 @@ export function CriarAtividade() {
                   <button
                     type="button"
                     disabled
-                    className="rounded-xl px-5 py-2.5 font-bold text-sm text-azul/30 bg-cinza-claro/10 border-none cursor-not-allowed inline-flex items-center gap-2"
+                    className="rounded-xl px-3 sm:px-5 py-2.5 font-bold text-sm whitespace-nowrap text-azul/30 bg-cinza-claro/10 border-none cursor-not-allowed inline-flex items-center gap-2"
                   >
                     <svg
                       viewBox="0 0 16 16"
@@ -865,7 +865,7 @@ export function CriarAtividade() {
               + Adicionar questão
             </button>
 
-            <div className="flex gap-3 justify-end pt-2">
+            <div className="flex flex-wrap gap-3 justify-end pt-2">
               <Link
                 to="/professor/atividades"
                 className="px-5 py-2.5 rounded-xl font-bold text-sm text-azul/60 hover:bg-azul/5 transition-all"
@@ -890,8 +890,8 @@ export function CriarAtividade() {
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 w-full max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
               ✅
             </div>
@@ -951,8 +951,8 @@ export function CriarAtividade() {
 
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 w-full max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
@@ -974,7 +974,7 @@ export function CriarAtividade() {
       {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
       {modalImagemAberto && (
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-4">
               <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
                 <button

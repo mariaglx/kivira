@@ -82,7 +82,7 @@ export function Usuarios() {
   };
 
   return (
-    <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
+    <main className="flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto">
       <header className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Usuários</h2>
@@ -106,7 +106,7 @@ export function Usuarios() {
           />
         </div>
 
-        <div className="w-full max-w-[220px]">
+        <div className="w-full sm:max-w-[220px]">
           <SelectCustom
             name="tipo"
             value={tipoFiltro}
@@ -127,7 +127,7 @@ export function Usuarios() {
         <p className="text-azul/60">Carregando usuários...</p>
       ) : (
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-azul/40 font-bold border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>

@@ -18,7 +18,7 @@ export function EscolherAvatar() {
 
   return (
     <div className="min-h-screen bg-bege flex items-center justify-center p-4">
-      <div className="bg-white py-10 px-6 sm:px-10 rounded-3xl shadow-lg w-full max-w-3xl">
+      <div className="bg-white py-8 px-5 sm:py-10 sm:px-10 rounded-3xl shadow-lg w-full max-w-3xl">
         <div className="flex flex-col items-center gap-3 mb-6 text-center">
           <LogoKivira className="h-14 w-auto" />
           <h2 className="text-xl md:text-2xl font-bold text-gray-700">

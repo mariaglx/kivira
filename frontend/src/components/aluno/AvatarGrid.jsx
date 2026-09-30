@@ -21,7 +21,7 @@ export function AvatarGrid({ categorias, categoriaAtiva, onCategoriaChange, avat
         ))}
       </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 max-h-96 overflow-y-auto p-1">
+      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 sm:gap-3 max-h-72 sm:max-h-96 overflow-y-auto p-1">
         {avatares.map((item) => (
           <button
             key={item.id}

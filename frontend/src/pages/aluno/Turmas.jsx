@@ -23,21 +23,21 @@ export function Turmas() {
 
   return (
     <>
-      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
-        <h1 className="text-3xl font-black mb-6 flex items-center gap-2">
+      <main className="flex-1 min-w-0 px-4 sm:px-8 py-6 sm:py-8 pb-16">
+        <h1 className="text-2xl sm:text-3xl font-black mb-6 flex items-center gap-2">
           Suas turmas
           <Users size={26} />
         </h1>
 
         {turmas.length === 0 ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
+          <div className="bg-branco rounded-3xl p-6 sm:p-10 text-center shadow-sm border border-cinza-claro/30">
             <p className="text-azul/70 font-semibold text-lg">
               Você ainda não está em nenhuma turma. Peça o código pro seu
               professor!
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {turmas.map((turma) => (
               <Link
                 key={turma.id}

@@ -5,7 +5,7 @@ import { Sidebar } from "./Sidebar";
 // o Sidebar monta uma vez só e continua vivo entre as navegações.
 export function AdminLayout() {
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
+    <div className="flex min-h-screen pb-16 lg:pb-0 bg-bege text-azul font-sans">
       <Sidebar />
       <Outlet />
     </div>
