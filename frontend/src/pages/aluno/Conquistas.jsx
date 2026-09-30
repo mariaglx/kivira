@@ -18,7 +18,7 @@ export function Conquistas() {
           Suas primeiras conquistas aparecem aqui em breve!
         </p>
         <p className="text-azul/55 mt-2 mb-5">
-          Continue jogando e ganhando XP — os selinhos e medalhas estão a
+          Continue jogando e ganhando XP, os selinhos e medalhas estão a
           caminho. ✨
         </p>
         <Link

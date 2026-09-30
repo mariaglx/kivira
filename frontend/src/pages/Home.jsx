@@ -345,7 +345,7 @@ export function Home() {
           <span>|</span>
           <span className="hover:text-azul cursor-default">Suporte ao Professor</span>
         </div>
-        <p>© 2026 Kivira — Plataforma educacional gamificada.</p>
+        <p>© 2026 Kivira. Plataforma educacional gamificada.</p>
       </footer>
     </div>
   );
