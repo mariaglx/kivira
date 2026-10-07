@@ -203,10 +203,10 @@ export function Home() {
             type="button"
             onClick={() => setMenuEntrarAberto((v) => !v)}
             aria-expanded={menuEntrarAberto}
-            className="tatil bg-coral text-branco rounded-full pl-4 pr-5 py-2.5 text-sm font-bold inline-flex items-center gap-2"
+            className="tatil bg-coral text-branco rounded-full pl-5 pr-4 py-2.5 text-sm font-bold inline-flex items-center gap-2"
           >
-            <LogIn size={18} />
             Entrar
+            <LogIn size={18} />
           </button>
 
           {menuEntrarAberto && (

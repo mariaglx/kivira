@@ -53,11 +53,15 @@ export function Login() {
     }
   };
 
+  // Mesmo formato das telas de acesso do aluno (LoginAluno/PrimeiroAcesso):
+  // card arredondado com respiro lateral no celular, logo com bounceIn e
+  // campos com rótulo em cima
   return (
-    <div className="min-h-screen bg-bege flex items-center justify-center">
-      <div className="bg-white pt-4 pb-8 px-8 rounded-2xl shadow-md w-full max-w-sm">
-        <div className="flex justify-center mb-4">
-          <LogoKivira className="h-16 md:h-20 w-auto" />
+    <div className="min-h-screen bg-bege flex items-center justify-center p-4">
+      <div className="bg-white py-10 px-6 sm:px-10 rounded-3xl shadow-lg w-full max-w-md md:max-w-lg">
+        <div className="flex flex-col items-center gap-3 mb-6">
+          <LogoKivira className="h-16 md:h-20 w-auto animate__animated animate__bounceIn" />
+          <h2 className="text-xl md:text-2xl font-bold text-azul">Área do professor</h2>
         </div>
 
         {erro && (
@@ -66,44 +70,61 @@ export function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <Input
-            name="email"
-            type="email"
-            placeholder="E-mail"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            name="senha"
-            type="password"
-            placeholder="Senha"
-            value={formData.senha}
-            onChange={handleChange}
-            required
-          />
+        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className="text-start text-gray-600 text-base font-medium">
+              E-mail
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="seu@email.com"
+              value={formData.email}
+              onChange={handleChange}
+              className="text-base py-3 px-4"
+              autoComplete="email"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="senha" className="text-start text-gray-600 text-base font-medium">
+              Senha
+            </label>
+            <Input
+              id="senha"
+              name="senha"
+              type="password"
+              placeholder="Sua senha"
+              value={formData.senha}
+              onChange={handleChange}
+              className="text-base py-3 px-4"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+
           <Button type="submit" disabled={carregando}>
             {carregando ? "Entrando..." : "Entrar"}
           </Button>
-          <p className="text-center text-sm text-gray-400 cursor-pointer hover:underline">
-            Esqueci minha senha
-          </p>
-          <p className="text-center text-gray-600 text-sm">
-            Não tem conta?{" "}
-            <Link
-              to="/cadastro"
-              className="text-azul font-semibold cursor-pointer"
-            >
-              Criar conta
-            </Link>
-          </p>
-          <p className="text-center text-gray-600 text-sm">
-            É aluno?{" "}
-            <Link to="/login_aluno" className="text-coral font-semibold">
-              Entrar por aqui
-            </Link>
-          </p>
+
+          <div className="flex flex-col gap-2 mt-2 text-center text-base">
+            <p className="text-sm text-gray-400 cursor-pointer hover:underline">
+              Esqueci minha senha
+            </p>
+            <p className="text-gray-600">
+              Não tem conta?{" "}
+              <Link to="/cadastro" className="text-azul font-bold hover:underline">
+                Criar conta
+              </Link>
+            </p>
+            <p className="text-gray-600">
+              É aluno?{" "}
+              <Link to="/login_aluno" className="text-coral font-bold hover:underline">
+                Entrar por aqui
+              </Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>

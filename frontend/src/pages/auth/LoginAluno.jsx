@@ -58,9 +58,9 @@ export function LoginAluno() {
 
   return (
     <div className="min-h-screen bg-bege flex items-center justify-center p-4">
-      <div className="bg-white py-10 px-10 rounded-3xl shadow-lg w-full max-w-md md:max-w-lg">
+      <div className="bg-white py-10 px-6 sm:px-10 rounded-3xl shadow-lg w-full max-w-md md:max-w-lg">
         <div className="flex flex-col items-center gap-3 mb-6">
-          <LogoKivira className="h-16 md:h-20 w-auto" />
+          <LogoKivira className="h-16 md:h-20 w-auto animate__animated animate__bounceIn" />
           <h2 className="text-xl md:text-2xl font-bold text-gray-700">
             {turmaNome ? "Entrar na turma" : "Entrar no Kivira"}
           </h2>
