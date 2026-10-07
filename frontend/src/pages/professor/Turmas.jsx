@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { Search } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Carregando } from "../../components/ui/Carregando";
+import { Lista, Item, Modal } from "../../components/ui/Animacao";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
@@ -74,37 +78,32 @@ export function Turmas() {
       <main className="pagina flex flex-col gap-6 lg:gap-8">
         <header className="flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
-          <button
-            onClick={() => navigate("/professor/turmas/nova")}
-            className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-          >
+          <Button onClick={() => navigate("/professor/turmas/nova")} className="px-5 py-2 text-sm">
             + Nova Turma
-          </button>
+          </Button>
         </header>
 
         {/* Barra de Pesquisa */}
-        <div className="relative w-full max-w-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-             <Search size={16} />
-          </span>
-          <input
-            type="text"
+        <div className="w-full max-w-sm">
+          <Input
+            icone={Search}
             placeholder="Buscar turma..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+            className="py-2.5 text-sm bg-branco shadow-sm"
           />
         </div>
 
         {/* Grid de Cards */}
         {carregando ? (
-          <p className="text-azul/60">Carregando turmas...</p>
+          <Carregando embutido texto="Carregando turmas..." />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {turmasFiltradas.map((turma) => (
-              <div
+              <Item
                 key={turma.id}
-                className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md hover:-translate-y-0.5 transition-all"
+                elevar
+                className="cartao rounded-2xl p-6 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -146,39 +145,40 @@ export function Turmas() {
                 </div>
 
                 <div className="flex gap-2 w-full">
-                  <button
-                    onClick={() => abrirVerTurma(turma)}
-                    className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95"
-                  >
+                  <Button tamanho="sm" onClick={() => abrirVerTurma(turma)} className="flex-1">
                     Ver turma
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    tamanho="sm"
+                    variante="contorno"
                     onClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
-                    className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95"
+                    className="flex-1"
                   >
                     Editar
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Item>
             ))}
 
             {/* Card Pontilhado "Criar nova turma" */}
-            <button
+            <Item
+              as="button"
+              elevar
               onClick={() => navigate("/professor/turmas/nova")}
-              className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-95"
+              className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
             >
               <span className="text-3xl text-coral font-bold">+</span>
               <span className="text-sm font-bold text-coral/80">
                 Criar nova turma
               </span>
-            </button>
-          </div>
+            </Item>
+          </Lista>
         )}
       </main>
 
-      {turmaVisualizada && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
+      <Modal aberto={!!turmaVisualizada} onFechar={fecharVerTurma}>
+        {turmaVisualizada && (
+          <>
             <div className="flex items-start justify-between mb-1">
               <div>
                 <p className="font-extrabold text-azul text-lg">{turmaVisualizada.nome}</p>
@@ -192,14 +192,14 @@ export function Turmas() {
                   </span>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                variante="fantasma"
+                tamanho="icone"
                 aria-label="Fechar"
                 onClick={fecharVerTurma}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <p className="text-xs font-bold uppercase tracking-wider text-azul/50 mt-5 mb-2">
@@ -231,9 +231,9 @@ export function Turmas() {
                 ))}
               </ul>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </>
   );
 }

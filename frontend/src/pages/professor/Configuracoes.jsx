@@ -16,6 +16,10 @@ import {
   Check,
   TriangleAlert,
 } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Carregando } from "../../components/ui/Carregando";
+import { Entrada, Modal } from "../../components/ui/Animacao";
 
 export function Configuracoes() {
   const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
@@ -142,9 +146,7 @@ export function Configuracoes() {
 
   if (carregando || !professor) {
     return (
-      <main className="pagina">
-        <p className="text-azul/60">Carregando...</p>
-      </main>
+      <Carregando />
     );
   }
 
@@ -177,7 +179,7 @@ export function Configuracoes() {
 
         {/* Lado Esquerdo */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-1 bg-branco border border-cinza-claro rounded-3xl shadow-sm flex flex-col">
+          <Entrada className="lg:col-span-1 cartao flex flex-col">
             {/* Avatar */}
             <div className="flex flex-col items-center px-6 pt-7">
               <div className="group relative">
@@ -237,31 +239,28 @@ export function Configuracoes() {
             {/* Excluir conta */}
             <div className="mt-auto p-6 pt-5">
               <hr className="border-cinza-claro mb-4" />
-              <button
-                type="button"
+              <Button
+                variante="fantasma"
+                tamanho="sm"
                 onClick={abrirExclusao}
-                className="btn btn-ghost btn-sm w-full rounded-xl text-vermelho hover:bg-vermelho/10 transition"
+                className="w-full gap-2 text-vermelho hover:bg-vermelho/10"
               >
                 <Trash2 size={16} />
                 Excluir minha conta
-              </button>
+              </Button>
             </div>
-          </div>
+          </Entrada>
 
           {/* Lado Direito */}
-          <div className="lg:col-span-2 bg-branco border border-cinza-claro rounded-3xl shadow-sm p-6 flex flex-col gap-6">
+          <Entrada delay={0.1} className="lg:col-span-2 cartao p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Seus dados
               </p>
-              <button
-                type="button"
-                onClick={() => setModalPerfilAberto(true)}
-                className="btn btn-primary btn-sm rounded-xl gap-2"
-              >
+              <Button tamanho="sm" onClick={() => setModalPerfilAberto(true)} className="gap-2">
                 <Pencil size={14} />
                 Editar perfil
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -295,35 +294,29 @@ export function Configuracoes() {
                 <p className="text-sm font-semibold text-azul">Senha</p>
                 <p className="text-xs text-azul/50 tracking-widest">••••••••</p>
               </div>
-              <button
-                type="button"
+              <Button
+                variante="contorno"
+                tamanho="sm"
                 onClick={() => {
                   setErroSenha("");
                   setModalSegurancaAberto(true);
                 }}
-                className="btn btn-ghost btn-sm rounded-xl gap-2"
+                className="gap-2"
               >
                 <Lock size={14} />
                 Alterar senha
-              </button>
+              </Button>
             </div>
-          </div>
+          </Entrada>
         </div>
       </main>
 
-      {modalAvatarAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6">
+      <Modal aberto={modalAvatarAberto} onFechar={() => setModalAvatarAberto(false)} className="max-w-sm p-6">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Escolher avatar</p>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={() => setModalAvatarAberto(false)}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setModalAvatarAberto(false)}>
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             <div className="flex gap-2 mb-4 flex-wrap">
@@ -365,23 +358,14 @@ export function Configuracoes() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {modalPerfilAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <Modal aberto={modalPerfilAberto} onFechar={() => setModalPerfilAberto(false)} className="max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Editar perfil</p>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={() => setModalPerfilAberto(false)}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setModalPerfilAberto(false)}>
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
@@ -390,10 +374,10 @@ export function Configuracoes() {
                   <User size={14} className="text-coral" />
                   Nome completo
                 </label>
-                <input
+                <Input
                   type="text"
                   name="nome_completo"
-                  className="input w-full rounded-xl"
+                  className="w-full"
                   defaultValue={professor.nome_completo}
                 />
               </div>
@@ -403,10 +387,10 @@ export function Configuracoes() {
                   <Sparkles size={14} className="text-coral" />
                   Apelido
                 </label>
-                <input
+                <Input
                   type="text"
                   name="apelido"
-                  className="input w-full rounded-xl"
+                  className="w-full"
                   defaultValue={professor.apelido}
                 />
                 <span className="text-xs text-azul/45">
@@ -419,10 +403,10 @@ export function Configuracoes() {
                   <MapPin size={14} className="text-coral" />
                   Onde você dá aula
                 </label>
-                <input
+                <Input
                   type="text"
                   name="escola"
-                  className="input w-full rounded-xl"
+                  className="w-full"
                   defaultValue={professor.escola}
                 />
               </div>
@@ -435,38 +419,25 @@ export function Configuracoes() {
                 <textarea
                   name="biografia"
                   rows={4}
-                  className="textarea w-full rounded-xl"
+                  className="textarea w-full rounded-xl border-cinza-claro focus:border-azul"
                   defaultValue={professor.biografia}
                 />
               </div>
 
               <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  disabled={salvando}
-                  className="btn btn-primary rounded-xl px-8"
-                >
+                <Button type="submit" disabled={salvando} className="px-8">
                   {salvando ? "Salvando..." : "Salvar alterações"}
-                </button>
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {modalSegurancaAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <Modal aberto={modalSegurancaAberto} onFechar={() => setModalSegurancaAberto(false)} className="max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Alterar senha</p>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={() => setModalSegurancaAberto(false)}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setModalSegurancaAberto(false)}>
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={handleAlterarSenha} className="flex flex-col gap-5">
@@ -481,9 +452,9 @@ export function Configuracoes() {
                   <Mail size={14} className="text-coral" />
                   E-mail da conta
                 </label>
-                <input
+                <Input
                   type="text"
-                  className="input w-full rounded-xl"
+                  className="w-full"
                   defaultValue={professor.email}
                   disabled
                 />
@@ -497,11 +468,11 @@ export function Configuracoes() {
                   <Lock size={14} className="text-coral" />
                   Senha atual
                 </label>
-                <input
+                <Input
                   type="password"
                   name="senha_atual"
                   required
-                  className="input w-full rounded-xl"
+                  className="w-full"
                   placeholder="A senha que você usa hoje"
                 />
               </div>
@@ -512,12 +483,12 @@ export function Configuracoes() {
                     <Key size={14} className="text-coral" />
                     Senha nova
                   </label>
-                  <input
+                  <Input
                     type="password"
                     name="senha_nova"
                     required
                     minLength={6}
-                    className="input w-full rounded-xl"
+                    className="w-full"
                     placeholder="Mínimo 6 caracteres"
                   />
                 </div>
@@ -527,29 +498,25 @@ export function Configuracoes() {
                     <Check size={14} className="text-coral" />
                     Repita a senha nova
                   </label>
-                  <input
+                  <Input
                     type="password"
                     name="confirmar_senha"
                     required
-                    className="input w-full rounded-xl"
+                    className="w-full"
                     placeholder="As senhas devem ser iguais"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end pt-2">
-                <button type="submit" className="btn btn-primary rounded-xl px-8">
+                <Button type="submit" className="px-8">
                   Atualizar senha
-                </button>
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {modalExclusaoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-sm w-full p-6">
+      <Modal aberto={modalExclusaoAberto} onFechar={fecharExclusao} className="max-w-sm p-6">
             <div className="w-12 h-12 rounded-2xl bg-vermelho/10 text-vermelho flex items-center justify-center text-xl mb-4">
               <TriangleAlert size={20} />
             </div>
@@ -569,40 +536,30 @@ export function Configuracoes() {
                 </span>{" "}
                 para confirmar
               </label>
-              <input
+              <Input
                 type="text"
                 autoFocus
                 value={textoConfirmacaoExclusao}
                 onChange={(e) => setTextoConfirmacaoExclusao(e.target.value)}
                 placeholder={FRASE_CONFIRMACAO_EXCLUSAO}
-                className="input w-full rounded-xl"
+                className="w-full"
               />
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={fecharExclusao}
-                className="btn btn-ghost rounded-xl flex-1"
-              >
+              <Button variante="fantasma" onClick={fecharExclusao} className="flex-1">
                 Cancelar
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variante="perigo"
                 disabled={!exclusaoConfirmada}
                 onClick={confirmarExclusao}
-                className={`btn rounded-xl flex-1 border-none text-branco transition ${
-                  exclusaoConfirmada
-                    ? "bg-vermelho hover:bg-vermelho/90"
-                    : "bg-vermelho/30 text-branco/70 cursor-not-allowed hover:bg-vermelho/30"
-                }`}
+                className="flex-1"
               >
                 Excluir conta
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </>
   );
 }

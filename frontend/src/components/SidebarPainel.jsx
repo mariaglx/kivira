@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { LogoKiviraRosa } from "./LogoKiviraRosa";
 import { Avatar } from "./ui/Avatar";
 import { apiRequest } from "../services/api";
@@ -47,12 +48,20 @@ export function SidebarPainel({ titulo, itens, usuario }) {
         </button>
       </header>
 
-      {aberto && (
-        <div className="fixed inset-0 z-40 bg-azul/50 lg:hidden" onClick={fechar} />
-      )}
+      <AnimatePresence>
+        {aberto && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-azul/50 lg:hidden"
+            onClick={fechar}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg transition-transform duration-200 lg:sticky lg:top-0 lg:self-start lg:shrink-0 lg:translate-x-0 print:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 h-screen bg-azul text-branco flex flex-col justify-between px-6 py-3 shadow-lg transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:self-start lg:shrink-0 lg:translate-x-0 print:hidden ${
           aberto ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -80,15 +89,26 @@ export function SidebarPainel({ titulo, itens, usuario }) {
                 end={end}
                 onClick={fechar}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                  `group relative flex items-center gap-3 px-4 py-3 rounded-xl transition active:scale-95 ${
                     isActive
-                      ? "bg-laranja text-azul font-bold shadow-md shadow-laranja/40"
-                      : "text-cinza-claro hover:bg-branco/5 hover:text-branco font-medium"
+                      ? "text-azul font-bold"
+                      : "text-cinza-claro hover:bg-branco/5 hover:text-branco hover:translate-x-1 font-medium"
                   }`
                 }
               >
-                <Icone size={20} />
-                {rotulo}
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <motion.span
+                        layoutId={`${titulo}-item-ativo`}
+                        className="absolute inset-0 rounded-xl bg-laranja shadow-md shadow-laranja/40"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <Icone size={20} className="relative transition-transform group-hover:scale-110 group-hover:-rotate-6" />
+                    <span className="relative">{rotulo}</span>
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>

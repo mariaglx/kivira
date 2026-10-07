@@ -1,8 +1,8 @@
 # Design system do Kivira
 
 Extraído das telas do **aluno** e do **jogo**, que são a referência visual do
-produto. As telas de professor/admin seguem os mesmos tokens, num tom mais
-sóbrio (menu azul, menos animação).
+produto. As telas de professor/admin usam os mesmos tokens e componentes
+(`Button`, `Input`, `.cartao`...), com menu azul e animações do `motion`.
 
 Tokens e classes ficam em `src/index.css`; componentes em `src/components/ui/`.
 
@@ -51,8 +51,10 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 
 ## Componentes (`src/components/ui/`)
 
-- `Button` — botão coral tátil.
-- `Input` — campo de texto padrão.
+- `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
+- `Input` — campo de texto padrão (`icone` opcional à esquerda).
+- `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
+- `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`, `Modal`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
 - `SelectCustom` — select estilizado.
 - `BarraProgresso` — contínua (XP) ou em segmentos (peças).
 - `Avatar` — imagem de `/avatares` ou inicial sobre coral; tamanho/raio/anel via `className`.

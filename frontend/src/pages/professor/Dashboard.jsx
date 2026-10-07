@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
+import { EstadoVazio } from "../../components/ui/EstadoVazio";
+import { Contador, Lista, Item } from "../../components/ui/Animacao";
 import { apiRequest } from "../../services/api";
 
 export function Dashboard() {
@@ -67,62 +69,59 @@ export function Dashboard() {
         </div>
 
         {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+        <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <Item elevar className="cartao rounded-2xl p-6">
             <div className="w-10 h-1.5 bg-coral rounded-full mb-3"></div>
             <p className="text-4xl font-extrabold text-azul">
-              {carregando ? "..." : dados.metricas.total_turmas}
+              {carregando ? "..." : <Contador valor={dados.metricas.total_turmas} />}
             </p>
             <p className="text-sm text-azul/70 font-medium mt-1">
               Turmas ativas
             </p>
-          </div>
+          </Item>
 
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+          <Item elevar className="cartao rounded-2xl p-6">
             <div className="w-10 h-1.5 bg-azul rounded-full mb-3"></div>
             <p className="text-4xl font-extrabold text-azul">
-              {carregando ? "..." : dados.metricas.total_atividades}
+              {carregando ? "..." : <Contador valor={dados.metricas.total_atividades} />}
             </p>
             <p className="text-sm text-azul/70 font-medium mt-1">
               Atividades criadas
             </p>
-          </div>
+          </Item>
 
-          <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
+          <Item elevar className="cartao rounded-2xl p-6">
             <div className="w-10 h-1.5 bg-laranja rounded-full mb-3"></div>
             <p className="text-4xl font-extrabold text-azul">
-              {carregando ? "..." : dados.metricas.total_alunos}
+              {carregando ? "..." : <Contador valor={dados.metricas.total_alunos} />}
             </p>
             <p className="text-sm text-azul/70 font-medium mt-1">
               Alunos participantes
             </p>
-          </div>
-        </div>
+          </Item>
+        </Lista>
 
         {/* Ações Rápidas */}
         <div className="mb-8">
           <p className="text-xs font-bold text-azul uppercase tracking-wider mb-4 opacity-80">
             Ações Rápidas
           </p>
-          <div className="flex gap-4">
-            <Button
-              onClick={() => navigate("/professor/turmas/nova")}
-              className="bg-coral hover:brightness-95 text-branco font-semibold px-6 py-2.5 rounded-xl shadow-sm"
-            >
+          <div className="flex flex-wrap gap-4">
+            <Button onClick={() => navigate("/professor/turmas/nova")} className="px-6 py-2.5">
               + Criar Turma
             </Button>
-            <button
-              type="button"
+            <Button
+              variante="contorno"
               onClick={() => navigate("/professor/atividades/criar")}
-              className="bg-branco text-azul border border-azul hover:bg-azul hover:text-branco font-semibold px-6 py-2.5 rounded-xl transition duration-150 shadow-sm"
+              className="px-6 py-2.5"
             >
               + Criar Atividade
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Tabela de Turmas Recentes */}
-        <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro p-6">
+        <div className="cartao rounded-2xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
               Turmas Recentes
@@ -136,17 +135,16 @@ export function Dashboard() {
           </div>
 
           {dados.turmas_recentes.length === 0 && !carregando ? (
-            <div className="text-center py-10">
-              <p className="text-azul/60 text-sm">
-                Você ainda não possui turmas cadastradas.
-              </p>
-              <Button
-                onClick={() => navigate("/professor/turmas/nova")}
-                className="mt-4 bg-coral text-branco text-xs px-4 py-2 rounded-xl"
-              >
-                Criar minha primeira turma
-              </Button>
-            </div>
+            <EstadoVazio
+              className="border-0 shadow-none"
+              acao={
+                <Button tamanho="sm" onClick={() => navigate("/professor/turmas/nova")}>
+                  Criar minha primeira turma
+                </Button>
+              }
+            >
+              Você ainda não possui turmas cadastradas.
+            </EstadoVazio>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">

@@ -5,6 +5,9 @@ import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
+import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
+import { comemorar } from "../../utils/comemorar";
 import { Search, Trash2, X } from "lucide-react";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
@@ -480,6 +483,7 @@ export function CriarAtividade() {
     setFoiCriacao(!idAtividadeCriada);
     setIdAtividadeCriada(atividadeId);
     setMostrarSucesso(true);
+    comemorar();
     } finally {
       setSalvando(false);
     }
@@ -487,9 +491,7 @@ export function CriarAtividade() {
 
   if (carregandoEdicao) {
     return (
-      <main className="pagina">
-        <p className="text-azul/60">Carregando atividade...</p>
-      </main>
+      <Carregando texto="Carregando atividade..." />
     );
   }
 
@@ -562,14 +564,15 @@ export function CriarAtividade() {
           </h2>
 
           {idAtividadeCriada && (
-            <button
-              type="button"
+            <Button
+              variante="fantasma"
+              tamanho="sm"
               onClick={abrirExclusao}
-              className="btn btn-ghost btn-sm rounded-xl text-vermelho hover:bg-vermelho/10 transition shrink-0"
+              className="gap-2 text-vermelho hover:bg-vermelho/10 shrink-0"
             >
               <Trash2 size={16} />
               Excluir atividade
-            </button>
+            </Button>
           )}
         </div>
 
@@ -874,35 +877,33 @@ export function CriarAtividade() {
                   houver edição por salvar ela mostraria conteúdo velho. */}
               {houveAlteracao ? (
                 <>
-                  <button
-                    type="button"
+                  <Button
+                    variante="fantasma"
                     disabled={salvando}
                     onClick={() =>
                       emEdicao ? desfazerAlteracoes() : navigate("/professor/atividades")
                     }
-                    className="px-5 py-2.5 rounded-xl font-bold text-sm text-azul/60 hover:bg-azul/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 text-sm"
                   >
                     Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={salvando}
-                    className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  >
+                  </Button>
+                  <Button type="submit" disabled={salvando} className="px-5 py-2.5 text-sm">
                     {salvando
                       ? "Salvando..."
                       : idAtividadeCriada
                         ? "Atualizar Atividade"
                         : "Criar Atividade"}
-                  </button>
+                  </Button>
                 </>
               ) : (
               <div className="relative group">
                 {idAtividadeCriada ? (
-                  <Link
+                  <Button
+                    as={Link}
+                    variante="secundario"
                     to="/jogo"
                     state={{ atividadeId: idAtividadeCriada }}
-                    className="btn bg-azul hover:bg-azul/90 text-branco border-none rounded-xl px-5 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 inline-flex items-center gap-2"
+                    className="px-5 py-2.5 text-sm gap-2"
                   >
                     <svg
                       viewBox="0 0 16 16"
@@ -912,7 +913,7 @@ export function CriarAtividade() {
                       <path d="M4 2.5v11l10-5.5-10-5.5z" />
                     </svg>
                     Pré-visualizar atividade
-                  </Link>
+                  </Button>
                 ) : (
                   <button
                     type="button"
@@ -994,7 +995,7 @@ export function CriarAtividade() {
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
               ✅
@@ -1042,20 +1043,16 @@ export function CriarAtividade() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => setMostrarSucesso(false)}
-              className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 mt-2"
-            >
+            <Button onClick={() => setMostrarSucesso(false)} className="px-6 py-2.5 text-sm mt-2">
               Continuar editando
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
@@ -1064,21 +1061,17 @@ export function CriarAtividade() {
               Ops, algo deu errado
             </h3>
             <p className="text-sm text-azul/60">{mensagemErro}</p>
-            <button
-              type="button"
-              onClick={() => setMensagemErro(null)}
-              className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-6 py-2.5 font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 mt-2"
-            >
+            <Button variante="contorno" onClick={() => setMensagemErro(null)} className="px-6 py-2.5 text-sm mt-2">
               Entendi
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
       {modalImagemAberto && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6 animate__animated animate__zoomIn animate__faster">
             <div className="flex items-start justify-between mb-4">
               <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
                 <button
@@ -1098,14 +1091,9 @@ export function CriarAtividade() {
                   Enviar arquivo
                 </button>
               </div>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={fecharBuscaImagem}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={fecharBuscaImagem}>
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             {abaImagem === "buscar" && (
@@ -1194,14 +1182,14 @@ export function CriarAtividade() {
 
                 {totalPaginasImagens > 1 && (
                   <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">
-                    <button
-                      type="button"
+                    <Button
+                      variante="fantasma"
+                      tamanho="sm"
                       onClick={() => irParaPaginaImagem(paginaAtual - 1)}
                       disabled={paginaAtual === 1 || buscandoImagens}
-                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
                     >
                       ‹
-                    </button>
+                    </Button>
 
                     {gerarPaginasVisiveis(paginaAtual, totalPaginasImagens).map(
                       (pagina, indice) =>
@@ -1213,30 +1201,26 @@ export function CriarAtividade() {
                             …
                           </span>
                         ) : (
-                          <button
+                          <Button
                             key={pagina}
-                            type="button"
+                            variante={pagina === paginaAtual ? "primario" : "fantasma"}
+                            tamanho="sm"
                             onClick={() => irParaPaginaImagem(pagina)}
                             disabled={buscandoImagens}
-                            className={`btn btn-sm border-none ${
-                              pagina === paginaAtual
-                                ? "bg-coral text-branco"
-                                : "btn-ghost text-azul/60"
-                            }`}
                           >
                             {pagina}
-                          </button>
+                          </Button>
                         )
                     )}
 
-                    <button
-                      type="button"
+                    <Button
+                      variante="fantasma"
+                      tamanho="sm"
                       onClick={() => irParaPaginaImagem(paginaAtual + 1)}
                       disabled={paginaAtual === totalPaginasImagens || buscandoImagens}
-                      className="btn btn-sm btn-ghost text-azul/60 disabled:opacity-30"
                     >
                       ›
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -1301,7 +1285,7 @@ export function CriarAtividade() {
           cada dependência, em vez de um aviso genérico de "essa ação é
           permanente" (mesmo padrão do modal de excluir turma) */}
       {modalExclusaoAberto && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
@@ -1325,22 +1309,12 @@ export function CriarAtividade() {
             </div>
 
             <div className="flex gap-3 w-full mt-5">
-              <button
-                type="button"
-                onClick={fecharExclusao}
-                disabled={excluindo}
-                className="btn flex-1 bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
-              >
+              <Button variante="contorno" onClick={fecharExclusao} disabled={excluindo} className="flex-1">
                 Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={excluirAtividade}
-                disabled={excluindo}
-                className="tatil flex-1 bg-vermelho hover:bg-vermelho/90 text-branco border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed [--sombra:#962c22]"
-              >
+              </Button>
+              <Button variante="perigo" onClick={excluirAtividade} disabled={excluindo} className="flex-1">
                 {excluindo ? "Excluindo..." : "Excluir"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
