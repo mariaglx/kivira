@@ -98,6 +98,12 @@ export function Login() {
               Criar conta
             </Link>
           </p>
+          <p className="text-center text-gray-600 text-sm">
+            É aluno?{" "}
+            <Link to="/login_aluno" className="text-coral font-semibold">
+              Entrar por aqui
+            </Link>
+          </p>
         </form>
       </div>
     </div>

@@ -173,23 +173,26 @@ export function Home() {
   return (
     <div className="min-h-screen bg-bege text-azul flex flex-col font-sans overflow-x-hidden relative">
       {/* 1. HEADER */}
-      <header className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-20">
-        <LogoKivira className="h-16 md:h-15 w-auto" />
+      {/* Uma entrada por perfil: aluno (usuário + emojis) e professor (e-mail
+          + senha, com o cadastro logo ao lado). O código de turma continua no
+          card do hero — é por ele que o aluno faz o primeiro acesso. */}
+      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center gap-3 z-20">
+        <LogoKivira className="h-10 sm:h-14 w-auto shrink-0" />
 
-        <div className="flex gap-3 items-center">
+        <nav className="flex gap-2 sm:gap-3 items-center">
+          <Link
+            to="/login_aluno"
+            className="rounded-full px-3 sm:px-5 py-2.5 text-sm font-bold text-azul bg-branco/70 hover:bg-branco transition-colors"
+          >
+            Sou aluno
+          </Link>
           <Link
             to="/login"
-            className="btn btn-ghost text-azul hover:bg-branco/50 rounded-full px-5 text-sm font-semibold"
+            className="tatil bg-azul text-branco rounded-full px-4 sm:px-6 py-2.5 text-sm font-bold [--sombra:var(--color-azul-escuro)]"
           >
-            Acesso do Professor
+            Sou professor
           </Link>
-          <Link
-            to="/cadastro"
-            className="tatil bg-coral text-branco rounded-full px-6 py-2.5 text-sm font-bold"
-          >
-            Cadastrar Escola / Professor
-          </Link>
-        </div>
+        </nav>
       </header>
 
       {/* 2. HERO SECTION */}
@@ -249,6 +252,13 @@ export function Home() {
                   {isLoading ? "Validando código..." : "Entrar na Sala 🚀"}
                 </button>
               </form>
+
+              <p className="mt-4 pt-4 border-t border-cinza-claro text-center text-sm text-azul/70 font-semibold">
+                Já entrou antes?{" "}
+                <Link to="/login_aluno" className="text-coral font-bold hover:underline">
+                  Entrar com meu usuário →
+                </Link>
+              </p>
             </div>
           </div>
 
@@ -309,6 +319,21 @@ export function Home() {
                 <p className="text-sm text-azul/70 leading-relaxed font-medium">{texto}</p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
+            <Link
+              to="/cadastro"
+              className="tatil bg-coral text-branco rounded-full px-6 py-3 font-bold"
+            >
+              Criar conta de professor
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-full px-6 py-3 font-bold text-azul border-2 border-azul/20 hover:bg-branco transition-colors"
+            >
+              Já tenho conta
+            </Link>
           </div>
         </div>
       </section>

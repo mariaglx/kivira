@@ -62,7 +62,7 @@ export function LoginAluno() {
         <div className="flex flex-col items-center gap-3 mb-6">
           <LogoKivira className="h-16 md:h-20 w-auto" />
           <h2 className="text-xl md:text-2xl font-bold text-gray-700">
-            Entrar na turma
+            {turmaNome ? "Entrar na turma" : "Entrar no Kivira"}
           </h2>
           {turmaNome && (
             <p className="text-sm text-azul/60 font-semibold">{turmaNome}</p>
@@ -95,13 +95,12 @@ export function LoginAluno() {
           </Button>
 
           <div className="flex flex-col gap-2 mt-2">
+            {/* Aluno não se cadastra: a conta é criada pelo professor, e a
+                primeira entrada é pelo código da turma (card da Home) */}
             <p className="text-center text-gray-600 text-base">
-              Não tem conta?{" "}
-              <Link
-                to="/cadastro"
-                className="text-azul font-bold hover:underline cursor-pointer"
-              >
-                Solicitar acesso
+              Primeira vez?{" "}
+              <Link to="/" className="text-azul font-bold hover:underline">
+                Entre com o código da turma
               </Link>
             </p>
           </div>
