@@ -190,7 +190,7 @@ export function Home() {
           </Link>
           <Link
             to="/login"
-            className="rounded-full px-6 py-2 text-sm font-bold text-azul border-2 border-azul/20 hover:bg-branco transition-colors"
+            className="tatil bg-azul text-branco rounded-full px-6 py-2.5 text-sm font-bold [--sombra:var(--color-azul-escuro)]"
           >
             Sou professor
           </Link>
