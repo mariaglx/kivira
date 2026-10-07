@@ -71,8 +71,8 @@ export function Turmas() {
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
-      <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
-        <header className="flex justify-between items-center">
+      <main className="pagina flex flex-col gap-6 lg:gap-8">
+        <header className="flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
           <button
             onClick={() => navigate("/professor/turmas/nova")}
@@ -100,7 +100,7 @@ export function Turmas() {
         {carregando ? (
           <p className="text-azul/60">Carregando turmas...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {turmasFiltradas.map((turma) => (
               <div
                 key={turma.id}

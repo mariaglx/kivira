@@ -117,6 +117,28 @@
   .tatil:disabled {
     box-shadow: none;
   }
+
+  /* Área de conteúdo de toda página com menu (aluno, professor, admin): o
+     respiro lateral cresce com a tela em vez de um p-8 fixo que espremia o
+     conteúdo no celular. Ver DESIGN_SYSTEM.md. */
+  .pagina {
+    @apply flex-1 min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8;
+  }
+
+  /* Superfície branca padrão (cards, painéis, estados vazios) */
+  .cartao {
+    @apply bg-branco rounded-3xl shadow-sm border border-cinza-claro/30;
+  }
+
+  /* Rótulo de campo/seção em caixa alta */
+  .rotulo {
+    @apply text-xs font-bold uppercase tracking-wider text-azul/50;
+  }
+
+  /* Faixa de cabeçalho de seção do tabuleiro (Perguntas/Tabuleiro/Peças) */
+  .faixa-secao {
+    @apply inline-flex items-center gap-2 rounded-full bg-pessego-bg text-pessego-fg px-3 py-1 text-xs font-extrabold uppercase tracking-widest;
+  }
 }
 
 /* Quem prefere menos movimento não recebe as animações do jogo */

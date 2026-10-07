@@ -4,6 +4,8 @@ import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { AvatarPickerModal } from "../../components/aluno/AvatarPickerModal";
 import { useConfiguracoesAluno } from "../../controllers/useConfiguracoesAluno";
 import { Settings, Pencil } from "lucide-react";
+import { Avatar } from "../../components/ui/Avatar";
+import { Carregando } from "../../components/ui/Carregando";
 
 function Aviso({ aviso }) {
   if (!aviso) return null;
@@ -44,16 +46,12 @@ export function Configuracoes() {
   const [modalAvatarAberto, setModalAvatarAberto] = useState(false);
 
   if (carregando) {
-    return (
-      <main className="flex-1 flex items-center justify-center">
-        <p className="text-azul font-bold text-lg">Carregando...</p>
-      </main>
-    );
+    return <Carregando />;
   }
 
   return (
     <>
-      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
+      <main className="pagina pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Meu Perfil & Ajustes
           <Settings size={22} />
@@ -61,20 +59,14 @@ export function Configuracoes() {
 
         <div className="flex flex-col gap-6 max-w-3xl">
           {/* ───────── A. Avatar ───────── */}
-          <section className="bg-branco rounded-3xl p-6 shadow-sm border-2 border-transparent hover:border-laranja/60 transition-colors flex flex-col items-center gap-4 text-center">
+          <section className="bg-branco rounded-3xl p-5 sm:p-6 shadow-sm border-2 border-transparent hover:border-laranja/60 transition-colors flex flex-col items-center gap-4 text-center">
             <h2 className="text-lg font-extrabold self-start">Seu bichinho</h2>
 
-            <div className="w-28 h-28 rounded-3xl bg-coral overflow-hidden flex items-center justify-center text-4xl font-black text-branco uppercase ring-4 ring-laranja shrink-0">
-              {aluno?.avatar_url ? (
-                <img
-                  src={`/avatares/${aluno.avatar_url}`}
-                  alt="Seu avatar"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                (aluno?.apelido || aluno?.nome_completo || "A").charAt(0)
-              )}
-            </div>
+            <Avatar
+              arquivo={aluno?.avatar_url}
+              nome={aluno?.apelido || aluno?.nome_completo || "A"}
+              className="w-28 h-28 rounded-3xl text-4xl ring-4 ring-laranja"
+            />
 
             <p className="text-sm text-azul/60">
               É ele que aparece do seu lado e pros seus colegas.
@@ -90,7 +82,7 @@ export function Configuracoes() {
           </section>
 
           {/* ───────── B. Apelido ───────── */}
-          <section className="bg-branco rounded-3xl p-6 shadow-sm border border-cinza-claro/10">
+          <section className="bg-branco rounded-3xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10">
             <h2 className="text-lg font-extrabold">Como você quer ser chamado</h2>
             <p className="text-sm text-azul/60">
               Esse é o nome que aparece no Kivira. Seu nome completo continua o
@@ -128,7 +120,7 @@ export function Configuracoes() {
           </section>
 
           {/* ───────── C. Senha de emojis (wizard) ───────── */}
-          <section className="bg-branco rounded-3xl p-6 shadow-sm border border-cinza-claro/10">
+          <section className="bg-branco rounded-3xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10">
             <h2 className="text-lg font-extrabold">Sua senha de emojis</h2>
 
             <div className="flex items-center gap-2 mt-3 mb-5">

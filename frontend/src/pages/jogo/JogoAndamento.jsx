@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useJogo } from "../../controllers/useJogo";
-import {BordaLateral} from "../../components/ui/BordaLateral";
 import confetti from "canvas-confetti";
 import { LogoKivira } from "../../components/LogoKivira";
 import { calcularGradeMosaico, calcularFatiaMosaico } from "../../utils/mosaico";
 import { apiRequest } from "../../services/api";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
+import { ArrowLeft } from "lucide-react";
 
 const CORES_CONFETE = ["#eb7561", "#eeb37f", "#214a5a", "#3fae7a"];
 const ATRASO_VIRADA_MS = 90; // intervalo entre uma peça e outra na revelação do mosaico
@@ -185,52 +185,64 @@ export function JogoAndamento() {
 
   return (
     <div className="min-h-screen bg-bege text-azul flex flex-col">
-      <header className="flex justify-between bg-branco items-center border-b border-azul/10 py-2 px-3">
-        <div className="flex items-center gap-4">
-          <LogoKivira className="h-11 w-auto" />
+      {/* Duas linhas: em cima "voltar + nome da atividade" (inteiro, sem
+          cortar), embaixo a barra de progresso com o texto por extenso — antes
+          tudo se espremia numa linha só e "0/12" sozinho não dizia nada */}
+      <header className="sticky top-0 z-30 bg-branco border-b-2 border-laranja/30 px-3 sm:px-4 py-2.5 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
           <Link
             to={isAluno ? rotaVoltar : `/professor/atividades/${atividadeId}/editar`}
-            className="text-azul/50 hover:text-azul text-sm font-bold"
+            aria-label={isAluno ? "Voltar pra trilha" : "Voltar pra edição"}
+            className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-bege text-azul font-bold text-sm hover:bg-laranja-claro transition-colors"
           >
-            {isAluno ? "← Voltar" : "← Editar atividade"}
+            <ArrowLeft size={18} />
+            <span className="hidden sm:inline">{isAluno ? "Voltar" : "Editar"}</span>
           </Link>
+          <LogoKivira className="hidden lg:block h-9 w-auto shrink-0" />
+          <h1 className="flex-1 min-w-0 font-black text-azul text-base sm:text-lg leading-tight line-clamp-2">
+            {atividade?.titulo}
+          </h1>
         </div>
-        <span className="text-md font-bold text-azul">{atividade?.titulo}</span>
-        <div className="w-48">
-          <BarraProgresso valor={colocadas} max={perguntas.length} segmentos />
-          <div className="text-xs text-azul/60 font-bold mt-1">
-            {colocadas}/{perguntas.length} peças colocadas
-          </div>
+        <div className="flex items-center gap-3">
+          <BarraProgresso
+            valor={colocadas}
+            max={perguntas.length}
+            className="flex-1"
+          />
+          <span className="shrink-0 text-xs sm:text-sm font-bold text-azul/70">
+            {colocadas} de {perguntas.length} peças
+          </span>
         </div>
       </header>
 
-      <div className="flex flex-1">
-        {/* Barra Lateral de Perguntas */}
-        <BordaLateral>
-          <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
-            Perguntas
-          </h2>
-          <ul className="flex flex-col bg-azul/5 rounded-box gap-2 p-2">
+      {/* Celular/tablet: perguntas → tabuleiro → peças empilhados; desktop
+          (lg+): perguntas numa coluna fixa à esquerda, como antes */}
+      <div className="flex flex-col lg:flex-row flex-1 gap-4 p-3 sm:p-4 lg:p-6">
+        <aside className="lg:w-80 xl:w-96 shrink-0 bg-branco rounded-3xl p-3 sm:p-4 shadow-sm lg:self-start lg:sticky lg:top-28">
+          <h2 className="faixa-secao mb-3">Perguntas</h2>
+          {/* altura limitada fora do desktop pra o tabuleiro não sumir da tela */}
+          <ol className="flex flex-col gap-2 max-h-48 sm:max-h-64 overflow-y-auto lg:max-h-[calc(100vh-10rem)]">
             {perguntas.map((q) => (
-              <li key={q.id}>
-                <div className="flex items-center gap-4 text-md text-azul bg-azul/10 hover:bg-azul/20 py-2.5 px-3 p rounded-lg">
-                  <span className="font-bold text-coral">{q.id}.</span>
-                  <span className="font-medium text-left">
-                    {q.texto_questao}
-                  </span>
-                </div>
+              <li
+                key={q.id}
+                className={`flex items-start gap-3 rounded-2xl px-3 py-2.5 text-sm sm:text-base ${
+                  tabuleiro[q.id] ? "bg-azul/5 text-azul/60" : "bg-bege/60 text-azul"
+                }`}
+              >
+                <span className="w-7 h-7 shrink-0 rounded-full bg-coral text-branco text-sm font-black flex items-center justify-center">
+                  {q.id}
+                </span>
+                <span className="font-semibold pt-0.5">{q.texto_questao}</span>
               </li>
             ))}
-          </ul>
-        </BordaLateral>
+          </ol>
+        </aside>
 
         {/* Área Principal do Jogo */}
-        <main className="flex-1 flex bg-bege flex-col mx-4">
+        <main className="flex-1 min-w-0 flex flex-col gap-4">
           {/* Tabuleiro */}
-          <div className="w-full">
-            <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
-              Tabuleiro
-            </h2>
+          <section className="w-full">
+            <h2 className="faixa-secao mb-2">Tabuleiro</h2>
 
             {fase === "jogando" && (
               <p className="text-sm font-bold text-coral mb-2">
@@ -246,7 +258,7 @@ export function JogoAndamento() {
             <div>
               <div
                 className={`grid w-full transition-all duration-300 ${
-                  fase === "virado" ? "gap-0.5" : "gap-3"
+                  fase === "virado" ? "gap-0.5" : "gap-1.5 sm:gap-3"
                 }`}
                 style={{
                   gridTemplateColumns: `repeat(${gradeMosaico.colunas}, minmax(0, 1fr))`,
@@ -286,7 +298,7 @@ export function JogoAndamento() {
                         setSlotSobre(null);
                         dropNoTabuleiro(numeroSlot);
                       }}
-                      className={`w-full aspect-21/9 border-2 border-dashed rounded-xl flex flex-col items-center justify-center relative transition-all ${bordaCor}`}
+                      className={`w-full aspect-4/3 sm:aspect-video lg:aspect-21/9 border-2 border-dashed rounded-xl flex flex-col items-center justify-center relative transition-all ${bordaCor}`}
                     >
                       {/* MODO VIRADO: MOSTRA O VERSO/IMAGEM (ESTILO LUK) */}
                       {fase === "virado" && (
@@ -322,7 +334,7 @@ export function JogoAndamento() {
                       {/* Se estiver jogando e tiver peça */}
                       {fase === "jogando" && pecaNoSlot && (
                         <div className="w-[99%] h-[98%] rounded-xl flex flex-col items-center justify-center p-1 relative animate__animated animate__bounceIn" style={{ animationDuration: "0.4s" }}>
-                          <span className="text-azul text-xl font-bold text-center line-clamp-1">
+                          <span className="text-azul text-xs sm:text-base lg:text-xl leading-tight font-bold text-center line-clamp-2 sm:line-clamp-1 break-words">
                             {pecaNoSlot.resposta_certa}
                           </span>
                         </div>
@@ -330,7 +342,7 @@ export function JogoAndamento() {
 
                       {/* Slot Vazio */}
                       {fase === "jogando" && !pecaNoSlot && (
-                        <span className="text-azul/80 text-2xl font-bold">
+                        <span className="text-azul/80 text-lg sm:text-2xl font-bold">
                           {numeroSlot}
                         </span>
                       )}
@@ -339,17 +351,17 @@ export function JogoAndamento() {
                 })}
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Peças Soltas */}
+          {/* Peças Soltas — no celular/tablet a bandeja gruda no rodapé, pra
+              dar pra escolher a peça e encaixar sem rolar a tela pra cima e
+              pra baixo a cada jogada */}
           {fase === "jogando" && (
-            <div className="w-full">
-              <h2 className="text-xs uppercase text-gray-500 tracking-widest my-3">
-                Peças Soltas
-              </h2>
-              <div className="w-full bg-branco/60 border-2 border-azul/10 rounded-xl p-3 grid grid-cols-4 gap-3">
+            <section className="sticky bottom-0 z-20 -mx-3 sm:mx-0 px-3 sm:px-0 pt-2 pb-3 bg-bege/95 backdrop-blur-sm lg:static lg:p-0 lg:bg-transparent lg:backdrop-blur-none">
+              <h2 className="faixa-secao mb-2">Peças soltas</h2>
+              <div className="w-full bg-branco border-2 border-azul/10 rounded-2xl p-2 sm:p-3 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 max-h-40 sm:max-h-52 overflow-y-auto lg:max-h-none">
                 {pecasSoltas.length === 0 ? (
-                  <span className="text-xs text-gray-500">
+                  <span className="col-span-full text-sm font-semibold text-azul/60 text-center py-2">
                     Todas as peças foram colocadas!
                   </span>
                 ) : (
@@ -362,7 +374,7 @@ export function JogoAndamento() {
                         draggable
                         onDragStart={() => iniciarDrag(peca)}
                         /* w-full garante a mesma largura do tabuleiro, h-11 deixa a peça baixinha e achatada */
-                        className={`tatil w-full h-11 flex items-center justify-center rounded-xl text-sm font-bold cursor-grab active:cursor-grabbing ${
+                        className={`tatil w-full min-h-11 px-2 py-1.5 flex items-center justify-center text-center leading-tight rounded-xl text-sm font-bold cursor-grab active:cursor-grabbing ${
                           estaSelecionada
                             ? "bg-coral text-white -translate-y-1 scale-105 [--sombra:var(--color-coral-escuro)]"
                             : `bg-laranja-claro text-azul [--sombra:var(--color-laranja-escuro)] ${
@@ -376,13 +388,13 @@ export function JogoAndamento() {
                   })
                 )}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Barra de Ações (Botões de Virar / Corrigir) */}
-          <div className="flex justify-center mt-6 mb-6">
+          <div className="flex justify-center my-2 lg:my-4">
             {acertouTudo ? (
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
                   onClick={() => setResultadoFechado(false)}
                   className="tatil bg-azul text-white px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
@@ -409,7 +421,7 @@ export function JogoAndamento() {
                 Virar o Tabuleiro
               </button>
             ) : (
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
                   onClick={corrigirRespostas}
                   className="tatil bg-azul text-white px-6 py-3 rounded-full font-bold text-sm [--sombra:var(--color-azul-escuro)]"
@@ -431,7 +443,7 @@ export function JogoAndamento() {
 
       {mostrarResultado && (
         <div className="fixed inset-0 z-50 bg-azul/60 flex items-center justify-center p-4">
-          <div className="bg-branco rounded-3xl p-8 max-w-sm w-full text-center shadow-xl animate__animated animate__zoomIn">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-xl animate__animated animate__zoomIn">
             <h2 className="text-3xl font-black text-azul">Parabéns! 🎉</h2>
             <div className="flex justify-center gap-2 my-5 text-5xl">
               {[1, 2, 3].map((n) => (

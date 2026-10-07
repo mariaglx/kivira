@@ -82,8 +82,8 @@ export function Usuarios() {
   };
 
   return (
-    <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
-      <header className="flex justify-between items-center">
+    <main className="pagina flex flex-col gap-6 lg:gap-8">
+      <header className="flex flex-wrap justify-between items-center gap-3">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Usuários</h2>
           <p className="text-sm text-azul/50">
@@ -106,7 +106,7 @@ export function Usuarios() {
           />
         </div>
 
-        <div className="w-full max-w-[220px]">
+        <div className="w-full sm:max-w-[220px]">
           <SelectCustom
             name="tipo"
             value={tipoFiltro}

@@ -1,12 +1,18 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
+import { Users, ClipboardList } from "lucide-react";
+import { SidebarPainel } from "../SidebarPainel";
 
-// Layout compartilhado pelas rotas /admin/*, no mesmo formato do ProfessorLayout:
-// o Sidebar monta uma vez só e continua vivo entre as navegações.
+const ITENS = [
+  { to: "/admin", Icone: Users, rotulo: "Usuários", end: true },
+  { to: "/admin/logs-auditoria", Icone: ClipboardList, rotulo: "Logs de auditoria" },
+];
+
+// Layout compartilhado pelas rotas /admin/*, no mesmo formato do ProfessorLayout.
+// Admin não tem perfil próprio, então o rodapé do menu é só um rótulo fixo.
 export function AdminLayout() {
   return (
-    <div className="flex min-h-screen bg-bege text-azul font-sans">
-      <Sidebar />
+    <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
+      <SidebarPainel titulo="Administração" itens={ITENS} usuario={{ nome: "Administrador" }} />
       <Outlet />
     </div>
   );

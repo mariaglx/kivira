@@ -4,6 +4,8 @@ import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { TrilhaFases } from "../../components/aluno/TrilhaFases";
 import { MapPin, ClipboardList } from "lucide-react";
+import { Avatar } from "../../components/ui/Avatar";
+import { Carregando } from "../../components/ui/Carregando";
 
 export function HomeAluno() {
   const navigate = useNavigate();
@@ -11,31 +13,21 @@ export function HomeAluno() {
   const { atividades, carregando } = useHomeAluno();
 
   if (carregandoAluno || carregando) {
-    return (
-      <main className="flex-1 flex items-center justify-center">
-        <p className="text-azul font-bold text-lg">Carregando...</p>
-      </main>
-    );
+    return <Carregando />;
   }
 
   const jogar = (atividadeId) => navigate("/jogo", { state: { atividadeId } });
 
   return (
-    <main className="flex-1 min-w-0 px-4 sm:px-8 py-8 pb-16">
-      <div className="bg-branco rounded-3xl p-5 mb-8 flex items-center gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-coral overflow-hidden flex items-center justify-center text-2xl font-black text-branco uppercase ring-4 ring-laranja shrink-0">
-          {aluno?.avatar_url ? (
-            <img
-              src={`/avatares/${aluno.avatar_url}`}
-              alt="Seu avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            (aluno?.apelido || aluno?.nome_completo || "A").charAt(0)
-          )}
-        </div>
+    <main className="pagina pb-16">
+      <div className="bg-branco rounded-3xl p-4 sm:p-5 mb-8 flex items-center gap-4 sm:gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
+        <Avatar
+          arquivo={aluno?.avatar_url}
+          nome={aluno?.apelido || aluno?.nome_completo || "A"}
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-2xl ring-4 ring-laranja"
+        />
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-black truncate">
+          <h1 className="text-xl sm:text-2xl font-black truncate">
             Oi, {aluno?.apelido || aluno?.nome_completo}! 👋
           </h1>
           <p className="text-sm font-bold text-coral mb-2">Nível {aluno?.nivel_atual}</p>
@@ -52,7 +44,7 @@ export function HomeAluno() {
       </h2>
 
       {atividades.length === 0 ? (
-        <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 flex flex-col items-center gap-3 max-w-2xl mx-auto">
+        <div className="cartao p-6 sm:p-10 text-center flex flex-col items-center gap-3 max-w-2xl mx-auto">
           <ClipboardList size={32} className="text-azul/40" />
           <p className="text-azul/70 font-semibold text-lg">
             Nenhuma atividade disponível ainda. Peça pro seu professor

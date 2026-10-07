@@ -13,8 +13,9 @@ import { useAlunoAtual } from "../../controllers/useAlunoAtual";
 export function AlunoLayout() {
   const { aluno, setAluno, carregando } = useAlunoAtual();
 
+  // pb-20 no celular: espaço pra barra de abas fixa no rodapé (ver HeaderAluno)
   return (
-    <div className="min-h-screen bg-bege text-azul font-sans">
+    <div className="min-h-screen bg-bege text-azul font-sans pb-20 sm:pb-0">
       <HeaderAluno aluno={aluno} />
       <Outlet context={{ aluno, setAluno, carregandoAluno: carregando }} />
     </div>

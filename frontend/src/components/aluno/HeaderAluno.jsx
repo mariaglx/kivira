@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LogoKivira } from "../LogoKivira";
 import { BarraProgresso } from "../ui/BarraProgresso";
+import { Avatar } from "../ui/Avatar";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
-import { MapPin, Sparkles, Users, Settings } from "lucide-react";
+import { MapPin, Sparkles, Users, Settings, Star } from "lucide-react";
 
 const ABAS = [
   { to: "/aluno/home", Icone: MapPin, rotulo: "Trilha de Jogos" },
@@ -13,27 +14,10 @@ const ABAS = [
   { to: "/aluno/turmas", Icone: Users, rotulo: "Minha Turma" },
 ];
 
-function AvatarAluno({ aluno, className = "w-10 h-10 text-sm" }) {
-  return (
-    <div
-      className={`${className} rounded-xl bg-coral overflow-hidden flex items-center justify-center font-bold text-branco uppercase ring-2 ring-laranja shrink-0`}
-    >
-      {aluno?.avatar_url ? (
-        <img
-          src={`/avatares/${aluno.avatar_url}`}
-          alt="Seu avatar"
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        (aluno?.apelido || aluno?.nome_completo || "A").charAt(0)
-      )}
-    </div>
-  );
-}
-
-// Cabeçalho fixo das telas do aluno — 3 blocos: logo, abas em pílula (a
-// navegação inteira mora aqui agora, sem uma segunda barra abaixo) e o badge
-// do aluno com XP + dropdown de Ajustes/Sair.
+// Cabeçalho fixo das telas do aluno — 3 blocos: logo, abas em pílula e o
+// badge do aluno com XP + dropdown de Ajustes/Sair. No celular as abas descem
+// pra uma barra fixa no rodapé (ícone + nome), ao alcance do polegar — no topo
+// sobravam só ícones sem nome, difíceis de entender pra criança.
 export function HeaderAluno({ aluno }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
@@ -54,30 +38,41 @@ export function HeaderAluno({ aluno }) {
         <LogoKivira className="h-9 w-auto" />
       </Link>
 
-      <nav className="flex items-center gap-1.5 overflow-x-auto">
+      <nav className="fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 gap-1 bg-branco border-t-2 border-laranja/30 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:static sm:flex sm:items-center sm:gap-1.5 sm:border-0 sm:p-0 sm:bg-transparent">
         {ABAS.map(({ to, Icone, rotulo }) => (
           <NavLink
             key={to}
             to={to}
+            aria-label={rotulo}
             className={({ isActive }) =>
-              `shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              `shrink-0 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] sm:text-sm font-bold transition-colors ${
                 isActive
                   ? "bg-coral text-branco"
-                  : "bg-bege/70 text-azul/60 hover:bg-bege"
+                  : "text-azul/60 hover:bg-bege sm:bg-bege/70"
               }`
             }
           >
-            <Icone size={18} />
-            <span className="hidden sm:inline">{rotulo}</span>
+            <Icone size={20} />
+            <span className="sm:hidden lg:inline">{rotulo}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="flex items-center gap-4 shrink-0">
-        <div className="hidden md:flex flex-col w-32">
-          <span className="text-[11px] font-bold text-coral leading-tight">
-            Nível {aluno?.nivel_atual}
-          </span>
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {/* Celular: só a medalha de nível, legível de relance (a barra de XP
+            completa, com o "faltam X XP", está no card da Home). Tablet/desktop:
+            nível + barra + XP por extenso */}
+        <span className="sm:hidden inline-flex items-center gap-1 rounded-full bg-ouro-bg text-ouro-fg px-3 py-1.5 text-sm font-black">
+          <Star size={16} className="fill-current" />
+          Nível {aluno?.nivel_atual}
+        </span>
+        <div className="hidden sm:flex flex-col gap-1 w-36">
+          <div className="flex items-baseline justify-between text-[11px] font-bold leading-tight">
+            <span className="text-coral">Nível {aluno?.nivel_atual}</span>
+            <span className="text-azul/50">
+              {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP
+            </span>
+          </div>
           <BarraProgresso
             valor={xpNoNivel(aluno?.xp_total)}
             max={XP_POR_NIVEL}
@@ -91,7 +86,11 @@ export function HeaderAluno({ aluno }) {
             onClick={() => setMenuAberto((v) => !v)}
             aria-label="Abrir menu do perfil"
           >
-            <AvatarAluno aluno={aluno} />
+            <Avatar
+              arquivo={aluno?.avatar_url}
+              nome={aluno?.apelido || aluno?.nome_completo || "A"}
+              className="w-10 h-10 text-sm rounded-xl ring-2 ring-laranja"
+            />
           </button>
 
           {menuAberto && (

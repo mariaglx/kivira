@@ -1,26 +1,8 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useTurmaAluno } from "../../controllers/useTurmaAluno";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
-
-function Avatar({ arquivo, nome, tamanho = "w-9 h-9", texto = "text-sm" }) {
-  if (arquivo) {
-    return (
-      <img
-        src={`/avatares/${arquivo}`}
-        alt=""
-        className={`${tamanho} rounded-xl object-cover bg-bege shrink-0`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`${tamanho} ${texto} rounded-xl bg-coral text-branco font-extrabold uppercase flex items-center justify-center shrink-0`}
-    >
-      {(nome || "?").charAt(0)}
-    </div>
-  );
-}
+import { Avatar } from "../../components/ui/Avatar";
+import { Carregando } from "../../components/ui/Carregando";
 
 function Campo({ rotulo, children }) {
   return (
@@ -43,11 +25,7 @@ export function TurmaDetalhe() {
   const { turmas: minhasTurmas } = useTurmasAluno();
 
   if (carregandoAluno || carregando) {
-    return (
-      <main className="flex-1 flex items-center justify-center">
-        <p className="text-azul font-bold text-lg">Carregando...</p>
-      </main>
-    );
+    return <Carregando />;
   }
 
   // Ninguém tem XP enquanto as partidas não forem gravadas — nesse caso a lista
@@ -56,7 +34,7 @@ export function TurmaDetalhe() {
 
   return (
     <>
-      <main className="flex-1 min-w-0 p-8 flex flex-col gap-6">
+      <main className="pagina flex flex-col gap-6">
         {minhasTurmas.length > 1 && (
           <header className="flex items-center gap-3">
             <Link
@@ -69,18 +47,18 @@ export function TurmaDetalhe() {
         )}
 
         {erro ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30 max-w-md">
+          <div className="cartao p-6 sm:p-10 text-center max-w-md">
             <p className="text-azul/70 font-semibold text-lg">{erro}</p>
           </div>
         ) : (
           <>
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
               Turma: {turma.nome}
             </h2>
 
-            <div className="flex gap-6 items-start flex-wrap">
+            <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
               {/* COLUNA ESQUERDA — dados da turma */}
-              <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
+              <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0">
                 <Campo rotulo="Nome da turma">{turma.nome}</Campo>
                 <Campo rotulo="Ano escolar">
                   {turma.ano_escolar} · {turma.ano_letivo}
@@ -94,6 +72,7 @@ export function TurmaDetalhe() {
                     <Avatar
                       arquivo={turma.professor_avatar_url}
                       nome={turma.professor_nome}
+                      className="w-9 h-9 text-sm rounded-xl"
                     />
                     <span className="text-sm font-semibold truncate">
                       {turma.professor_nome || "—"}
@@ -109,14 +88,14 @@ export function TurmaDetalhe() {
               </div>
 
               {/* COLUNA DIREITA — os colegas */}
-              <div className="flex-1 min-w-80 bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+              <div className="flex-1 min-w-0 bg-branco rounded-2xl shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between bg-laranja/20 px-4 sm:px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Colegas de turma ({turma.colegas.length})
                   </h3>
                 </div>
 
-                <div className="px-6 py-2">
+                <div className="px-3 sm:px-6 py-2">
                   {turma.colegas.map((colega, indice) => (
                     <div
                       key={colega.aluno_id}
@@ -138,7 +117,7 @@ export function TurmaDetalhe() {
                         </span>
                       )}
 
-                      <Avatar arquivo={colega.avatar_url} nome={colega.nome} />
+                      <Avatar arquivo={colega.avatar_url} nome={colega.nome} className="w-9 h-9 text-sm rounded-xl" />
 
                       <span className="text-sm font-semibold grow min-w-0 truncate">
                         {colega.nome}

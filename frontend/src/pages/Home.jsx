@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks } from "lucide-react";
+import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ArrowRight, LogIn, Smile, GraduationCap } from "lucide-react";
 
 const AVATARES_VITRINE = ["girassol.png", "raposa.png", "gato-marsupial.png", "coelho.png", "fone-de-ouvido.png", "capivara.png"];
 
@@ -133,6 +133,7 @@ export function Home() {
   const [sessionCode, setSessionCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [menuEntrarAberto, setMenuEntrarAberto] = useState(false);
   const navigate = useNavigate();
   const sessionCodeInputRef = useRef(null);
 
@@ -173,22 +174,72 @@ export function Home() {
   return (
     <div className="min-h-screen bg-bege text-azul flex flex-col font-sans overflow-x-hidden relative">
       {/* 1. HEADER */}
-      <header className="w-full max-w-7xl mx-auto px-6 py-6 flex justify-between items-center z-20">
-        <LogoKivira className="h-16 md:h-15 w-auto" />
+      {/* Uma entrada por perfil: aluno (usuário + emojis) e professor (e-mail
+          + senha, com o cadastro logo ao lado). O código de turma continua no
+          card do hero — é por ele que o aluno faz o primeiro acesso. */}
+      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center gap-3 z-20">
+        <LogoKivira className="h-10 sm:h-14 w-auto shrink-0" />
 
-        <div className="flex gap-3 items-center">
+        {/* Tablet/desktop: os dois botões lado a lado */}
+        <nav className="hidden sm:flex gap-3 items-center">
           <Link
-            to="/login"
-            className="btn btn-ghost text-azul hover:bg-branco/50 rounded-full px-5 text-sm font-semibold"
-          >
-            Acesso do Professor
-          </Link>
-          <Link
-            to="/cadastro"
+            to="/login_aluno"
             className="tatil bg-coral text-branco rounded-full px-6 py-2.5 text-sm font-bold"
           >
-            Cadastrar Escola / Professor
+            Sou aluno
           </Link>
+          <Link
+            to="/login"
+            className="tatil bg-azul text-branco rounded-full px-6 py-2.5 text-sm font-bold [--sombra:var(--color-azul-escuro)]"
+          >
+            Sou professor
+          </Link>
+        </nav>
+
+        {/* Celular: um "Entrar" só, que abre a escolha de perfil — dois
+            botões apertados ao lado da logo ficavam pequenos e confusos */}
+        <div className="relative sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMenuEntrarAberto((v) => !v)}
+            aria-expanded={menuEntrarAberto}
+            className="tatil bg-coral text-branco rounded-full pl-5 pr-4 py-2.5 text-sm font-bold inline-flex items-center gap-2"
+          >
+            Entrar
+            <LogIn size={18} />
+          </button>
+
+          {menuEntrarAberto && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuEntrarAberto(false)} />
+              <div className="absolute right-0 top-full mt-2 z-50 w-64 bg-branco rounded-2xl shadow-xl border border-cinza-claro/40 p-2 flex flex-col gap-1">
+                <Link
+                  to="/login_aluno"
+                  className="flex items-center gap-3 rounded-xl p-3 hover:bg-bege/60"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-coral/15 text-coral flex items-center justify-center shrink-0">
+                    <Smile size={22} />
+                  </span>
+                  <span>
+                    <span className="block font-bold text-azul">Sou aluno</span>
+                    <span className="block text-xs text-azul/60">Entrar com meu usuário</span>
+                  </span>
+                </Link>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-3 rounded-xl p-3 hover:bg-bege/60"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-azul/10 text-azul flex items-center justify-center shrink-0">
+                    <GraduationCap size={22} />
+                  </span>
+                  <span>
+                    <span className="block font-bold text-azul">Sou professor</span>
+                    <span className="block text-xs text-azul/60">E-mail e senha</span>
+                  </span>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -210,9 +261,10 @@ export function Home() {
             </p>
 
             {/* CARD DE LOGIN DO ALUNO */}
-            <div className="w-full max-w-md bg-branco p-5 rounded-3xl shadow-xl border border-cinza-claro">
-              <p className="text-xs font-extrabold uppercase tracking-widest text-azul/50 mb-3">
-                Já tem um código? Entre na sua sala
+            <div className="w-full max-w-md bg-branco p-5 sm:p-6 rounded-3xl shadow-xl border border-cinza-claro text-center">
+              <h2 className="text-xl font-black text-azul">Entre na sua sala</h2>
+              <p className="text-sm text-azul/60 font-medium mt-1 mb-4">
+                Digite o código que seu professor passou
               </p>
 
               <form onSubmit={handleJoinSession} className="flex flex-col gap-3">
@@ -220,7 +272,8 @@ export function Home() {
                   <input
                     ref={sessionCodeInputRef}
                     type="text"
-                    placeholder="CÓDIGO DA SESSÃO"
+                    placeholder="EX: AB12CD"
+                    aria-label="Código da turma"
                     value={sessionCode}
                     onChange={(e) => {
                       setSessionCode(e.target.value.toUpperCase());
@@ -249,6 +302,19 @@ export function Home() {
                   {isLoading ? "Validando código..." : "Entrar na Sala 🚀"}
                 </button>
               </form>
+
+              {/* Pergunta e link em linhas próprias no celular: antes a seta
+                  quebrava sozinha pra linha de baixo */}
+              <div className="mt-4 pt-4 border-t border-cinza-claro flex flex-col sm:flex-row items-center justify-center gap-x-1.5 gap-y-1 text-sm font-semibold">
+                <span className="text-azul/60">Já entrou antes?</span>
+                <Link
+                  to="/login_aluno"
+                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral font-bold hover:underline"
+                >
+                  Entrar com meu usuário
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -309,6 +375,21 @@ export function Home() {
                 <p className="text-sm text-azul/70 leading-relaxed font-medium">{texto}</p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
+            <Link
+              to="/cadastro"
+              className="tatil bg-coral text-branco rounded-full px-6 py-3 font-bold"
+            >
+              Criar conta de professor
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-full px-6 py-3 font-bold text-azul border-2 border-azul/20 hover:bg-branco transition-colors"
+            >
+              Já tenho conta
+            </Link>
           </div>
         </div>
       </section>

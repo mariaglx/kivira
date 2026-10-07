@@ -487,7 +487,7 @@ export function CriarAtividade() {
 
   if (carregandoEdicao) {
     return (
-      <main className="flex-1 p-8">
+      <main className="pagina">
         <p className="text-azul/60">Carregando atividade...</p>
       </main>
     );
@@ -544,7 +544,7 @@ export function CriarAtividade() {
   return (
     <>
       {/* 2. ÁREA PRINCIPAL */}
-      <main className="flex-1 p-8 flex flex-col gap-6">
+      <main className="pagina flex flex-col gap-6">
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
@@ -554,8 +554,8 @@ export function CriarAtividade() {
           </Link>
         </header>
 
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight min-w-0 break-words">
             {idAtividadeCriada
               ? `Atividade: ${formData.titulo}`
               : "Nova Atividade"}
@@ -573,9 +573,9 @@ export function CriarAtividade() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-6 items-start">
+        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
           {/* COLUNA ESQUERDA — dados da atividade */}
-          <div className="w-full max-w-sm bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 sticky top-8 mt-7">
+          <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Título
@@ -843,7 +843,7 @@ export function CriarAtividade() {
           </div>
 
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Questões ({questoes.length}{" "}
@@ -995,7 +995,7 @@ export function CriarAtividade() {
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
               ✅
             </div>
@@ -1056,7 +1056,7 @@ export function CriarAtividade() {
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
