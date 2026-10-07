@@ -6,7 +6,7 @@ import { Avatar } from "../ui/Avatar";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
-import { MapPin, Sparkles, Users, Settings } from "lucide-react";
+import { MapPin, Sparkles, Users, Settings, Star } from "lucide-react";
 
 const ABAS = [
   { to: "/aluno/home", Icone: MapPin, rotulo: "Trilha de Jogos" },
@@ -58,11 +58,21 @@ export function HeaderAluno({ aluno }) {
         ))}
       </nav>
 
-      <div className="flex items-center gap-4 shrink-0">
-        <div className="flex flex-col w-24 sm:w-32">
-          <span className="text-[11px] font-bold text-coral leading-tight">
-            Nível {aluno?.nivel_atual}
-          </span>
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {/* Celular: só a medalha de nível, legível de relance (a barra de XP
+            completa, com o "faltam X XP", está no card da Home). Tablet/desktop:
+            nível + barra + XP por extenso */}
+        <span className="sm:hidden inline-flex items-center gap-1 rounded-full bg-ouro-bg text-ouro-fg px-3 py-1.5 text-sm font-black">
+          <Star size={16} className="fill-current" />
+          Nível {aluno?.nivel_atual}
+        </span>
+        <div className="hidden sm:flex flex-col gap-1 w-36">
+          <div className="flex items-baseline justify-between text-[11px] font-bold leading-tight">
+            <span className="text-coral">Nível {aluno?.nivel_atual}</span>
+            <span className="text-azul/50">
+              {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP
+            </span>
+          </div>
           <BarraProgresso
             valor={xpNoNivel(aluno?.xp_total)}
             max={XP_POR_NIVEL}

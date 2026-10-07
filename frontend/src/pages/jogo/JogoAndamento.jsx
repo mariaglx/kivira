@@ -6,6 +6,7 @@ import { LogoKivira } from "../../components/LogoKivira";
 import { calcularGradeMosaico, calcularFatiaMosaico } from "../../utils/mosaico";
 import { apiRequest } from "../../services/api";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
+import { ArrowLeft } from "lucide-react";
 
 const CORES_CONFETE = ["#eb7561", "#eeb37f", "#214a5a", "#3fae7a"];
 const ATRASO_VIRADA_MS = 90; // intervalo entre uma peça e outra na revelação do mosaico
@@ -184,30 +185,40 @@ export function JogoAndamento() {
 
   return (
     <div className="min-h-screen bg-bege text-azul flex flex-col">
-      <header className="sticky top-0 z-30 bg-branco border-b-2 border-laranja/30 px-3 sm:px-4 py-2 flex items-center gap-3">
-        <LogoKivira className="hidden sm:block h-10 w-auto shrink-0" />
-        <Link
-          to={isAluno ? rotaVoltar : `/professor/atividades/${atividadeId}/editar`}
-          className="shrink-0 text-azul/50 hover:text-azul text-sm font-bold"
-        >
-          {isAluno ? "← Voltar" : "← Editar"}
-        </Link>
-        <span className="flex-1 min-w-0 truncate text-center font-bold text-azul">
-          {atividade?.titulo}
-        </span>
-        <div className="w-24 sm:w-48 shrink-0">
-          <BarraProgresso valor={colocadas} max={perguntas.length} segmentos />
-          <div className="text-[11px] sm:text-xs text-azul/60 font-bold mt-1 text-right sm:text-left">
-            {colocadas}/{perguntas.length}
-            <span className="hidden sm:inline"> peças colocadas</span>
-          </div>
+      {/* Duas linhas: em cima "voltar + nome da atividade" (inteiro, sem
+          cortar), embaixo a barra de progresso com o texto por extenso — antes
+          tudo se espremia numa linha só e "0/12" sozinho não dizia nada */}
+      <header className="sticky top-0 z-30 bg-branco border-b-2 border-laranja/30 px-3 sm:px-4 py-2.5 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <Link
+            to={isAluno ? rotaVoltar : `/professor/atividades/${atividadeId}/editar`}
+            aria-label={isAluno ? "Voltar pra trilha" : "Voltar pra edição"}
+            className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-bege text-azul font-bold text-sm hover:bg-laranja-claro transition-colors"
+          >
+            <ArrowLeft size={18} />
+            <span className="hidden sm:inline">{isAluno ? "Voltar" : "Editar"}</span>
+          </Link>
+          <LogoKivira className="hidden lg:block h-9 w-auto shrink-0" />
+          <h1 className="flex-1 min-w-0 font-black text-azul text-base sm:text-lg leading-tight line-clamp-2">
+            {atividade?.titulo}
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <BarraProgresso
+            valor={colocadas}
+            max={perguntas.length}
+            className="flex-1"
+          />
+          <span className="shrink-0 text-xs sm:text-sm font-bold text-azul/70">
+            {colocadas} de {perguntas.length} peças
+          </span>
         </div>
       </header>
 
       {/* Celular/tablet: perguntas → tabuleiro → peças empilhados; desktop
           (lg+): perguntas numa coluna fixa à esquerda, como antes */}
       <div className="flex flex-col lg:flex-row flex-1 gap-4 p-3 sm:p-4 lg:p-6">
-        <aside className="lg:w-80 xl:w-96 shrink-0 bg-branco rounded-3xl p-3 sm:p-4 shadow-sm lg:self-start lg:sticky lg:top-20">
+        <aside className="lg:w-80 xl:w-96 shrink-0 bg-branco rounded-3xl p-3 sm:p-4 shadow-sm lg:self-start lg:sticky lg:top-28">
           <h2 className="faixa-secao mb-3">Perguntas</h2>
           {/* altura limitada fora do desktop pra o tabuleiro não sumir da tela */}
           <ol className="flex flex-col gap-2 max-h-48 sm:max-h-64 overflow-y-auto lg:max-h-[calc(100vh-10rem)]">
