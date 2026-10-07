@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks } from "lucide-react";
+import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ChevronDown, Smile, GraduationCap } from "lucide-react";
 
 const AVATARES_VITRINE = ["girassol.png", "raposa.png", "gato-marsupial.png", "coelho.png", "fone-de-ouvido.png", "capivara.png"];
 
@@ -133,6 +133,7 @@ export function Home() {
   const [sessionCode, setSessionCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [menuEntrarAberto, setMenuEntrarAberto] = useState(false);
   const navigate = useNavigate();
   const sessionCodeInputRef = useRef(null);
 
@@ -179,20 +180,67 @@ export function Home() {
       <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center gap-3 z-20">
         <LogoKivira className="h-10 sm:h-14 w-auto shrink-0" />
 
-        <nav className="flex gap-2 sm:gap-3 items-center">
+        {/* Tablet/desktop: os dois botões lado a lado */}
+        <nav className="hidden sm:flex gap-3 items-center">
           <Link
             to="/login_aluno"
-            className="rounded-full px-3 sm:px-5 py-2.5 text-sm font-bold text-azul bg-branco/70 hover:bg-branco transition-colors"
+            className="tatil bg-coral text-branco rounded-full px-6 py-2.5 text-sm font-bold"
           >
             Sou aluno
           </Link>
           <Link
             to="/login"
-            className="tatil bg-azul text-branco rounded-full px-4 sm:px-6 py-2.5 text-sm font-bold [--sombra:var(--color-azul-escuro)]"
+            className="rounded-full px-6 py-2 text-sm font-bold text-azul border-2 border-azul/20 hover:bg-branco transition-colors"
           >
             Sou professor
           </Link>
         </nav>
+
+        {/* Celular: um "Entrar" só, que abre a escolha de perfil — dois
+            botões apertados ao lado da logo ficavam pequenos e confusos */}
+        <div className="relative sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMenuEntrarAberto((v) => !v)}
+            aria-expanded={menuEntrarAberto}
+            className="tatil bg-coral text-branco rounded-full px-5 py-2.5 text-sm font-bold inline-flex items-center gap-1.5"
+          >
+            Entrar
+            <ChevronDown size={16} className={`transition-transform ${menuEntrarAberto ? "rotate-180" : ""}`} />
+          </button>
+
+          {menuEntrarAberto && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuEntrarAberto(false)} />
+              <div className="absolute right-0 top-full mt-2 z-50 w-64 bg-branco rounded-2xl shadow-xl border border-cinza-claro/40 p-2 flex flex-col gap-1">
+                <Link
+                  to="/login_aluno"
+                  className="flex items-center gap-3 rounded-xl p-3 hover:bg-bege/60"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-coral/15 text-coral flex items-center justify-center shrink-0">
+                    <Smile size={22} />
+                  </span>
+                  <span>
+                    <span className="block font-bold text-azul">Sou aluno</span>
+                    <span className="block text-xs text-azul/60">Entrar com meu usuário</span>
+                  </span>
+                </Link>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-3 rounded-xl p-3 hover:bg-bege/60"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-azul/10 text-azul flex items-center justify-center shrink-0">
+                    <GraduationCap size={22} />
+                  </span>
+                  <span>
+                    <span className="block font-bold text-azul">Sou professor</span>
+                    <span className="block text-xs text-azul/60">E-mail e senha</span>
+                  </span>
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       {/* 2. HERO SECTION */}
