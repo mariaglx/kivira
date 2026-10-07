@@ -2,6 +2,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { useHistoricoAluno } from "../../controllers/useHistoricoAluno";
 import { DIFICULDADE_LABEL, DIFICULDADE_EMOJI } from "../../utils/dificuldade";
 import { Blocks, BookOpen } from "lucide-react";
+import { Carregando } from "../../components/ui/Carregando";
 
 function formatarData(dataIso) {
   return new Date(dataIso).toLocaleDateString("pt-BR", {
@@ -17,23 +18,19 @@ export function Historico() {
   const { sessoes, carregando } = useHistoricoAluno();
 
   if (carregandoAluno || carregando) {
-    return (
-      <main className="flex-1 flex items-center justify-center">
-        <p className="text-azul font-bold text-lg">Carregando...</p>
-      </main>
-    );
+    return <Carregando />;
   }
 
   return (
     <>
-      <main className="flex-1 min-w-0 px-8 py-8 pb-16">
+      <main className="pagina pb-16">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
           Seu histórico
           <BookOpen size={22} />
         </h1>
 
         {sessoes.length === 0 ? (
-          <div className="bg-branco rounded-3xl p-10 text-center shadow-sm border border-cinza-claro/30">
+          <div className="cartao p-6 sm:p-10 text-center">
             <BookOpen size={40} className="mx-auto mb-3 text-azul/40" />
             <p className="text-azul/70 font-semibold text-lg">
               Ainda não dá pra ver as partidas antigas.

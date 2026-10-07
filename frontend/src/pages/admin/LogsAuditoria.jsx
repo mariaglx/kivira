@@ -55,7 +55,7 @@ export function LogsAuditoria() {
   }, [papel, acao, entidade]);
 
   return (
-    <main className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
+    <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">Logs de auditoria</h2>
         <p className="text-sm text-azul/50">
@@ -64,7 +64,7 @@ export function LogsAuditoria() {
       </header>
 
       <div className="flex flex-wrap gap-4 items-end">
-        <div className="w-full max-w-[220px]">
+        <div className="w-full sm:max-w-[220px]">
           <SelectCustom
             name="papel"
             value={papel}

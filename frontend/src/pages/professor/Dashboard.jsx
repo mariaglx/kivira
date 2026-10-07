@@ -47,27 +47,27 @@ export function Dashboard() {
   return (
     <>
       {/* Conteúdo Principal */}
-      <main className="flex-1 px-10 py-3 overflow-y-auto">
+      <main className="pagina">
         {/* Cabeçalho */}
-        <div className="flex justify-between items-start mt-5 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 justify-between items-start mb-8">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
               Dashboard
             </h1>
-            <h2 className="text-3xl font-extrabold text-azul mt-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
               Bom dia, {dados.professor.nome}!
             </h2>
             <p className="text-azul/70 text-sm mt-1">
               Veja o resumo das suas turmas e atividades
             </p>
           </div>
-          <div className="bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
+          <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
             {dataHoje}
           </div>
         </div>
 
         {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <div className="bg-branco p-6 rounded-2xl shadow-sm border border-cinza-claro">
             <div className="w-10 h-1.5 bg-coral rounded-full mb-3"></div>
             <p className="text-4xl font-extrabold text-azul">

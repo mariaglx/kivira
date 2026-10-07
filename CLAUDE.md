@@ -59,12 +59,12 @@ Code comments and identifiers throughout the backend are in Portuguese — match
 
 - `pages/` — route-level screens, grouped by area: `auth/` (Login, LoginAluno, LoginEmoji, Cadastro), `professor/` (Dashboard, Turmas, Atividades, CriarAtividade), `aluno/`, `admin/`, `jogo/` (JogoAndamento — the student game board)
 - `controllers/` — custom hooks holding page-level state/logic (e.g. `useCriarAtividade.js`, `useJogo.js`), kept separate from the presentational `pages/` components
-- `components/ui/` — shared presentational primitives (`Button`, `Input`, `SelectCustom`, `BordaLateral`)
+- `components/ui/` — shared presentational primitives (`Button`, `Input`, `SelectCustom`, `BarraProgresso`, `Avatar`, `Carregando`); `components/SidebarPainel.jsx` is the responsive menu shared by `ProfessorLayout` and `AdminLayout` (fixed column on `lg+`, top bar + drawer below)
 - `services/api.js` — single `apiRequest(endpoint, { method, data, headers })` wrapper around `fetch`; auto-attaches `Authorization: Bearer <token>` from `localStorage.access_token`, JSON-encodes plain objects, passes `FormData` through untouched, and throws using FastAPI's `detail` field on non-OK responses, and on a 401 (outside `/auth_kivira/*`) clears the session and redirects to login. Use this for all backend calls instead of calling `fetch` directly.
 - `services/sessao.js` — `salvarSessao` / `limparSessao`, the only place that touches `access_token`/`refresh_token`/`user_type` in `localStorage`.
 - Routing is centralized in `App.jsx` via `react-router-dom` `<Routes>`; `components/RequireRole.jsx` guards `/professor/*`, `/admin/*`, `/aluno/*` and `/jogo` by the `user_type` stored at login (the backend remains the real authorization).
 
-Styling: Tailwind CSS v4 (via `@tailwindcss/vite` plugin) + daisyUI; `animate.css` for transition/feedback animations (e.g. the board's `flipInY` card-reveal effect). Icons via Font Awesome (`@fortawesome/react-fontawesome`).
+Design system (tokens, component classes like `.pagina`/`.cartao`/`.tatil`, responsive rules) is documented in `frontend/DESIGN_SYSTEM.md` — read it before building UI. Styling: Tailwind CSS v4 (via `@tailwindcss/vite` plugin) + daisyUI; `animate.css` for transition/feedback animations (e.g. the board's `flipInY` card-reveal effect). Icons via Font Awesome (`@fortawesome/react-fontawesome`).
 
 ## Naming Conventions (from CONTRIBUTING.md)
 

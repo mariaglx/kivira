@@ -142,7 +142,7 @@ export function Configuracoes() {
 
   if (carregando || !professor) {
     return (
-      <main className="flex-1 p-8">
+      <main className="pagina">
         <p className="text-azul/60">Carregando...</p>
       </main>
     );
@@ -150,13 +150,13 @@ export function Configuracoes() {
 
   return (
     <>
-      <main className="flex-1 p-8 flex flex-col gap-8">
-        <header className="flex justify-between items-start">
+      <main className="pagina flex flex-col gap-6 lg:gap-8">
+        <header className="flex flex-wrap justify-between items-start gap-3">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
               Configurações
             </h1>
-            <h2 className="text-3xl font-extrabold text-azul mt-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
               Configurações, {professor.apelido || professor.nome_completo}
             </h2>
             <p className="text-azul/70 text-sm mt-1">
@@ -164,7 +164,7 @@ export function Configuracoes() {
             </p>
           </div>
 
-          <div className="bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
+          <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
             {dataHoje}
           </div>
         </header>
