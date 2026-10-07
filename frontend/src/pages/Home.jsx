@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ChevronDown, Smile, GraduationCap } from "lucide-react";
+import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ArrowRight, LogIn, Smile, GraduationCap } from "lucide-react";
 
 const AVATARES_VITRINE = ["girassol.png", "raposa.png", "gato-marsupial.png", "coelho.png", "fone-de-ouvido.png", "capivara.png"];
 
@@ -203,10 +203,10 @@ export function Home() {
             type="button"
             onClick={() => setMenuEntrarAberto((v) => !v)}
             aria-expanded={menuEntrarAberto}
-            className="tatil bg-coral text-branco rounded-full px-5 py-2.5 text-sm font-bold inline-flex items-center gap-1.5"
+            className="tatil bg-coral text-branco rounded-full pl-4 pr-5 py-2.5 text-sm font-bold inline-flex items-center gap-2"
           >
+            <LogIn size={18} />
             Entrar
-            <ChevronDown size={16} className={`transition-transform ${menuEntrarAberto ? "rotate-180" : ""}`} />
           </button>
 
           {menuEntrarAberto && (
@@ -261,9 +261,10 @@ export function Home() {
             </p>
 
             {/* CARD DE LOGIN DO ALUNO */}
-            <div className="w-full max-w-md bg-branco p-5 rounded-3xl shadow-xl border border-cinza-claro">
-              <p className="text-xs font-extrabold uppercase tracking-widest text-azul/50 mb-3">
-                Já tem um código? Entre na sua sala
+            <div className="w-full max-w-md bg-branco p-5 sm:p-6 rounded-3xl shadow-xl border border-cinza-claro text-center">
+              <h2 className="text-xl font-black text-azul">Entre na sua sala</h2>
+              <p className="text-sm text-azul/60 font-medium mt-1 mb-4">
+                Digite o código que seu professor passou
               </p>
 
               <form onSubmit={handleJoinSession} className="flex flex-col gap-3">
@@ -271,7 +272,8 @@ export function Home() {
                   <input
                     ref={sessionCodeInputRef}
                     type="text"
-                    placeholder="CÓDIGO DA SESSÃO"
+                    placeholder="EX: AB12CD"
+                    aria-label="Código da turma"
                     value={sessionCode}
                     onChange={(e) => {
                       setSessionCode(e.target.value.toUpperCase());
@@ -301,12 +303,18 @@ export function Home() {
                 </button>
               </form>
 
-              <p className="mt-4 pt-4 border-t border-cinza-claro text-center text-sm text-azul/70 font-semibold">
-                Já entrou antes?{" "}
-                <Link to="/login_aluno" className="text-coral font-bold hover:underline">
-                  Entrar com meu usuário →
+              {/* Pergunta e link em linhas próprias no celular: antes a seta
+                  quebrava sozinha pra linha de baixo */}
+              <div className="mt-4 pt-4 border-t border-cinza-claro flex flex-col sm:flex-row items-center justify-center gap-x-1.5 gap-y-1 text-sm font-semibold">
+                <span className="text-azul/60">Já entrou antes?</span>
+                <Link
+                  to="/login_aluno"
+                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral font-bold hover:underline"
+                >
+                  Entrar com meu usuário
+                  <ArrowRight size={16} />
                 </Link>
-              </p>
+              </div>
             </div>
           </div>
 
