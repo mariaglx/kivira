@@ -34,9 +34,7 @@ export function HeaderAluno({ aluno }) {
 
   return (
     <header className="sticky top-0 z-30 bg-branco border-b-2 border-laranja/30 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
-      <Link to="/aluno/home" className="shrink-0">
-        <LogoKivira className="h-9 w-auto" />
-      </Link>
+      <LogoKivira className="h-9 w-auto" />
 
       <nav className="fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 gap-1 bg-branco border-t-2 border-laranja/30 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:static sm:flex sm:items-center sm:gap-1.5 sm:border-0 sm:p-0 sm:bg-transparent">
         {ABAS.map(({ to, Icone, rotulo }) => (

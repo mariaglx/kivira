@@ -13,7 +13,7 @@ export function Conquistas() {
       </h1>
 
       <div className="cartao p-6 sm:p-10 text-center">
-        <span className="text-5xl block mb-3">🏅</span>
+        <span className="text-5xl block mb-3 animate__animated animate__bounceIn">🏅</span>
         <p className="text-azul/70 font-semibold text-lg">
           Suas primeiras conquistas aparecem aqui em breve!
         </p>

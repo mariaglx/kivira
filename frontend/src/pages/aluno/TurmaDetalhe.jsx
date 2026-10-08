@@ -3,6 +3,7 @@ import { useTurmaAluno } from "../../controllers/useTurmaAluno";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 import { Avatar } from "../../components/ui/Avatar";
 import { Carregando } from "../../components/ui/Carregando";
+import { Lista, Item } from "../../components/ui/Animacao";
 
 function Campo({ rotulo, children }) {
   return (
@@ -95,9 +96,9 @@ export function TurmaDetalhe() {
                   </h3>
                 </div>
 
-                <div className="px-3 sm:px-6 py-2">
+                <Lista className="px-3 sm:px-6 py-2">
                   {turma.colegas.map((colega, indice) => (
-                    <div
+                    <Item
                       key={colega.aluno_id}
                       className={`flex items-center gap-3 py-2.5 border-b border-cinza-claro last:border-0 ${
                         colega.sou_eu ? "bg-coral/10 rounded-xl px-2 ring-2 ring-coral/30" : ""
@@ -136,9 +137,9 @@ export function TurmaDetalhe() {
                       >
                         {colega.xp_total} XP
                       </span>
-                    </div>
+                    </Item>
                   ))}
-                </div>
+                </Lista>
               </div>
             </div>
           </>
