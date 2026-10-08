@@ -14,7 +14,7 @@ class GerarQuestoesSchema(BaseModel):
     titulo: str
     dificuldade: str = "facil"
     descricao: Optional[str] = None
-    quantidade_total: int = Field(gt=0, le=50)
+    quantidade_total: int = Field(gt=0, le=24)
     questoes_existentes: list[QuestaoExistenteSchema] = []
 
 
