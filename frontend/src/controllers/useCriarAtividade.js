@@ -104,7 +104,7 @@ export function useCriarAtividade() {
   const [gerandoIA, setGerandoIA] = useState(false);
   const [erroIA, setErroIA] = useState(null);
 
-  // Chama a IA (Ollama/llama3) só para preencher os blocos ainda vazios, respeitando
+  // Chama a IA (Gemini) só para preencher os blocos ainda vazios, respeitando
   // o que o professor já escreveu manualmente como padrão/contexto
   const gerarQuestoesComIA = async () => {
     setErroIA(null);
@@ -121,12 +121,17 @@ export function useCriarAtividade() {
       return;
     }
 
+    if (!formData.titulo.trim() && !formData.disciplina.trim()) {
+      setErroIA("Preencha o título ou a disciplina para a IA saber o tema.");
+      return;
+    }
+
     setGerandoIA(true);
     try {
       const resposta = await apiRequest("/ia/gerar_questoes", {
         method: "POST",
         data: {
-          serie_ano: formData.serie_ano,
+          serie_ano: formData.serie_ano || null,
           disciplina: formData.disciplina,
           titulo: formData.titulo,
           dificuldade: formData.dificuldade,

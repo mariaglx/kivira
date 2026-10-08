@@ -844,18 +844,18 @@ export function CriarAtividade() {
 
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Questões ({questoes.length}{" "}
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
                 <button
                   type="button"
                   onClick={gerarQuestoesComIA}
                   disabled={gerandoIA}
-                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center gap-2"
+                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center gap-2"
                 >
                   {gerandoIA ? (
                     <>

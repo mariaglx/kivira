@@ -9,12 +9,12 @@ class QuestaoExistenteSchema(BaseModel):
 
 
 class GerarQuestoesSchema(BaseModel):
-    serie_ano: str
+    serie_ano: Optional[str] = None
     disciplina: str
     titulo: str
     dificuldade: str = "facil"
     descricao: Optional[str] = None
-    quantidade_total: int = Field(gt=0, le=24)
+    quantidade_total: int = Field(gt=0, le=50)
     questoes_existentes: list[QuestaoExistenteSchema] = []
 
 

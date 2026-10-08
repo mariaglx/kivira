@@ -5,6 +5,7 @@
 # em desenvolvimento local.
 
 import json
+import logging
 import httpx
 from google import genai
 from google.genai import types
@@ -13,6 +14,7 @@ from fastapi import HTTPException
 from core.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT_SEG
 from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA
 
+logger = logging.getLogger(__name__)
 _client: genai.Client | None = None
 
 
@@ -45,11 +47,12 @@ def montar_prompt_sistema() -> str:
 
 def montar_prompt_usuario(dados: GerarQuestoesSchema, quantidade_faltante: int) -> str:
     linhas = [
-        f"Série/ano dos alunos: {dados.serie_ano}",
         f"Disciplina: {dados.disciplina}",
         f"Título da atividade: {dados.titulo}",
         f"Dificuldade: {dados.dificuldade}",
     ]
+    if dados.serie_ano and dados.serie_ano.strip():
+        linhas.insert(0, f"Série/ano dos alunos: {dados.serie_ano}")
     if dados.descricao:
         linhas.append(f"Instrução adicional do professor: {dados.descricao}")
 
@@ -108,7 +111,14 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
         # Falha de rede/timeout ao tentar alcançar a API do Gemini (não chega
         # a virar APIError porque nem retorna uma resposta HTTP completa).
         raise HTTPException(status_code=503, detail="Não foi possível conectar à API do Gemini. Tente novamente.")
-    except (APIError, UnknownApiResponseError):
+    except APIError as erro:
+        logger.error("Gemini APIError %s: %s", erro.code, erro.message)
+        if erro.code == 429:
+            raise HTTPException(status_code=429, detail="Limite de uso da IA atingido. Aguarde um minuto e tente de novo.")
+        if erro.code in (400, 401, 403, 404):
+            raise HTTPException(status_code=503, detail="A IA está mal configurada no servidor (chave ou modelo do Gemini inválidos).")
+        raise HTTPException(status_code=502, detail="O Gemini retornou um erro ao gerar as questões.")
+    except UnknownApiResponseError:
         raise HTTPException(status_code=502, detail="O Gemini retornou um erro ao gerar as questões.")
 
     dados_json = extrair_json_da_resposta(resposta.text or "")
