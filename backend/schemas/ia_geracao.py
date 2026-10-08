@@ -9,7 +9,7 @@ class QuestaoExistenteSchema(BaseModel):
 
 
 class GerarQuestoesSchema(BaseModel):
-    serie_ano: Optional[str] = None
+    turma_id: int  # a série/ano vem da turma (ano_escolar), buscada no banco pela rota
     disciplina: str
     titulo: str
     dificuldade: str = "facil"
@@ -22,6 +22,11 @@ class GerarQuestoesSchema(BaseModel):
 class PerguntaRespostaIA(BaseModel):
     texto_questao: str
     resposta_certa: str
+
+
+# Formato que o Gemini é forçado a seguir (response_schema)
+class RespostaGeminiSchema(BaseModel):
+    questoes: list[PerguntaRespostaIA]
 
 
 class GerarQuestoesResponse(BaseModel):

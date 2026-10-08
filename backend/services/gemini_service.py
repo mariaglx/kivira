@@ -12,7 +12,7 @@ from google.genai import types
 from google.genai.errors import APIError, UnknownApiResponseError
 from fastapi import HTTPException
 from core.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT_SEG
-from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA
+from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA, RespostaGeminiSchema
 
 logger = logging.getLogger(__name__)
 _client: genai.Client | None = None
@@ -45,14 +45,13 @@ def montar_prompt_sistema() -> str:
     )
 
 
-def montar_prompt_usuario(dados: GerarQuestoesSchema, quantidade_faltante: int) -> str:
+def montar_prompt_usuario(dados: GerarQuestoesSchema, serie_ano: str, quantidade_faltante: int) -> str:
     linhas = [
+        f"Série/ano dos alunos: {serie_ano}",
         f"Disciplina: {dados.disciplina}",
         f"Título da atividade: {dados.titulo}",
         f"Dificuldade: {dados.dificuldade}",
     ]
-    if dados.serie_ano and dados.serie_ano.strip():
-        linhas.insert(0, f"Série/ano dos alunos: {dados.serie_ano}")
     if dados.descricao:
         linhas.append(f"Instrução adicional do professor: {dados.descricao}")
 
@@ -85,7 +84,7 @@ def extrair_json_da_resposta(texto_resposta: str) -> dict:
         )
 
 
-async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaRespostaIA]:
+async def gerar_questoes_com_ia(dados: GerarQuestoesSchema, serie_ano: str) -> list[PerguntaRespostaIA]:
     quantidade_faltante = dados.quantidade_total - len(dados.questoes_existentes)
     if quantidade_faltante <= 0:
         return []
@@ -94,6 +93,7 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
     config = types.GenerateContentConfig(
         system_instruction=montar_prompt_sistema(),
         response_mime_type="application/json",
+        response_schema=RespostaGeminiSchema,  # garante {"questoes": [...]} no formato certo
         # Não usamos tools/function calling aqui — desliga o AFC pra evitar o
         # warning "Direct use of automatic function calling (AFC) in
         # AsyncModels.generate_content is not recommended" que o SDK loga por
@@ -104,7 +104,7 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
     try:
         resposta = await client.aio.models.generate_content(
             model=GEMINI_MODEL,
-            contents=montar_prompt_usuario(dados, quantidade_faltante),
+            contents=montar_prompt_usuario(dados, serie_ano, quantidade_faltante),
             config=config,
         )
     except httpx.HTTPError:

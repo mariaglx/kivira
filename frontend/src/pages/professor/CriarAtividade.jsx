@@ -779,23 +779,6 @@ export function CriarAtividade() {
               <>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
-                    Série/Ano
-                  </label>
-                  <input
-                    type="text"
-                    name="serie_ano"
-                    value={formData.serie_ano}
-                    onChange={handleChange}
-                    placeholder="Ex: 3º ano do Ensino Fundamental"
-                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
-                  />
-                  <p className="text-[11px] text-azul/40">
-                    Usado apenas como contexto para a geração por IA.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                     Descrição
                   </label>
                   <textarea

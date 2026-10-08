@@ -15,7 +15,6 @@ export function useCriarAtividade() {
     imagem_atividade_url: "",
     quantidade_blocos: 12,
     tempo_limite_seg: "",
-    serie_ano: "", // usado só como contexto pra IA, não é persistido na atividade
   });
 
   // Uma questão por bloco — a lista sempre tem o mesmo tamanho de formData.quantidade_blocos
@@ -121,6 +120,11 @@ export function useCriarAtividade() {
       return;
     }
 
+    if (!formData.turma_id) {
+      setErroIA("Selecione a turma para a IA saber a série dos alunos.");
+      return;
+    }
+
     if (!formData.titulo.trim() && !formData.disciplina.trim()) {
       setErroIA("Preencha o título ou a disciplina para a IA saber o tema.");
       return;
@@ -131,7 +135,7 @@ export function useCriarAtividade() {
       const resposta = await apiRequest("/ia/gerar_questoes", {
         method: "POST",
         data: {
-          serie_ano: formData.serie_ano || null,
+          turma_id: Number(formData.turma_id),
           disciplina: formData.disciplina,
           titulo: formData.titulo,
           dificuldade: formData.dificuldade,
