@@ -3,6 +3,7 @@ import { useHistoricoAluno } from "../../controllers/useHistoricoAluno";
 import { DIFICULDADE_LABEL, DIFICULDADE_EMOJI } from "../../utils/dificuldade";
 import { Blocks, BookOpen } from "lucide-react";
 import { Carregando } from "../../components/ui/Carregando";
+import { Lista, Item } from "../../components/ui/Animacao";
 
 function formatarData(dataIso) {
   return new Date(dataIso).toLocaleDateString("pt-BR", {
@@ -48,9 +49,9 @@ export function Historico() {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <Lista className="flex flex-col gap-3">
             {sessoes.map((sessao) => (
-              <div
+              <Item
                 key={sessao.id}
                 className="bg-branco rounded-2xl p-4 shadow-sm border border-cinza-claro/30 flex items-center gap-4"
               >
@@ -76,9 +77,9 @@ export function Historico() {
                 <span className="shrink-0 bg-verde/15 text-verde font-black text-sm px-3 py-1.5 rounded-xl">
                   +{sessao.xp_ganho} XP
                 </span>
-              </div>
+              </Item>
             ))}
-          </div>
+          </Lista>
         )}
       </main>
     </>

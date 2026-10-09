@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { apiRequest } from "../../services/api";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Carregando } from "../../components/ui/Carregando";
+import { Lista, Item, Modal } from "../../components/ui/Animacao";
 
 const TIPO_LABEL = {
   multipla_escolha: "Múltipla escolha",
@@ -95,36 +99,31 @@ export function Atividades() {
             <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
               {dataHoje}
             </div>
-            <Link
-              to="/professor/atividades/criar"
-              className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-5 py-2 font-bold text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-            >
+            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 text-sm">
               + Nova Atividade
-            </Link>
+            </Button>
           </div>
         </header>
 
-        <div className="relative w-full max-w-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
-            <Search size={16} />
-          </span>
-          <input
-            type="text"
+        <div className="w-full max-w-sm">
+          <Input
+            icone={Search}
             placeholder="Buscar atividade..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+            className="py-2.5 text-sm bg-branco shadow-sm"
           />
         </div>
 
         {carregando ? (
-          <p className="text-azul/60">Carregando atividades...</p>
+          <Carregando embutido texto="Carregando atividades..." />
         ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {atividadesFiltradas.map((atividade) => (
-            <div
+            <Item
               key={atividade.id}
-              className="bg-branco rounded-2xl p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 justify-between relative hover:shadow-md hover:-translate-y-0.5 transition-all"
+              elevar
+              className="cartao rounded-2xl p-6 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -186,38 +185,39 @@ export function Atividades() {
               </div>
 
               <div className="flex gap-2 w-full">
-                <button
-                  onClick={() => abrirModalQuestoes(atividade.id)}
-                  className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case shadow-sm transition-all active:scale-95"
-                >
+                <Button tamanho="sm" onClick={() => abrirModalQuestoes(atividade.id)} className="flex-1">
                   Ver questões
-                </button>
-                <button
+                </Button>
+                <Button
+                  tamanho="sm"
+                  variante="contorno"
                   onClick={() => navigate(`/professor/atividades/${atividade.id}/editar`)}
-                  className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl flex-1 py-2 h-auto min-h-0 text-xs font-bold normal-case transition-all active:scale-95"
+                  className="flex-1"
                 >
                   Editar
-                </button>
+                </Button>
               </div>
-            </div>
+            </Item>
           ))}
 
-          <Link
-            to="/professor/atividades/criar"
-            className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-95"
-          >
-            <span className="text-3xl text-coral font-bold">+</span>
-            <span className="text-sm font-bold text-coral/80">
-              Criar nova atividade
-            </span>
-          </Link>
-        </div>
+          <Item elevar className="flex">
+            <Link
+              to="/professor/atividades/criar"
+              className="flex-1 bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
+            >
+              <span className="text-3xl text-coral font-bold">+</span>
+              <span className="text-sm font-bold text-coral/80">
+                Criar nova atividade
+              </span>
+            </Link>
+          </Item>
+        </Lista>
         )}
       </main>
 
-      {modalQuestoes && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-azul/40 px-4">
-          <div className="bg-branco rounded-3xl shadow-lg max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto">
+      <Modal aberto={!!modalQuestoes} onFechar={() => setModalQuestoes(null)} className="max-w-lg max-h-[85vh] overflow-y-auto">
+        {modalQuestoes && (
+          <>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="font-extrabold text-azul">Questões</p>
@@ -225,14 +225,14 @@ export function Atividades() {
                   <p className="text-xs text-azul/50">{modalQuestoes.titulo}</p>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                variante="fantasma"
+                tamanho="icone"
                 aria-label="Fechar"
                 onClick={() => setModalQuestoes(null)}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
               >
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             {carregandoQuestoes && (
@@ -285,9 +285,9 @@ export function Atividades() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </>
   );
 }

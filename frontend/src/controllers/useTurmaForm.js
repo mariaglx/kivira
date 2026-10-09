@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { comemorar } from "../utils/comemorar";
 
 // O backend devolve as listas na ordem de criação, mas a professora procura
 // por nome. Ordena sempre pelo mesmo texto que aparece na tela, e com
@@ -162,11 +163,13 @@ export function useTurmaForm() {
         // "original", então os botões somem sozinhos — é esse o aviso de que
         // salvou, sem precisar de modal.
         setDadosOriginais(formData);
+        comemorar();
       } else {
         const resposta = await apiRequest("/turma/criar", {
           method: "POST",
           data: corpo,
         });
+        comemorar();
         navigate(resposta.id ? `/professor/turmas/${resposta.id}/editar` : "/professor/turmas");
       }
     } catch (err) {

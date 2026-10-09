@@ -1,4 +1,5 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import { MotionConfig, motion } from "motion/react";
 import { HeaderAluno } from "./HeaderAluno";
 import { useAlunoAtual } from "../../controllers/useAlunoAtual";
 
@@ -12,12 +13,23 @@ import { useAlunoAtual } from "../../controllers/useAlunoAtual";
 // sem Header (mesmo estilo do Login/PrimeiroAcesso).
 export function AlunoLayout() {
   const { aluno, setAluno, carregando } = useAlunoAtual();
+  const { pathname } = useLocation();
 
   // pb-20 no celular: espaço pra barra de abas fixa no rodapé (ver HeaderAluno)
   return (
-    <div className="min-h-screen bg-bege text-azul font-sans pb-20 sm:pb-0">
-      <HeaderAluno aluno={aluno} />
-      <Outlet context={{ aluno, setAluno, carregandoAluno: carregando }} />
-    </div>
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-bege text-azul font-sans pb-20 sm:pb-0">
+        <HeaderAluno aluno={aluno} />
+        {/* key = rota: cada tela entra com fade + sobe (mais saltitante que a do professor) */}
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 18, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        >
+          <Outlet context={{ aluno, setAluno, carregandoAluno: carregando }} />
+        </motion.div>
+      </div>
+    </MotionConfig>
   );
 }

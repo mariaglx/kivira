@@ -10,3 +10,13 @@ export function salvarSessao({ accessToken, refreshToken, tipo }) {
 export function limparSessao() {
   ["access_token", "refresh_token", "user_type"].forEach((k) => localStorage.removeItem(k));
 }
+
+// Página inicial de quem está logado (o logo das telas leva pra cá); sem sessão, a landing.
+export function paginaInicial() {
+  if (!localStorage.getItem("access_token")) return "/";
+  const tipo = localStorage.getItem("user_type");
+  if (tipo === "admin") return "/admin";
+  if (tipo === "professor") return "/professor";
+  if (tipo === "estudante") return "/aluno/home";
+  return "/";
+}

@@ -3,6 +3,7 @@ import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 import { Users } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
 import { Carregando } from "../../components/ui/Carregando";
+import { Lista, Item } from "../../components/ui/Animacao";
 
 export function Turmas() {
   const { carregandoAluno } = useOutletContext();
@@ -35,12 +36,12 @@ export function Turmas() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {turmas.map((turma) => (
+              <Item key={turma.id} elevar className="flex">
               <Link
-                key={turma.id}
                 to={`/aluno/turmas/${turma.id}`}
-                className="cartao p-5 sm:p-6 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                className="cartao flex-1 p-5 sm:p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
               >
                 <div>
                   <h3 className="text-lg font-extrabold">{turma.nome}</h3>
@@ -64,8 +65,9 @@ export function Turmas() {
                   </div>
                 </div>
               </Link>
+              </Item>
             ))}
-          </div>
+          </Lista>
         )}
       </main>
     </>

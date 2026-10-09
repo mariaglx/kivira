@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
 import { StarIcon } from "../../components/icons/star";
 import { Trash2 } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Carregando } from "../../components/ui/Carregando";
 
 // Modal de "revelar credenciais" — usado pra mostrar a senha nova depois de
 // um reset de senha de aluno (o cadastro em si mostra a credencial numa
@@ -19,18 +22,13 @@ function CredenciaisModal({
   onToggleImpressao,
 }) {
   return (
-    <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
+    <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 animate__animated animate__zoomIn animate__faster">
         <div className="flex items-start justify-between mb-4">
           <p className="font-extrabold text-azul">{titulo}</p>
-          <button
-            type="button"
-            aria-label="Fechar"
-            onClick={onFechar}
-            className="btn btn-ghost btn-sm btn-circle text-azul/60"
-          >
+          <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={onFechar}>
             ×
-          </button>
+          </Button>
         </div>
 
         <p className="text-sm text-azul/60 mb-4">{texto}</p>
@@ -83,13 +81,9 @@ function CredenciaisModal({
           Adicionar à impressão da turma
         </label>
 
-        <button
-          type="button"
-          onClick={onFechar}
-          className="tatil bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm transition-all mt-3 w-full"
-        >
+        <Button onClick={onFechar} className="px-6 py-2.5 text-sm mt-3 w-full">
           Concluir
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -198,9 +192,7 @@ export function TurmaForm() {
 
   if (carregando) {
     return (
-      <main className="pagina">
-        <p className="text-azul/60">Carregando...</p>
-      </main>
+      <Carregando />
     );
   }
 
@@ -226,41 +218,37 @@ export function TurmaForm() {
 
           <div className="flex items-center gap-2 shrink-0">
             {modoEdicao && (
-              <button
-                type="button"
+              <Button
+                variante="fantasma"
+                tamanho="sm"
                 onClick={abrirExclusao}
-                className="btn btn-ghost btn-sm rounded-xl text-vermelho hover:bg-vermelho/10 transition"
+                className="gap-2 text-vermelho hover:bg-vermelho/10"
               >
                 <Trash2 size={16} />
                 Excluir turma
-              </button>
+              </Button>
             )}
 
             {/* Só aparecem quando há alteração pendente nos campos da turma.
                 Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
             {houveAlteracao && (
               <>
-                <button
-                  type="button"
+                <Button
+                  variante="fantasma"
+                  tamanho="sm"
                   disabled={salvando}
                   onClick={() =>
                     modoEdicao ? desfazerAlteracoes() : navigate("/professor/turmas")
                   }
-                  className="btn btn-ghost btn-sm rounded-xl font-bold text-azul/60 hover:bg-azul/5 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Cancelar
-                </button>
+                </Button>
                 {/* form="form-turma" liga o botão ao formulário mesmo estando
                     fora dele — sem isso o submit nativo (e a validação dos
                     campos required) deixaria de funcionar */}
-                <button
-                  type="submit"
-                  form="form-turma"
-                  disabled={salvando}
-                  className="tatil bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-4 py-2 text-sm font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
+                <Button type="submit" form="form-turma" disabled={salvando} className="px-4 py-2 text-sm">
                   {salvando ? "Salvando..." : modoEdicao ? "Salvar alterações" : "Criar turma"}
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -283,14 +271,14 @@ export function TurmaForm() {
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Nome da turma
               </label>
-              <input
+              <Input
                 type="text"
                 name="nome"
                 value={formData.nome}
                 onChange={handleChange}
                 required
                 placeholder="Ex: 3º Ano B"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                className="w-full py-2 text-sm"
               />
             </div>
 
@@ -299,14 +287,14 @@ export function TurmaForm() {
                 <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                   Ano escolar
                 </label>
-                <input
+                <Input
                   type="text"
                   name="ano_escolar"
                   value={formData.ano_escolar}
                   onChange={handleChange}
                   required
                   placeholder="Ex: 3º ano"
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  className="w-full py-2 text-sm"
                 />
               </div>
 
@@ -314,13 +302,13 @@ export function TurmaForm() {
                 <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                   Ano letivo
                 </label>
-                <input
+                <Input
                   type="number"
                   name="ano_letivo"
                   value={formData.ano_letivo}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  className="w-full py-2 text-sm"
                 />
               </div>
             </div>
@@ -395,37 +383,25 @@ export function TurmaForm() {
                   <div className="flex items-center gap-3">
                     {filaImpressao.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={limparFilaImpressao}
-                          className="text-[11px] font-bold text-azul/40 hover:text-azul/70"
-                        >
+                        <Button variante="fantasma" tamanho="sm" onClick={limparFilaImpressao}>
                           Limpar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => window.print()}
-                          className="btn bg-azul/10 hover:bg-azul/20 text-azul border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all active:scale-95"
-                        >
+                        </Button>
+                        <Button variante="contorno" tamanho="sm" onClick={() => window.print()}>
                           Imprimir Turma ({filaImpressao.length})
-                        </button>
+                        </Button>
                       </div>
                     )}
-                    <button
-                      type="button"
+                    <Button
+                      tamanho="sm"
                       onClick={() => setRankingAberto(true)}
-                      className="btn bg-ouro-bg hover:bg-ouro-bg/70 text-ouro-fg-escuro border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all active:scale-95"
+                      className="gap-1 bg-ouro-bg text-ouro-fg-escuro [--sombra:var(--color-ouro-fg)]"
                     >
                       <StarIcon size={13} isAnimated={false} />
                       Ver ranking
-                    </button>
-                    <button
-                      type="button"
-                      onClick={abrirModalAluno}
-                      className="tatil bg-coral hover:bg-coral/90 text-branco border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all"
-                    >
+                    </Button>
+                    <Button tamanho="sm" onClick={abrirModalAluno}>
                       + Adicionar aluno
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className="px-6 py-2">
@@ -493,13 +469,12 @@ export function TurmaForm() {
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Atividades ({atividades.length})
                   </h3>
-                  <button
-                    type="button"
+                  <Button
+                    tamanho="sm"
                     onClick={() => navigate("/professor/atividades/criar", { state: { turmaIdPadrao: id } })}
-                    className="tatil bg-coral hover:bg-coral/90 text-branco border-none rounded-lg px-3 py-1.5 h-auto min-h-0 text-xs font-bold gap-1 transition-all"
                   >
                     + Nova atividade
-                  </button>
+                  </Button>
                 </div>
                 <div className="px-6 py-2">
                   {atividades.length === 0 ? (
@@ -577,18 +552,13 @@ export function TurmaForm() {
       </div>
 
       {modalAlunoAberto && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-start justify-center z-50 px-4 py-12 overflow-y-auto">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-xl w-full p-6">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-start justify-center z-50 px-4 py-12 overflow-y-auto">
+          <div className="bg-branco rounded-3xl shadow-xl max-w-xl w-full p-6 animate__animated animate__zoomIn animate__faster">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Adicionar aluno</p>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={fecharModalAluno}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={fecharModalAluno}>
                 ×
-              </button>
+              </Button>
             </div>
 
             {/* Duas formas de matricular: preencher a lista de linhas (1
@@ -654,13 +624,9 @@ export function TurmaForm() {
                     Anote agora, as senhas não aparecem de novo depois. Todos já foram adicionados à fila de impressão da turma.
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={reiniciarCadastroLote}
-                    className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-6 py-2.5 font-bold text-sm transition-all"
-                  >
+                  <Button variante="contorno" onClick={reiniciarCadastroLote} className="px-6 py-2.5 text-sm">
                     Cadastrar mais alunos
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -695,30 +661,30 @@ export function TurmaForm() {
                       };
                       return (
                         <div key={linha.chave} className="flex gap-2.5 items-center">
-                          <input
+                          <Input
                             ref={ultimaLinha ? refUltimoNome : undefined}
                             type="text"
                             value={linha.nome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "nome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
                             placeholder="Ex: João"
-                            className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                            className="flex-1 min-w-0 py-2 text-sm"
                           />
-                          <input
+                          <Input
                             type="text"
                             value={linha.sobrenome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "sobrenome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
                             placeholder="Ex: Silva"
-                            className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                            className="flex-1 min-w-0 py-2 text-sm"
                           />
-                          <input
+                          <Input
                             type="text"
                             value={linha.matricula}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "matricula", e.target.value)}
                             onKeyDown={aoPressionarEnter}
                             placeholder="Opcional"
-                            className="w-28 shrink-0 px-3 py-2 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                            className="w-28 shrink-0 py-2 text-sm"
                           />
                           <button
                             type="button"
@@ -756,18 +722,17 @@ export function TurmaForm() {
                     </div>
                   )}
 
-                  <button
-                    type="button"
+                  <Button
                     onClick={cadastrarAlunosLote}
                     disabled={cadastrandoLote || itensLote.length === 0}
-                    className="tatil bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-6 py-2.5 font-bold text-sm transition-all disabled:opacity-60"
+                    className="px-6 py-2.5 text-sm"
                   >
                     {cadastrandoLote
                       ? "Cadastrando..."
                       : itensLote.length > 1
                       ? `Cadastrar ${itensLote.length} alunos`
                       : "Cadastrar aluno"}
-                  </button>
+                  </Button>
                 </div>
               )
             )}
@@ -778,13 +743,13 @@ export function TurmaForm() {
                   <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                     Buscar por nome ou matrícula
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={buscaAlunoExistente}
                     onChange={(e) => setBuscaAlunoExistente(e.target.value)}
                     placeholder="Ex: Vinícius, ou 20231045"
                     autoFocus
-                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                    className="w-full py-2 text-sm"
                   />
                 </div>
 
@@ -849,19 +814,20 @@ export function TurmaForm() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
+                      <Button
+                        variante="secundario"
+                        tamanho="sm"
                         onClick={() => matricularAlunoExistente(aluno.id)}
                         disabled={jaNaTurmaAtual || matriculandoAlunoId === aluno.id}
                         title={jaNaTurmaAtual ? "Esse aluno já está nesta turma" : undefined}
-                        className="shrink-0 text-[11px] font-extrabold rounded-lg px-3 py-2 transition-all disabled:cursor-default btn border-none bg-azul hover:bg-azul-escuro text-branco disabled:bg-verde/15 disabled:text-verde disabled:hover:bg-verde/15"
+                        className="shrink-0 disabled:bg-verde/15 disabled:text-verde"
                       >
                         {jaNaTurmaAtual
                           ? "Já nesta turma"
                           : matriculandoAlunoId === aluno.id
                           ? "Adicionando..."
                           : "Adicionar"}
-                      </button>
+                      </Button>
                     </div>
                     );
                   })}
@@ -895,21 +861,16 @@ export function TurmaForm() {
           num card fixo porque é consulta eventual: no dia a dia o professor está
           aqui pra gerenciar alunos/atividades, não pra acompanhar pontuação */}
       {rankingAberto && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-md w-full p-6 animate__animated animate__zoomIn">
             <div className="flex items-start justify-between mb-1">
               <div className="flex items-center gap-2">
                 <StarIcon size={18} isAnimated={false} className="text-ouro-fg-escuro" />
                 <p className="font-extrabold text-azul text-lg">Ranking da turma</p>
               </div>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={() => setRankingAberto(false)}
-                className="btn btn-ghost btn-sm btn-circle text-azul/60"
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setRankingAberto(false)}>
                 ×
-              </button>
+              </Button>
             </div>
 
             {rankingAlunos.length === 0 ? (
@@ -987,7 +948,7 @@ export function TurmaForm() {
       {/* Exclusão da turma. O texto diz o que o banco realmente faz com cada
           dependência, em vez de um aviso genérico de "essa ação é permanente" */}
       {modalExclusaoAberto && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
@@ -1014,22 +975,12 @@ export function TurmaForm() {
             </div>
 
             <div className="flex gap-3 w-full mt-5">
-              <button
-                type="button"
-                onClick={fecharExclusao}
-                disabled={excluindo}
-                className="btn flex-1 bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
-              >
+              <Button variante="contorno" onClick={fecharExclusao} disabled={excluindo} className="flex-1">
                 Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={excluirTurma}
-                disabled={excluindo}
-                className="tatil flex-1 bg-vermelho hover:bg-vermelho/90 text-branco border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed [--sombra:#962c22]"
-              >
+              </Button>
+              <Button variante="perigo" onClick={excluirTurma} disabled={excluindo} className="flex-1">
                 {excluindo ? "Excluindo..." : "Excluir"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1038,7 +989,7 @@ export function TurmaForm() {
       {/* Confirmação de remoção — substitui o window.confirm() nativo, que não
           tinha espaço pra explicar que a conta do aluno não é apagada */}
       {alunoParaRemover && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
               <Trash2 size={28} />
@@ -1059,23 +1010,19 @@ export function TurmaForm() {
             </p>
 
             <div className="flex gap-3 w-full mt-5">
-              <button
-                type="button"
-                onClick={cancelarRemocaoAluno}
-                className="btn flex-1 bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all active:scale-95"
-              >
+              <Button variante="contorno" onClick={cancelarRemocaoAluno} className="flex-1">
                 Cancelar
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variante="perigo"
                 onClick={confirmarRemocaoAluno}
                 disabled={removendoMatriculaId === alunoParaRemover.matricula_id}
-                className="tatil flex-1 bg-red-500 hover:bg-red-500/90 text-branco border-none rounded-xl px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed [--sombra:#b91c1c]"
+                className="flex-1"
               >
                 {removendoMatriculaId === alunoParaRemover.matricula_id
                   ? "Removendo..."
                   : "Remover"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1083,7 +1030,7 @@ export function TurmaForm() {
 
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
@@ -1092,13 +1039,9 @@ export function TurmaForm() {
               Ops, algo deu errado
             </h3>
             <p className="text-sm text-azul/60">{erroAcaoAluno}</p>
-            <button
-              type="button"
-              onClick={fecharErroAcaoAluno}
-              className="btn bg-azul/5 hover:bg-azul/10 text-azul border-none rounded-xl px-6 py-2.5 font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 mt-2"
-            >
+            <Button variante="contorno" onClick={fecharErroAcaoAluno} className="px-6 py-2.5 text-sm mt-2">
               Entendi
-            </button>
+            </Button>
           </div>
         </div>
       )}

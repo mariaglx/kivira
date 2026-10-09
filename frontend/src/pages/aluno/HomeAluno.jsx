@@ -6,6 +6,7 @@ import { TrilhaFases } from "../../components/aluno/TrilhaFases";
 import { MapPin, ClipboardList } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
 import { Carregando } from "../../components/ui/Carregando";
+import { Entrada } from "../../components/ui/Animacao";
 
 export function HomeAluno() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export function HomeAluno() {
 
   return (
     <main className="pagina pb-16">
-      <div className="bg-branco rounded-3xl p-4 sm:p-5 mb-8 flex items-center gap-4 sm:gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
+      <Entrada className="bg-branco rounded-3xl p-4 sm:p-5 mb-8 flex items-center gap-4 sm:gap-5 border-2 border-laranja/40 max-w-2xl mx-auto">
         <Avatar
           arquivo={aluno?.avatar_url}
           nome={aluno?.apelido || aluno?.nome_completo || "A"}
@@ -36,7 +37,7 @@ export function HomeAluno() {
             {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP pro próximo nível
           </p>
         </div>
-      </div>
+      </Entrada>
 
       <h2 className="text-2xl font-black mb-2 flex items-center justify-center gap-2 max-w-2xl mx-auto">
         Sua trilha
