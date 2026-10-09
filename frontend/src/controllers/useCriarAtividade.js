@@ -15,7 +15,6 @@ export function useCriarAtividade() {
     imagem_atividade_url: "",
     quantidade_blocos: 12,
     tempo_limite_seg: "",
-    serie_ano: "", // usado só como contexto pra IA, não é persistido na atividade
   });
 
   // Uma questão por bloco — a lista sempre tem o mesmo tamanho de formData.quantidade_blocos
@@ -30,7 +29,7 @@ export function useCriarAtividade() {
   });
 
   const [questoes, setQuestoes] = useState(
-    Array.from({ length: 12 }, (_, i) => criarQuestaoVazia(i + 1))
+    Array.from({ length: formData.quantidade_blocos }, (_, i) => criarQuestaoVazia(i + 1))
   );
 
   const [questoesParaRemover, setQuestoesParaRemover] = useState([]);
@@ -104,7 +103,7 @@ export function useCriarAtividade() {
   const [gerandoIA, setGerandoIA] = useState(false);
   const [erroIA, setErroIA] = useState(null);
 
-  // Chama a IA (Ollama/llama3) só para preencher os blocos ainda vazios, respeitando
+  // Chama a IA (Gemini) só para preencher os blocos ainda vazios, respeitando
   // o que o professor já escreveu manualmente como padrão/contexto
   const gerarQuestoesComIA = async () => {
     setErroIA(null);
@@ -121,12 +120,22 @@ export function useCriarAtividade() {
       return;
     }
 
+    if (!formData.turma_id) {
+      setErroIA("Selecione a turma para a IA saber a série dos alunos.");
+      return;
+    }
+
+    if (!formData.titulo.trim() && !formData.disciplina.trim()) {
+      setErroIA("Preencha o título ou a disciplina para a IA saber o tema.");
+      return;
+    }
+
     setGerandoIA(true);
     try {
       const resposta = await apiRequest("/ia/gerar_questoes", {
         method: "POST",
         data: {
-          serie_ano: formData.serie_ano,
+          turma_id: Number(formData.turma_id),
           disciplina: formData.disciplina,
           titulo: formData.titulo,
           dificuldade: formData.dificuldade,

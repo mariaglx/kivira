@@ -5,14 +5,16 @@
 # em desenvolvimento local.
 
 import json
+import logging
 import httpx
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError, UnknownApiResponseError
 from fastapi import HTTPException
 from core.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT_SEG
-from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA
+from schemas.ia_geracao import GerarQuestoesSchema, PerguntaRespostaIA, RespostaGeminiSchema
 
+logger = logging.getLogger(__name__)
 _client: genai.Client | None = None
 
 
@@ -43,9 +45,9 @@ def montar_prompt_sistema() -> str:
     )
 
 
-def montar_prompt_usuario(dados: GerarQuestoesSchema, quantidade_faltante: int) -> str:
+def montar_prompt_usuario(dados: GerarQuestoesSchema, serie_ano: str, quantidade_faltante: int) -> str:
     linhas = [
-        f"Série/ano dos alunos: {dados.serie_ano}",
+        f"Série/ano dos alunos: {serie_ano}",
         f"Disciplina: {dados.disciplina}",
         f"Título da atividade: {dados.titulo}",
         f"Dificuldade: {dados.dificuldade}",
@@ -82,7 +84,7 @@ def extrair_json_da_resposta(texto_resposta: str) -> dict:
         )
 
 
-async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaRespostaIA]:
+async def gerar_questoes_com_ia(dados: GerarQuestoesSchema, serie_ano: str) -> list[PerguntaRespostaIA]:
     quantidade_faltante = dados.quantidade_total - len(dados.questoes_existentes)
     if quantidade_faltante <= 0:
         return []
@@ -91,6 +93,7 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
     config = types.GenerateContentConfig(
         system_instruction=montar_prompt_sistema(),
         response_mime_type="application/json",
+        response_schema=RespostaGeminiSchema,  # garante {"questoes": [...]} no formato certo
         # Não usamos tools/function calling aqui — desliga o AFC pra evitar o
         # warning "Direct use of automatic function calling (AFC) in
         # AsyncModels.generate_content is not recommended" que o SDK loga por
@@ -101,14 +104,21 @@ async def gerar_questoes_com_ia(dados: GerarQuestoesSchema) -> list[PerguntaResp
     try:
         resposta = await client.aio.models.generate_content(
             model=GEMINI_MODEL,
-            contents=montar_prompt_usuario(dados, quantidade_faltante),
+            contents=montar_prompt_usuario(dados, serie_ano, quantidade_faltante),
             config=config,
         )
     except httpx.HTTPError:
         # Falha de rede/timeout ao tentar alcançar a API do Gemini (não chega
         # a virar APIError porque nem retorna uma resposta HTTP completa).
         raise HTTPException(status_code=503, detail="Não foi possível conectar à API do Gemini. Tente novamente.")
-    except (APIError, UnknownApiResponseError):
+    except APIError as erro:
+        logger.error("Gemini APIError %s: %s", erro.code, erro.message)
+        if erro.code == 429:
+            raise HTTPException(status_code=429, detail="Limite de uso da IA atingido. Aguarde um minuto e tente de novo.")
+        if erro.code in (400, 401, 403, 404):
+            raise HTTPException(status_code=503, detail="A IA está mal configurada no servidor (chave ou modelo do Gemini inválidos).")
+        raise HTTPException(status_code=502, detail="O Gemini retornou um erro ao gerar as questões.")
+    except UnknownApiResponseError:
         raise HTTPException(status_code=502, detail="O Gemini retornou um erro ao gerar as questões.")
 
     dados_json = extrair_json_da_resposta(resposta.text or "")

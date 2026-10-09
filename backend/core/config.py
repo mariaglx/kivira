@@ -20,7 +20,7 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 OLLAMA_TIMEOUT_SEG = int(os.getenv("OLLAMA_TIMEOUT_SEG", 60))
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # API do Gemini, usada para gerar questões via LLM
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
 GEMINI_TIMEOUT_SEG = int(os.getenv("GEMINI_TIMEOUT_SEG", 60))
 
 # API do Pixabay, usada para buscar imagens na criação de atividade
