@@ -1,7 +1,14 @@
-# Rota/End-point que o Front-end chama para gerar questões de atividade com IA (Gemini).
+# Rota/End-point que o Front-end chama para gerar questões via IA (Gemini ou Ollama).
+import sys
+from pathlib import Path
+# Adiciona a pasta raiz (kivira) ao caminho de buscas do Python
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from backend.dependecies import verificar_token_kivira, pegar_sessao_kivira
 
 from fastapi import APIRouter, Depends, HTTPException
-from dependecies import verificar_token_kivira, pegar_sessao_kivira
 from core.rbac import admin_ou_professor, pode_gerenciar
 from models.turma import Turma
 from schemas.ia_geracao import GerarQuestoesSchema, GerarQuestoesResponse

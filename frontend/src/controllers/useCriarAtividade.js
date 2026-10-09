@@ -29,7 +29,7 @@ export function useCriarAtividade() {
   });
 
   const [questoes, setQuestoes] = useState(
-    Array.from({ length: 12 }, (_, i) => criarQuestaoVazia(i + 1))
+    Array.from({ length: formData.quantidade_blocos }, (_, i) => criarQuestaoVazia(i + 1))
   );
 
   const [questoesParaRemover, setQuestoesParaRemover] = useState([]);
