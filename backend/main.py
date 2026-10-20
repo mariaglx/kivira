@@ -30,6 +30,7 @@ from routes.avatar import avatar_router
 from routes.pixabay import pixabay_router
 from routes.admin import admin_router
 from routes.sessao_jogo import sessao_jogo_router
+from routes.feedback import feedback_router
 # from routes.materia import materia_router
 
 app.include_router(professor_router)
@@ -49,4 +50,5 @@ app.include_router(avatar_router)
 app.include_router(pixabay_router)
 app.include_router(admin_router)
 app.include_router(sessao_jogo_router)
+app.include_router(feedback_router)
 # app.include_router(materia_router)

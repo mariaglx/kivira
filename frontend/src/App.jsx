@@ -21,6 +21,7 @@ const TurmaForm = lazy(() => import("./pages/professor/TurmaForm"));
 const Atividades = lazy(() => import("./pages/professor/Atividades"));
 const CriarAtividade = lazy(() => import("./pages/professor/CriarAtividade"));
 const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
+const Feedback = lazy(() => import("./pages/professor/Feedback"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
 const EscolherAvatar = lazy(() => import("./pages/aluno/EscolherAvatar"));
 const HomeAluno = lazy(() => import("./pages/aluno/HomeAluno"));
@@ -65,6 +66,7 @@ function App() {
             <Route path="/professor/atividades/criar" element={<CriarAtividade />} />
             <Route path="/professor/atividades/:id/editar" element={<CriarAtividade />} />
             <Route path="/professor/configuracoes" element={<Configuracoes />} />
+            <Route path="/professor/feedback" element={<Feedback />} />
           </Route>
         </Route>
 

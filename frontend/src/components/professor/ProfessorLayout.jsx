@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
-import { House, Users, Blocks, Settings } from "lucide-react";
+import { House, Users, Blocks, Settings, MessageSquare } from "lucide-react";
 import { SidebarPainel } from "../SidebarPainel";
 import { useProfessorAtual } from "../../controllers/useProfessorAtual";
 
@@ -10,6 +10,9 @@ const ITENS = [
   { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" },
   { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
 ];
+
+// Entra no fim do menu só enquanto o professor não respondeu o questionário.
+const ITEM_FEEDBACK = { to: "/professor/feedback", Icone: MessageSquare, rotulo: "Feedback" };
 
 // Layout compartilhado pelas rotas /professor/*: o menu monta UMA vez só e
 // continua vivo entre as navegações (em vez de cada página recriá-lo do zero),
@@ -22,12 +25,17 @@ export function ProfessorLayout() {
   const { professor, setProfessor, carregando } = useProfessorAtual();
   const { pathname } = useLocation();
 
+  // A condição é "já sei que não respondeu", não "não respondeu": com professor
+  // ainda null durante o carregamento, a segunda forma mostraria o item e o
+  // tiraria em seguida na cara de quem já respondeu.
+  const itens = professor && !professor.respondeu_feedback ? [...ITENS, ITEM_FEEDBACK] : ITENS;
+
   return (
     <MotionConfig reducedMotion="user">
     <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
       <SidebarPainel
         titulo="Menu"
-        itens={ITENS}
+        itens={itens}
         usuario={{
           nome: professor?.apelido || "Professor(a)",
           avatar: professor?.avatar_url,
