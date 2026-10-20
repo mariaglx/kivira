@@ -108,9 +108,6 @@ export function Feedback() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
             Conte o que você achou
           </h2>
-          <p className="text-azul/70 text-sm mt-1">
-            Cinco perguntas rápidas. Você responde uma vez só.
-          </p>
         </div>
 
         <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
