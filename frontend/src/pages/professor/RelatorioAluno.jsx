@@ -6,7 +6,7 @@ import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
 import { Lista, Item } from "../../components/ui/Animacao";
 import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
-import { useRelatorio } from "../../controllers/useRelatorio";
+import { useApi } from "../../controllers/useApi";
 import { formatarTempo } from "../../utils/tempo";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 
@@ -26,7 +26,7 @@ function Metrica({ rotulo, valor }) {
 export function RelatorioAluno() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { relatorio, erro, carregando } = useRelatorio(`/aluno/${id}/relatorio`);
+  const { dados: relatorio, erro, carregando } = useApi(`/aluno/${id}/relatorio`);
 
   const voltar = (
     <button

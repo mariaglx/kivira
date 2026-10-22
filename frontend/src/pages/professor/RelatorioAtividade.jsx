@@ -3,12 +3,12 @@ import { ArrowLeft } from "lucide-react";
 import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
 import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
-import { useRelatorio } from "../../controllers/useRelatorio";
+import { useApi } from "../../controllers/useApi";
 import { formatarTempo } from "../../utils/tempo";
 
 export function RelatorioAtividade() {
   const { id } = useParams();
-  const { relatorio, erro, carregando } = useRelatorio(`/atividade/${id}/relatorio`);
+  const { dados: relatorio, erro, carregando } = useApi(`/atividade/${id}/relatorio`);
 
   if (carregando) return <Carregando texto="Carregando relatório..." />;
 

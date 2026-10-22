@@ -1,15 +1,24 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
-import { House, Users, Blocks, Settings } from "lucide-react";
+import { House, Users, GraduationCap, Blocks, Settings } from "lucide-react";
 import { SidebarPainel } from "../SidebarPainel";
 import { useProfessorAtual } from "../../controllers/useProfessorAtual";
+import { useApi } from "../../controllers/useApi";
 
-const ITENS = [
-  { to: "/professor", Icone: House, rotulo: "Dashboard", end: true },
-  { to: "/professor/turmas", Icone: Users, rotulo: "Turmas" },
-  { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" },
-  { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
-];
+function montarItens(turmas) {
+  return [
+    { to: "/professor", Icone: House, rotulo: "Dashboard", end: true },
+    { to: "/professor/turmas", Icone: Users, rotulo: "Turmas" },
+    {
+      to: "/professor/alunos",
+      Icone: GraduationCap,
+      rotulo: "Alunos",
+      subitens: turmas.map((t) => ({ to: `/professor/alunos/turma/${t.id}`, rotulo: t.nome })),
+    },
+    { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" },
+    { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
+  ];
+}
 
 // Layout compartilhado pelas rotas /professor/*: o menu monta UMA vez só e
 // continua vivo entre as navegações (em vez de cada página recriá-lo do zero),
@@ -21,13 +30,16 @@ const ITENS = [
 export function ProfessorLayout() {
   const { professor, setProfessor, carregando } = useProfessorAtual();
   const { pathname } = useLocation();
+  // Turmas do submenu "Alunos". Rebusca a cada navegação (sai do cache do
+  // apiRequest) pra turma recém-criada aparecer sem recarregar a página.
+  const { dados: turmas } = useApi("/turma/", pathname);
 
   return (
     <MotionConfig reducedMotion="user">
     <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
       <SidebarPainel
         titulo="Menu"
-        itens={ITENS}
+        itens={montarItens(turmas ?? [])}
         usuario={{
           nome: professor?.apelido || "Professor(a)",
           avatar: professor?.avatar_url,
