@@ -16,9 +16,21 @@ from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
+from services.sessao_jogo_service import nivel_por_xp
+from routes.avatar import nivel_minimo_do_avatar
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
+
+# Aluno só pode escolher bichinho já liberado pro nível dele (ver routes/avatar.py).
+# Quem já usa um avatar que hoje seria bloqueado continua com ele.
+def _validar_avatar_do_aluno(session, arquivo, xp_total):
+    nivel_minimo = nivel_minimo_do_avatar(session, arquivo)
+    if nivel_minimo is None:
+        raise HTTPException(status_code=400, detail="Avatar não encontrado")
+    if nivel_minimo > nivel_por_xp(xp_total):
+        raise HTTPException(status_code=403, detail=f"Esse bichinho é liberado no nível {nivel_minimo}")
+
 
 @aluno_router.get("/")
 def aluno():
@@ -39,7 +51,7 @@ def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = 
         "apelido": aluno.apelido,
         "avatar_url": aluno.avatar_url,
         "xp_total": aluno.xp_total,
-        "nivel_atual": aluno.nivel_atual,
+        "nivel_atual": nivel_por_xp(aluno.xp_total),
         "username": aluno.username,
     }
 
@@ -128,6 +140,8 @@ def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira
         session.add(novo_usuario)
         session.flush()
 
+        if aluno_schema.avatar_url:
+            _validar_avatar_do_aluno(session, aluno_schema.avatar_url, 0)
         novo_aluno = Aluno(aluno_schema.nome_completo, aluno_schema.apelido, aluno_schema.data_nascimento)
         novo_aluno.avatar_url = aluno_schema.avatar_url
         novo_aluno.usuario_id = novo_usuario.id
@@ -163,7 +177,7 @@ def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario:
         "avatar_url": aluno.avatar_url,
         "data_nascimento": aluno.data_nascimento,
         "xp_total": aluno.xp_total,
-        "nivel_atual": aluno.nivel_atual,
+        "nivel_atual": nivel_por_xp(aluno.xp_total),
         "email": usuario_vinculado.email
     }
 
@@ -190,6 +204,8 @@ usuario: Usuario = Depends(verificar_token_kivira)):
         aluno.matricula = aluno_schema.matricula
 
     if aluno_schema.avatar_url is not None:
+        if usuario.tipo != "admin" and aluno_schema.avatar_url and aluno_schema.avatar_url != aluno.avatar_url:
+            _validar_avatar_do_aluno(session, aluno_schema.avatar_url, aluno.xp_total)
         aluno.avatar_url = aluno_schema.avatar_url
 
     if aluno_schema.data_nascimento is not None: 
@@ -593,7 +609,7 @@ def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
             "nome": a.apelido or a.nome_completo,
             "avatar_url": a.avatar_url,
             "xp_total": a.xp_total or 0,
-            "nivel_atual": a.nivel_atual or 1,
+            "nivel_atual": nivel_por_xp(a.xp_total),
             "sou_eu": a.id == aluno.id,
         }
         for a in alunos
@@ -735,7 +751,7 @@ def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
             "matricula": aluno.matricula,
             "avatar_url": aluno.avatar_url,
             "xp_total": aluno.xp_total or 0,
-            "nivel_atual": aluno.nivel_atual or 1,
+            "nivel_atual": nivel_por_xp(aluno.xp_total),
             "turmas": [t.nome for t in turmas],
         },
         "resumo": {

@@ -17,6 +17,7 @@ from core.rbac import admin_ou_professor, pode_gerenciar
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema, ConcluirAtividadeSchema
 from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
+from services.sessao_jogo_service import nivel_por_xp
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, media, porcentagem, SEM_SESSAO
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
@@ -28,10 +29,8 @@ atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencie
 # - XP = soma dos pontos das questões (já existe em Questao.pontos) vezes um
 #   multiplicador de dificuldade, escalado pelas estrelas — perder tempo
 #   corrigindo rende menos que acertar de primeira.
-# XP_POR_NIVEL espelha o mesmo valor do front (ver frontend/src/utils/xp.js);
-# como o cálculo de nível é feito aqui, os dois precisam ficar em sincronia.
+# O nível sai do XP pela curva de services/sessao_jogo_service.py (nivel_por_xp).
 XP_MULTIPLICADOR_DIFICULDADE = {"facil": 1, "medio": 1.5, "dificil": 2}
-XP_POR_NIVEL = 100
 
 def calcular_estrelas(tentativas):
     return max(1, min(3, 4 - tentativas))
@@ -347,10 +346,10 @@ def concluir_atividade(id_atividade: int, dados: ConcluirAtividadeSchema, sessio
 
     estrelas = calcular_estrelas(dados.tentativas)
     xp_ganho = calcular_xp_ganho(pontuacao_base, atividade.dificuldade, estrelas)
-    nivel_antigo = aluno.nivel_atual or 1
+    nivel_antigo = nivel_por_xp(aluno.xp_total)
 
     aluno.xp_total = (aluno.xp_total or 0) + xp_ganho
-    aluno.nivel_atual = aluno.xp_total // XP_POR_NIVEL + 1
+    aluno.nivel_atual = nivel_por_xp(aluno.xp_total)
 
     session.add(SessaoJogo(
         aluno_id=aluno.id,

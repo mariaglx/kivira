@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { AvatarPickerModal } from "../../components/aluno/AvatarPickerModal";
+import { nivelPorXp } from "../../utils/xp";
 import { useConfiguracoesAluno } from "../../controllers/useConfiguracoesAluno";
 import { Settings, Pencil } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
@@ -182,6 +183,7 @@ export function Configuracoes() {
       {modalAvatarAberto && (
         <AvatarPickerModal
           avatarAtual={aluno?.avatar_url}
+          nivelAluno={nivelPorXp(aluno?.xp_total)}
           onFechar={() => setModalAvatarAberto(false)}
           onSalvar={salvarAvatar}
         />

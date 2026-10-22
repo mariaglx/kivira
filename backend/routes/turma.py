@@ -15,6 +15,7 @@ from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
 from services.auditoria_service import registrar_log
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
+from services.sessao_jogo_service import nivel_por_xp
 
 turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -207,7 +208,7 @@ def ranking_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usua
             "nome": a.apelido or a.nome_completo,
             "avatar_url": a.avatar_url,
             "xp_total": a.xp_total or 0,
-            "nivel_atual": a.nivel_atual or 1,
+            "nivel_atual": nivel_por_xp(a.xp_total),
             "atividades_concluidas": concluidas_por_aluno.get(a.id, 0),
         }
         for a in alunos
@@ -347,7 +348,7 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
             "apelido": a.apelido,
             "matricula": a.matricula,
             "avatar_url": a.avatar_url,
-            "nivel_atual": a.nivel_atual or 1,
+            "nivel_atual": nivel_por_xp(a.xp_total),
             "atividades_concluidas": sum(1 for atividade_id in atividade_ids if concluiu(a.id, atividade_id)),
             "taxa_acerto_primeira": porcentagem(respostas_por_aluno.get(a.id, [])),
         }

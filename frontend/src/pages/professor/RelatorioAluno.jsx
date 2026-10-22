@@ -8,7 +8,7 @@ import { Lista, Item } from "../../components/ui/Animacao";
 import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
 import { formatarTempo } from "../../utils/tempo";
-import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
+import { progressoNivel } from "../../utils/xp";
 
 function formatarData(valor) {
   return valor ? new Date(valor).toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) : null;
@@ -51,6 +51,7 @@ export function RelatorioAluno() {
 
   const { aluno, resumo, atividades } = relatorio;
   const nome = aluno.apelido || aluno.nome_completo;
+  const progresso = progressoNivel(aluno.xp_total);
 
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
@@ -81,8 +82,8 @@ export function RelatorioAluno() {
           </div>
         </div>
         <div className="w-full sm:w-56 shrink-0">
-          <p className="text-sm font-bold text-coral mb-1.5">Nível {aluno.nivel_atual}</p>
-          <BarraProgresso valor={xpNoNivel(aluno.xp_total)} max={XP_POR_NIVEL} />
+          <p className="text-sm font-bold text-coral mb-1.5">Nível {progresso.nivel}</p>
+          <BarraProgresso valor={progresso.xpNoNivel} max={progresso.xpDoNivel} />
           <p className="text-xs text-azul/60 font-semibold mt-1">{aluno.xp_total} XP no total</p>
         </div>
       </header>
