@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Lista, Item } from "../../components/ui/Animacao";
 import { Indicador } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
+import { subtituloTurma } from "../../utils/turma";
 
 const porcento = (valor) => (valor == null ? "—" : `${valor}%`);
 
@@ -204,10 +205,11 @@ export function RelatorioTurma() {
         </Link>
         <div className="flex flex-wrap justify-between items-start gap-3">
           <div>
-            <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">{turma.ano_escolar}</h1>
+            <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Turma</h1>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul">{turma.nome}</h2>
             <p className="text-xs text-azul/50 mt-1">
-              Código de acesso: <span className="font-bold text-azul/70 tracking-wider">{turma.codigo_acesso}</span>
+              {[subtituloTurma(turma), "Código de acesso: "].filter(Boolean).join(" · ")}
+              <span className="font-bold text-azul/70 tracking-wider">{turma.codigo_acesso}</span>
             </p>
           </div>
           <Button as={Link} to={`/professor/turmas/${turma.id}/editar`} tamanho="sm" variante="contorno">

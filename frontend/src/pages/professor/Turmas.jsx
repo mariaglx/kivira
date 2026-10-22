@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Lista, Item } from "../../components/ui/Animacao";
+import { subtituloTurma } from "../../utils/turma";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
@@ -72,63 +73,43 @@ export function Turmas() {
         ) : (
           <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {turmasFiltradas.map((turma) => (
-              <Item
-                key={turma.id}
-                elevar
-                className="cartao rounded-2xl p-6 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold text-azul">{turma.nome}</h3>
-                    <span className="text-xs text-azul/50 font-medium">
-                      {turma.ano_escolar}
+              <Item key={turma.id} elevar className="flex">
+                <Link
+                  to={`/professor/turmas/${turma.id}`}
+                  className="cartao flex-1 rounded-2xl p-6 flex flex-col gap-5 justify-between hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-bold text-azul break-words">{turma.nome}</h3>
+                      <span className="text-xs text-azul/50 font-medium">{subtituloTurma(turma)}</span>
+                    </div>
+                    {turma.ativo ? (
+                      <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                        Ativa
+                      </span>
+                    ) : (
+                      <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                        Inativa
+                      </span>
+                    )}
+                  </div>
+
+                  <hr className="border-cinza-claro/30" />
+
+                  <div className="flex items-end gap-8">
+                    <div>
+                      <div className="text-xl font-extrabold text-azul">{turma.alunos_count ?? 0}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">Alunos</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-extrabold text-azul">{turma.atividades_count ?? 0}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">Atividades</div>
+                    </div>
+                    <span className="ml-auto text-sm font-bold text-coral flex items-center gap-1">
+                      Abrir <ChevronRight size={16} />
                     </span>
                   </div>
-                  {turma.ativo ? (
-                    <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
-                      Ativa
-                    </span>
-                  ) : (
-                    <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
-                      Inativa
-                    </span>
-                  )}
-                </div>
-
-                <hr className="border-cinza-claro/30" />
-
-                <div className="flex gap-8">
-                  <div>
-                    <div className="text-xl font-extrabold text-azul">
-                      {turma.alunos_count ?? 0}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
-                      Alunos
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-extrabold text-azul">
-                      {turma.atividades_count ?? 0}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">
-                      Atividades
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 w-full">
-                  <Button tamanho="sm" onClick={() => navigate(`/professor/turmas/${turma.id}`)} className="flex-1">
-                    Ver turma
-                  </Button>
-                  <Button
-                    tamanho="sm"
-                    variante="contorno"
-                    onClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
-                    className="flex-1"
-                  >
-                    Editar
-                  </Button>
-                </div>
+                </Link>
               </Item>
             ))}
 

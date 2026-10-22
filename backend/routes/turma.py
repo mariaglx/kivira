@@ -378,6 +378,7 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
             "id": turma.id,
             "nome": turma.nome,
             "ano_escolar": turma.ano_escolar,
+            "ano_letivo": turma.ano_letivo,
             "codigo_acesso": turma.codigo_acesso,
         },
         "resumo": {
