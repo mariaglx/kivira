@@ -197,6 +197,15 @@ export function Atividades() {
                   Editar
                 </Button>
               </div>
+              <Button
+                tamanho="sm"
+                variante="secundario"
+                as={Link}
+                to={`/professor/atividades/${atividade.id}/relatorio`}
+                className="w-full"
+              >
+                Ver relatório
+              </Button>
             </Item>
           ))}
 

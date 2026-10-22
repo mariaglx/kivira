@@ -12,6 +12,7 @@ from models.turma import Turma
 from models.questao import Questao
 from models.opcao_questao import OpcaoQuestao
 from models.sessao_jogo import SessaoJogo
+from models.sessao_jogo_questao import SessaoJogoQuestao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import admin_ou_professor, pode_gerenciar
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema, ConcluirAtividadeSchema
@@ -581,3 +582,102 @@ def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira),
     )
 
     return {"mensagem": f"Atividade '{titulo_atividade}' excluída com sucesso"}
+
+
+def _media(valores):
+    valores = [v for v in valores if v is not None]
+    return round(sum(valores) / len(valores), 1) if valores else None
+
+
+# Relatório do professor: resumo da atividade, situação de cada aluno da turma e
+# quais questões mais erram. Tudo sai de sessao_jogo/sessao_jogo_questao.
+# As médias usam a PRIMEIRA conclusão de cada aluno — replay já é com a
+# resposta decorada e inflaria o resultado.
+@atividade_router.get("/{id_atividade}/relatorio", dependencies=[Depends(admin_ou_professor)])
+def relatorio_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
+    if not pode_gerenciar(session, usuario, atividade):
+        raise HTTPException(status_code=401, detail="Você não tem autorização para ver esse relatório")
+
+    alunos = session.query(Aluno).join(AlunoTurma, AlunoTurma.aluno_id == Aluno.id).filter(
+        AlunoTurma.turma_id == atividade.turma_id,
+        AlunoTurma.ativo == 1,
+    ).order_by(Aluno.nome_completo).all() if atividade.turma_id else []
+
+    sessoes = session.query(SessaoJogo).filter(SessaoJogo.atividade_id == atividade.id).order_by(SessaoJogo.id).all()
+    sessoes_por_aluno = {}
+    for s in sessoes:
+        sessoes_por_aluno.setdefault(s.aluno_id, []).append(s)
+
+    linhas_alunos = []
+    primeiras_conclusoes = []
+    for aluno in alunos:
+        do_aluno = sessoes_por_aluno.get(aluno.id, [])
+        concluidas = [s for s in do_aluno if s.status == "concluido"]
+        primeira = concluidas[0] if concluidas else None
+        if primeira:
+            status = "concluido"
+            primeiras_conclusoes.append(primeira)
+        elif any(s.status == "em_andamento" for s in do_aluno):
+            status = "em_andamento"
+        elif do_aluno:
+            status = "abandonado"
+        else:
+            status = "nao_iniciado"
+
+        linhas_alunos.append({
+            "aluno_id": aluno.id,
+            "nome": aluno.apelido or aluno.nome_completo,
+            "status": status,
+            "tentativas": len(do_aluno),
+            "acertos_primeira": primeira.acertos_primeira if primeira else None,
+            "tempo_gasto_seg": primeira.tempo_gasto_seg if primeira else None,
+            "reinicios": primeira.reinicios if primeira else None,
+        })
+
+    # Por questão: vale a primeira vez que cada aluno respondeu cada questão
+    # (sessões em ordem de id), concluída ou não — é ali que aparece a dúvida real.
+    aluno_por_sessao = {s.id: s.aluno_id for s in sessoes}
+    primeira_resposta = {}
+    linhas_questao = session.query(SessaoJogoQuestao).filter(
+        SessaoJogoQuestao.sessao_id.in_(aluno_por_sessao)
+    ).order_by(SessaoJogoQuestao.sessao_id).all() if sessoes else []
+    for linha in linhas_questao:
+        primeira_resposta.setdefault((aluno_por_sessao[linha.sessao_id], linha.questao_id), linha.acertou_primeira)
+
+    respostas_por_questao = {}
+    for (_, questao_id), acertou in primeira_resposta.items():
+        respostas_por_questao.setdefault(questao_id, []).append(acertou)
+
+    questoes = session.query(Questao).filter(Questao.atividade_id == atividade.id).order_by(Questao.ordem).all()
+    relatorio_questoes = []
+    for q in questoes:
+        respostas = respostas_por_questao.get(q.id, [])
+        relatorio_questoes.append({
+            "questao_id": q.id,
+            "ordem": q.ordem,
+            "texto_questao": q.texto_questao,
+            "respostas": len(respostas),
+            "acertos_primeira": sum(respostas),
+            "taxa_acerto_primeira": round(100 * sum(respostas) / len(respostas)) if respostas else None,
+        })
+    # Quem mais erra primeiro; questão sem resposta vai pro fim
+    relatorio_questoes.sort(key=lambda r: (r["taxa_acerto_primeira"] is None, r["taxa_acerto_primeira"] or 0, r["ordem"]))
+
+    return {
+        "atividade_id": atividade.id,
+        "titulo": atividade.titulo,
+        "total_questoes": len(questoes),
+        "resumo": {
+            "alunos_turma": len(alunos),
+            "alunos_concluiram": len(primeiras_conclusoes),
+            "media_acertos_primeira": _media([s.acertos_primeira for s in primeiras_conclusoes]),
+            "media_tempo_seg": _media([s.tempo_gasto_seg for s in primeiras_conclusoes]),
+            "media_reinicios": _media([s.reinicios for s in primeiras_conclusoes]),
+        },
+        "alunos": linhas_alunos,
+        "questoes": relatorio_questoes,
+    }
