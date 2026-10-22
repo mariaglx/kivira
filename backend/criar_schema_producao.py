@@ -30,6 +30,7 @@ from models import (
     sessao_jogo,
     sessao_jogo_questao,
     perfil_admin,
+    feedback,
 )
 
 

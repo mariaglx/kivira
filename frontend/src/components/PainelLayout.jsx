@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
-import { House, Users, Blocks, Settings, UserCog, ShieldCheck } from "lucide-react";
+import { House, Users, Blocks, Settings, UserCog, ShieldCheck, MessageSquare } from "lucide-react";
 import { SidebarPainel } from "./SidebarPainel";
 import { useProfessorAtual } from "../controllers/useProfessorAtual";
 import { useApi } from "../controllers/useApi";
 import { ehAdmin } from "../services/sessao";
 
-function montarItens(turmas, admin) {
+// Entra no fim do menu só enquanto o professor não respondeu o questionário.
+const ITEM_FEEDBACK = { to: "/professor/feedback", Icone: MessageSquare, rotulo: "Feedback" };
+
+function montarItens(turmas, admin, professor) {
   const turmasComSubmenu = {
     to: "/professor/turmas",
     Icone: Users,
@@ -27,11 +30,16 @@ function montarItens(turmas, admin) {
       { to: "/admin/logs-auditoria", Icone: ShieldCheck, rotulo: "Auditoria" },
     ];
   }
+  // A condição é "já sei que não respondeu", não "não respondeu": com professor
+  // ainda null durante o carregamento, a segunda forma mostraria o item e o
+  // tiraria em seguida na cara de quem já respondeu.
+  const feedback = professor && !professor.respondeu_feedback ? [ITEM_FEEDBACK] : [];
   return [
     { to: "/professor", Icone: House, rotulo: "Dashboard", end: true },
     turmasComSubmenu,
     atividades,
     { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
+    ...feedback,
   ];
 }
 
@@ -60,7 +68,7 @@ export function PainelLayout() {
     <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
       <SidebarPainel
         titulo={admin ? "Administração" : "Menu"}
-        itens={montarItens(turmas ?? [], admin)}
+        itens={montarItens(turmas ?? [], admin, professor)}
         usuario={
           admin
             ? { nome: "Administrador", avatar: avatarAdmin, perfilUrl: "/admin/perfil" }

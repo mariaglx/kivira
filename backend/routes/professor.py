@@ -6,6 +6,7 @@ from models.professor import Professor
 from models.turma import Turma
 from models.atividade import Atividade
 from models.aluno_turma import AlunoTurma
+from models.feedback import Feedback
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 import bcrypt
 from sqlalchemy import func
@@ -29,6 +30,10 @@ def meu_perfil_professor(session = Depends(pegar_sessao_kivira), usuario: Usuari
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
+    # Vai junto do perfil (em vez de um endpoint próprio) porque o menu precisa
+    # saber disso no primeiro desenho pra não piscar o item "Feedback" e tirar.
+    respondeu_feedback = session.query(Feedback.id).filter(Feedback.usuario_id == usuario.id).first() is not None
+
     return {
         "id": professor.id,
         "nome_completo": professor.nome_completo,
@@ -37,6 +42,7 @@ def meu_perfil_professor(session = Depends(pegar_sessao_kivira), usuario: Usuari
         "biografia": professor.biografia,
         "avatar_url": professor.avatar_url,
         "email": usuario.email,
+        "respondeu_feedback": respondeu_feedback,
     }
 
 # Altera a senha do próprio professor logado (precisa confirmar a senha atual)
