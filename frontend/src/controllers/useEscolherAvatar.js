@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { useAvatares } from "./useAvatares";
 import { useAlunoAtual } from "./useAlunoAtual";
+import { nivelPorXp } from "../utils/xp";
 
 // Essa tela fica fora do AlunoLayout (é tela cheia, sem Header/Tabs — ver
 // App.jsx), então busca o aluno por conta própria, mas reaproveita o mesmo
@@ -43,5 +44,6 @@ export function useEscolherAvatar() {
     confirmar,
     carregando,
     erro: erro || erroAvatares,
+    nivelAluno: nivelPorXp(aluno?.xp_total),
   };
 }

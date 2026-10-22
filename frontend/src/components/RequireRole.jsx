@@ -21,8 +21,7 @@ export function RequireRole({ allowedRoles }) {
   if (!allowedRoles.includes(tipoUsuario)) {
     // Logado, mas na área errada — manda pra home do próprio papel em vez de
     // pro login (a pessoa já está autenticada, só não tem acesso aqui)
-    if (tipoUsuario === "admin") return <Navigate to="/admin" replace />;
-    if (tipoUsuario === "professor") return <Navigate to="/professor" replace />;
+    if (tipoUsuario === "admin" || tipoUsuario === "professor") return <Navigate to="/professor" replace />;
     return <Navigate to="/" replace />;
   }
 

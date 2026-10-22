@@ -14,6 +14,7 @@ export function EscolherAvatar() {
     confirmar,
     carregando,
     erro,
+    nivelAluno,
   } = useEscolherAvatar();
 
   return (
@@ -25,7 +26,7 @@ export function EscolherAvatar() {
             Escolha seu personagem! ✨
           </h2>
           <p className="text-sm text-azul/60">
-            Esse vai ser o seu ícone aqui no Kivira.
+            Esse vai ser o seu ícone aqui no Kivira. Os bichinhos com cadeado você libera subindo de nível!
           </p>
         </div>
 
@@ -42,6 +43,7 @@ export function EscolherAvatar() {
           avatares={avataresDaCategoria}
           selecionado={selecionado}
           onSelecionar={setSelecionado}
+          nivelAluno={nivelAluno}
         />
 
         <div className="mt-6">

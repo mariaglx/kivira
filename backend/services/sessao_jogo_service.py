@@ -16,6 +16,22 @@ def _agora_utc():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+# Curva de nível: subir do nível N pro N+1 custa 100 × N de XP (nível 2 aos 100,
+# 3 aos 300, 4 aos 600, 5 aos 1000...). Antes era um nível a cada 100 XP fixos e
+# uma atividade inteira (12 questões × 10 pontos) já subia um nível. Espelhada
+# em frontend/src/utils/xp.js — as duas precisam ficar em sincronia.
+def xp_para_nivel(nivel):
+    """XP total necessário pra chegar no `nivel`."""
+    return 50 * nivel * (nivel - 1)
+
+
+def nivel_por_xp(xp_total):
+    nivel = 1
+    while xp_para_nivel(nivel + 1) <= (xp_total or 0):
+        nivel += 1
+    return nivel
+
+
 # Teto do `smallint unsigned` de sessao_jogo.tempo_gasto_seg (18h12m). O banco roda
 # com STRICT_ALL_TABLES, então passar disso é ERRO, não truncamento silencioso.
 TEMPO_MAXIMO_SEG = 65535
@@ -145,7 +161,7 @@ def concluir_sessao(session, sessao, aluno, questoes_por_ordem):
     sessao.respostas_erradas = 0
 
     aluno.xp_total += xp_ganho
-    aluno.nivel_atual = (aluno.xp_total // 100) + 1
+    aluno.nivel_atual = nivel_por_xp(aluno.xp_total)
 
     return xp_ganho, eh_replay
 
