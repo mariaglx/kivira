@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
 from database import sessao_local
 from models.usuario import Usuario
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 from core.config import SECRET_KEY, ALGORITHM
 
@@ -21,12 +21,17 @@ def pegar_sessao_kivira():
         session.close()
 
 
-def verificar_token_kivira(token: str = Depends(oauth2_schema), session: Session = Depends(pegar_sessao_kivira)):
+def verificar_token_kivira(request: Request, token: str = Depends(oauth2_schema), session: Session = Depends(pegar_sessao_kivira)):
     try:
         dict_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
         id_usuario = int(dict_info.get("sub"))
     except JWTError:
         raise HTTPException(status_code=401, detail="Acesso Negado, verifique a validade do token")
+
+    # Token do "ver como aluno" (POST /admin/alunos/{id}/ver_como): o admin olha
+    # a conta da criança mas não altera nada nela — nem joga, nem troca avatar.
+    if dict_info.get("visualizado_por") and request.method not in ("GET", "HEAD", "OPTIONS"):
+        raise HTTPException(status_code=403, detail="Modo visualização: o admin não pode alterar nada pela conta do aluno")
 
     usuario = session.query(Usuario).filter(Usuario.id==id_usuario).first()
     if not usuario:

@@ -31,5 +31,5 @@ export function useAvatares() {
       ? avatares
       : avatares.filter((a) => a.categoria === categoriaAtiva);
 
-  return { categorias, categoriaAtiva, setCategoriaAtiva, avataresDaCategoria, erro };
+  return { avatares, categorias, categoriaAtiva, setCategoriaAtiva, avataresDaCategoria, erro };
 }

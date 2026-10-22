@@ -39,9 +39,7 @@ export function Login() {
 
       salvarSessao({ accessToken: data?.access_token, tipo: data?.tipo_usuario });
 
-      if (data.tipo_usuario === "admin") {
-        navigate("/admin");
-      } else if (data.tipo_usuario === "professor") {
+      if (data.tipo_usuario === "admin" || data.tipo_usuario === "professor") {
         navigate("/professor");
       } else {
         navigate("/");

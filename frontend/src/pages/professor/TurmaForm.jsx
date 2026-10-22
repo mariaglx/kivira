@@ -5,6 +5,7 @@ import { StarIcon } from "../../components/icons/star";
 import { Trash2 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
 
 // Modal de "revelar credenciais" — usado pra mostrar a senha nova depois de
@@ -92,6 +93,10 @@ function CredenciaisModal({
 export function TurmaForm() {
   const navigate = useNavigate();
   const {
+    escolherProfessor,
+    professores,
+    professorId,
+    setProfessorId,
     modoEdicao,
     formData,
     codigoAcesso,
@@ -267,6 +272,17 @@ export function TurmaForm() {
             onSubmit={handleSubmit}
             className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8"
           >
+            {escolherProfessor && (
+              <SelectCustom
+                label="Professor responsável"
+                name="professor_id"
+                value={professorId}
+                onChange={(e) => setProfessorId(e.target.value)}
+                options={professores.map((p) => ({ value: String(p.id), label: p.nome_completo }))}
+                placeholder="Escolha o professor"
+              />
+            )}
+
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Nome da turma
@@ -424,7 +440,9 @@ export function TurmaForm() {
                             />
                           )}
                           <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <span className="truncate">{aluno.apelido || aluno.nome_completo}</span>
+                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral hover:underline underline-offset-2">
+                              {aluno.apelido || aluno.nome_completo}
+                            </Link>
                             {aluno.matricula && (
                               <span className="text-[10px] font-bold text-azul/40 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                                 {aluno.matricula}

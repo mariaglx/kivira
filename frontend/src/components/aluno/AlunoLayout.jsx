@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 import { HeaderAluno } from "./HeaderAluno";
+import { AvisoVisualizacao } from "./AvisoVisualizacao";
 import { useAlunoAtual } from "../../controllers/useAlunoAtual";
 
 // Layout compartilhado pelas rotas /aluno/* — o Header monta uma vez só e
@@ -19,6 +20,7 @@ export function AlunoLayout() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen bg-bege text-azul font-sans pb-20 sm:pb-0">
+        <AvisoVisualizacao />
         <HeaderAluno aluno={aluno} />
         {/* key = rota: cada tela entra com fade + sobe (mais saltitante que a do professor) */}
         <motion.div

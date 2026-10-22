@@ -9,6 +9,7 @@ from models.aluno_turma import AlunoTurma
 from models.professor import Professor
 from models.atividade import Atividade
 from models.sessao_jogo import SessaoJogo
+from models.questao import Questao
 from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from models.feedback_aluno import FeedbackAluno
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
@@ -16,8 +17,21 @@ from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
+from services.sessao_jogo_service import nivel_por_xp
+from routes.avatar import nivel_minimo_do_avatar
+from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
+
+# Aluno só pode escolher bichinho já liberado pro nível dele (ver routes/avatar.py).
+# Quem já usa um avatar que hoje seria bloqueado continua com ele.
+def _validar_avatar_do_aluno(session, arquivo, xp_total):
+    nivel_minimo = nivel_minimo_do_avatar(session, arquivo)
+    if nivel_minimo is None:
+        raise HTTPException(status_code=400, detail="Avatar não encontrado")
+    if nivel_minimo > nivel_por_xp(xp_total):
+        raise HTTPException(status_code=403, detail=f"Esse bichinho é liberado no nível {nivel_minimo}")
+
 
 @aluno_router.get("/")
 def aluno():
@@ -42,7 +56,7 @@ def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = 
         "apelido": aluno.apelido,
         "avatar_url": aluno.avatar_url,
         "xp_total": aluno.xp_total,
-        "nivel_atual": aluno.nivel_atual,
+        "nivel_atual": nivel_por_xp(aluno.xp_total),
         "username": aluno.username,
         "respondeu_feedback": respondeu_feedback,
     }
@@ -132,6 +146,8 @@ def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira
         session.add(novo_usuario)
         session.flush()
 
+        if aluno_schema.avatar_url:
+            _validar_avatar_do_aluno(session, aluno_schema.avatar_url, 0)
         novo_aluno = Aluno(aluno_schema.nome_completo, aluno_schema.apelido, aluno_schema.data_nascimento)
         novo_aluno.avatar_url = aluno_schema.avatar_url
         novo_aluno.usuario_id = novo_usuario.id
@@ -167,7 +183,7 @@ def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario:
         "avatar_url": aluno.avatar_url,
         "data_nascimento": aluno.data_nascimento,
         "xp_total": aluno.xp_total,
-        "nivel_atual": aluno.nivel_atual,
+        "nivel_atual": nivel_por_xp(aluno.xp_total),
         "email": usuario_vinculado.email
     }
 
@@ -194,6 +210,8 @@ usuario: Usuario = Depends(verificar_token_kivira)):
         aluno.matricula = aluno_schema.matricula
 
     if aluno_schema.avatar_url is not None:
+        if usuario.tipo != "admin" and aluno_schema.avatar_url and aluno_schema.avatar_url != aluno.avatar_url:
+            _validar_avatar_do_aluno(session, aluno_schema.avatar_url, aluno.xp_total)
         aluno.avatar_url = aluno_schema.avatar_url
 
     if aluno_schema.data_nascimento is not None: 
@@ -366,11 +384,14 @@ def buscar_meus_alunos(busca: str = "", session = Depends(pegar_sessao_kivira), 
     if not termo:
         return []
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    query_turmas = session.query(Turma.id)
+    if usuario.tipo != "admin":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+        query_turmas = query_turmas.filter(Turma.professor_id == professor.id)
 
-    turma_ids = [t.id for t in session.query(Turma.id).filter(Turma.professor_id == professor.id).all()]
+    turma_ids = [t.id for t in query_turmas.all()]
     if not turma_ids:
         return []
 
@@ -454,6 +475,14 @@ def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     if usuario.tipo not in ("professor", "admin"):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação")
+
+    # Antes qualquer professor gerava senha nova pra QUALQUER aluno (e com ela
+    # podia entrar na conta da criança). Agora precisa ser aluno de turma sua.
+    turmas_do_aluno = session.query(Turma).join(AlunoTurma, AlunoTurma.turma_id == Turma.id).filter(
+        AlunoTurma.aluno_id == aluno.id,
+    ).all()
+    if not any(pode_gerenciar(session, usuario, turma) for turma in turmas_do_aluno):
+        raise HTTPException(status_code=401, detail="Esse aluno não está em nenhuma turma sua")
 
     usuario_aluno = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 
@@ -597,7 +626,7 @@ def detalhe_da_minha_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
             "nome": a.apelido or a.nome_completo,
             "avatar_url": a.avatar_url,
             "xp_total": a.xp_total or 0,
-            "nivel_atual": a.nivel_atual or 1,
+            "nivel_atual": nivel_por_xp(a.xp_total),
             "sou_eu": a.id == aluno.id,
         }
         for a in alunos
@@ -659,3 +688,94 @@ def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuar
         })
 
     return resultado
+
+
+
+# Histórico detalhado de um aluno pro professor: perfil (avatar, nível, turmas)
+# e, por atividade, a situação, a primeira conclusão e as questões que ele errou
+# na primeira tentativa. O professor só enxerga o aluno se ele estiver
+# matriculado numa turma sua, e só as atividades dessas turmas.
+@aluno_router.get("/{id_aluno}/relatorio")
+def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    query_turmas = session.query(Turma).join(AlunoTurma, AlunoTurma.turma_id == Turma.id).filter(
+        AlunoTurma.aluno_id == aluno.id,
+        AlunoTurma.ativo == 1,
+    )
+    if usuario.tipo != "admin":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        query_turmas = query_turmas.filter(Turma.professor_id == (professor.id if professor else None))
+    turmas = query_turmas.all()
+    if not turmas:
+        raise HTTPException(status_code=401, detail="Esse aluno não está em nenhuma turma sua")
+
+    nome_turma = {t.id: t.nome for t in turmas}
+    atividades = session.query(Atividade).filter(
+        Atividade.turma_id.in_(nome_turma),
+        Atividade.publicado == True,
+    ).order_by(Atividade.data_criacao.desc()).all()
+    atividade_ids = [a.id for a in atividades]
+
+    sessoes = session.query(SessaoJogo).filter(
+        SessaoJogo.aluno_id == aluno.id,
+        SessaoJogo.atividade_id.in_(atividade_ids),
+    ).order_by(SessaoJogo.id).all() if atividade_ids else []
+    situacao = situacao_por_aluno_atividade(sessoes)
+    respostas = {questao_id: acertou for (_, questao_id), acertou in primeiras_respostas(session, sessoes).items()}
+
+    questoes = session.query(Questao).filter(
+        Questao.atividade_id.in_(atividade_ids)
+    ).order_by(Questao.ordem).all() if atividade_ids else []
+    questoes_por_atividade = {}
+    for q in questoes:
+        questoes_por_atividade.setdefault(q.atividade_id, []).append(q)
+
+    resultado = []
+    for atividade in atividades:
+        sit = situacao.get((aluno.id, atividade.id), SEM_SESSAO)
+        primeira = sit["primeira"]
+        questoes_da_atividade = questoes_por_atividade.get(atividade.id, [])
+        resultado.append({
+            "atividade_id": atividade.id,
+            "titulo": atividade.titulo,
+            "disciplina": atividade.disciplina,
+            "turma_nome": nome_turma.get(atividade.turma_id),
+            "status": sit["status"],
+            "tentativas": sit["tentativas"],
+            "total_questoes": len(questoes_da_atividade),
+            "acertos_primeira": primeira.acertos_primeira if primeira else None,
+            "tempo_gasto_seg": primeira.tempo_gasto_seg if primeira else None,
+            "reinicios": primeira.reinicios if primeira else None,
+            "ultima_vez": max(
+                (s.finalizado_em or s.iniciado_em for s in sessoes if s.atividade_id == atividade.id),
+                default=None,
+            ),
+            "questoes_erradas": [
+                {"ordem": q.ordem, "texto_questao": q.texto_questao}
+                for q in questoes_da_atividade
+                if respostas.get(q.id) is False
+            ],
+        })
+
+    return {
+        "aluno": {
+            "id": aluno.id,
+            "nome_completo": aluno.nome_completo,
+            "apelido": aluno.apelido,
+            "matricula": aluno.matricula,
+            "avatar_url": aluno.avatar_url,
+            "xp_total": aluno.xp_total or 0,
+            "nivel_atual": nivel_por_xp(aluno.xp_total),
+            "turmas": [t.nome for t in turmas],
+        },
+        "resumo": {
+            "atividades_total": len(atividades),
+            "atividades_concluidas": sum(1 for r in resultado if r["status"] == "concluido"),
+            "taxa_acerto_primeira": porcentagem(list(respostas.values())),
+            "tempo_total_seg": sum(s.tempo_gasto_seg or 0 for s in sessoes),
+        },
+        "atividades": resultado,
+    }

@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from services.auditoria_service import origem_requisicao
 
 app = FastAPI(title="Kivira API")
 
@@ -17,6 +18,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Guarda IP e navegador de cada requisição pra auditoria (ver registrar_log).
+# Atrás do proxy da hospedagem o IP real vem no X-Forwarded-For (o 1º da lista).
+@app.middleware("http")
+async def guardar_origem_da_requisicao(request: Request, call_next):
+    encaminhado = request.headers.get("x-forwarded-for")
+    ip = encaminhado.split(",")[0].strip() if encaminhado else (request.client.host if request.client else None)
+    token = origem_requisicao.set({"ip": ip, "navegador": request.headers.get("user-agent")})
+    try:
+        return await call_next(request)
+    finally:
+        origem_requisicao.reset(token)
+
+
 from routes.professor import professor_router
 from routes.aluno import aluno_router
 from routes.atividade import atividade_router

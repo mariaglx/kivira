@@ -1,8 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import { ProfessorLayout } from "./components/professor/ProfessorLayout";
+import { PainelLayout } from "./components/PainelLayout";
 import { AlunoLayout } from "./components/aluno/AlunoLayout";
-import { AdminLayout } from "./components/admin/AdminLayout";
 import { RequireRole } from "./components/RequireRole";
 
 // Code-splitting por rota: cada página vira um chunk carregado só quando o
@@ -20,6 +19,9 @@ const Turmas = lazy(() => import("./pages/professor/Turmas"));
 const TurmaForm = lazy(() => import("./pages/professor/TurmaForm"));
 const Atividades = lazy(() => import("./pages/professor/Atividades"));
 const CriarAtividade = lazy(() => import("./pages/professor/CriarAtividade"));
+const RelatorioAtividade = lazy(() => import("./pages/professor/RelatorioAtividade"));
+const RelatorioAluno = lazy(() => import("./pages/professor/RelatorioAluno"));
+const RelatorioTurma = lazy(() => import("./pages/professor/RelatorioTurma"));
 const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
 const Feedback = lazy(() => import("./pages/professor/Feedback"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
@@ -33,6 +35,7 @@ const ConfiguracoesAluno = lazy(() => import("./pages/aluno/Configuracoes"));
 const FeedbackAluno = lazy(() => import("./pages/aluno/Feedback"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
+const PerfilAdmin = lazy(() => import("./pages/admin/PerfilAdmin"));
 
 function CarregandoRota() {
   return (
@@ -57,15 +60,19 @@ function App() {
             redirecionados antes de a tela sequer montar (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["professor", "admin"]} />}>
           {/* Layout compartilhado: Sidebar monta uma vez só e continua viva
-              entre as navegações dentro de /professor/* (ver ProfessorLayout) */}
-          <Route element={<ProfessorLayout />}>
+              entre as navegações dentro de /professor/* (ver PainelLayout) */}
+          <Route element={<PainelLayout />}>
             <Route path="/professor" element={<Dashboard />} />
             <Route path="/professor/turmas" element={<Turmas />} />
             <Route path="/professor/turmas/nova" element={<TurmaForm />} />
             <Route path="/professor/turmas/:id/editar" element={<TurmaForm />} />
+            <Route path="/professor/turmas/:id" element={<RelatorioTurma />} />
+            <Route path="/professor/turmas/:id/alunos" element={<RelatorioTurma />} />
+            <Route path="/professor/turmas/:id/alunos/:alunoId" element={<RelatorioAluno />} />
             <Route path="/professor/atividades" element={<Atividades />} />
             <Route path="/professor/atividades/criar" element={<CriarAtividade />} />
             <Route path="/professor/atividades/:id/editar" element={<CriarAtividade />} />
+            <Route path="/professor/atividades/:id/relatorio" element={<RelatorioAtividade />} />
             <Route path="/professor/configuracoes" element={<Configuracoes />} />
             <Route path="/professor/feedback" element={<Feedback />} />
           </Route>
@@ -95,10 +102,11 @@ function App() {
 
         {/* Só admin passa daqui (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["admin"]} />}>
-          {/* Layout compartilhado das rotas /admin/* (ver AdminLayout) */}
-          <Route element={<AdminLayout />}>
+          {/* Mesmo layout do professor, com o menu de admin (ver PainelLayout) */}
+          <Route element={<PainelLayout />}>
             <Route path="/admin" element={<Usuarios />} />
             <Route path="/admin/logs-auditoria" element={<LogsAuditoria />} />
+            <Route path="/admin/perfil" element={<PerfilAdmin />} />
           </Route>
         </Route>
       </Routes>

@@ -1,7 +1,9 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useHomeAluno } from "../../controllers/useHomeAluno";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
-import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
+import { progressoNivel } from "../../utils/xp";
+import { useAvatares } from "../../controllers/useAvatares";
+import { ProximosAvatares } from "../../components/aluno/ProximosAvatares";
 import { TrilhaFases } from "../../components/aluno/TrilhaFases";
 import { MapPin, ClipboardList } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
@@ -12,6 +14,8 @@ export function HomeAluno() {
   const navigate = useNavigate();
   const { aluno, carregandoAluno } = useOutletContext();
   const { atividades, carregando } = useHomeAluno();
+  const { avatares } = useAvatares();
+  const progresso = progressoNivel(aluno?.xp_total);
 
   if (carregandoAluno || carregando) {
     return <Carregando />;
@@ -31,11 +35,12 @@ export function HomeAluno() {
           <h1 className="text-xl sm:text-2xl font-black truncate">
             Oi, {aluno?.apelido || aluno?.nome_completo}! 👋
           </h1>
-          <p className="text-sm font-bold text-coral mb-2">Nível {aluno?.nivel_atual}</p>
-          <BarraProgresso valor={xpNoNivel(aluno?.xp_total)} max={XP_POR_NIVEL} />
+          <p className="text-sm font-bold text-coral mb-2">Nível {progresso.nivel}</p>
+          <BarraProgresso valor={progresso.xpNoNivel} max={progresso.xpDoNivel} />
           <p className="text-xs text-azul/60 font-semibold mt-1">
-            {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP pro próximo nível
+            {progresso.xpNoNivel}/{progresso.xpDoNivel} XP pro próximo nível
           </p>
+          <ProximosAvatares avatares={avatares} nivel={progresso.nivel} />
         </div>
       </Entrada>
 

@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LogoKivira } from "../LogoKivira";
 import { BarraProgresso } from "../ui/BarraProgresso";
 import { Avatar } from "../ui/Avatar";
-import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
+import { progressoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
 import { MapPin, Sparkles, Users, Settings, Star, Smile } from "lucide-react";
@@ -24,6 +24,7 @@ const ABA_FEEDBACK = { to: "/aluno/feedback", Icone: Smile, rotulo: "Opinião" }
 export function HeaderAluno({ aluno }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+  const progresso = progressoNivel(aluno?.xp_total);
 
   // "já sei que não respondeu", não "não respondeu": com aluno ainda null no
   // carregamento, a segunda forma mostraria a aba e a tiraria em seguida.
@@ -69,18 +70,18 @@ export function HeaderAluno({ aluno }) {
             nível + barra + XP por extenso */}
         <span className="sm:hidden inline-flex items-center gap-1 rounded-full bg-ouro-bg text-ouro-fg px-3 py-1.5 text-sm font-black">
           <Star size={16} className="fill-current" />
-          Nível {aluno?.nivel_atual}
+          Nível {progresso.nivel}
         </span>
         <div className="hidden sm:flex flex-col gap-1 w-36">
           <div className="flex items-baseline justify-between text-[11px] font-bold leading-tight">
-            <span className="text-coral">Nível {aluno?.nivel_atual}</span>
+            <span className="text-coral">Nível {progresso.nivel}</span>
             <span className="text-azul/50">
-              {xpNoNivel(aluno?.xp_total)}/{XP_POR_NIVEL} XP
+              {progresso.xpNoNivel}/{progresso.xpDoNivel} XP
             </span>
           </div>
           <BarraProgresso
-            valor={xpNoNivel(aluno?.xp_total)}
-            max={XP_POR_NIVEL}
+            valor={progresso.xpNoNivel}
+            max={progresso.xpDoNivel}
             className="h-2"
           />
         </div>

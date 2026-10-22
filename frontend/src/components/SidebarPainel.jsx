@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { LogoKiviraRosa } from "./LogoKiviraRosa";
@@ -12,11 +12,13 @@ import { limparSessao } from "../services/sessao";
 // que abre o mesmo menu como gaveta — antes a coluna de 256px ficava fixa e
 // esmagava o conteúdo no celular/tablet.
 //
-// `itens`: [{ to, Icone, rotulo, end? }] — `end` pra rota raiz (/professor,
-// /admin) não ficar ativa em todas as sub-rotas.
+// `itens`: [{ to, Icone, rotulo, end?, subitens? }] — `end` pra rota raiz
+// (/professor, /admin) não ficar ativa em todas as sub-rotas; `subitens`
+// ([{ to, rotulo }]) aparecem aninhados embaixo enquanto a seção está aberta.
 // `usuario`: { nome, avatar, perfilUrl? } pro rodapé.
 export function SidebarPainel({ titulo, itens, usuario }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [aberto, setAberto] = useState(false);
   const fechar = () => setAberto(false);
 
@@ -82,9 +84,9 @@ export function SidebarPainel({ titulo, itens, usuario }) {
             {titulo}
           </p>
           <nav className="flex flex-col gap-2">
-            {itens.map(({ to, Icone, rotulo, end }) => (
+            {itens.map(({ to, Icone, rotulo, end, subitens }) => (
+              <div key={to} className="flex flex-col gap-1">
               <NavLink
-                key={to}
                 to={to}
                 end={end}
                 onClick={fechar}
@@ -110,6 +112,26 @@ export function SidebarPainel({ titulo, itens, usuario }) {
                   </>
                 )}
               </NavLink>
+              {subitens?.length > 0 && pathname.startsWith(to) && (
+                <div className="ml-6 pl-3 border-l border-branco/15 flex flex-col gap-0.5">
+                  {subitens.map((sub) => (
+                    <NavLink
+                      key={sub.to}
+                      to={sub.to}
+                      title={sub.rotulo}
+                      onClick={fechar}
+                      className={({ isActive }) =>
+                        `px-3 py-2 rounded-lg text-sm truncate transition ${
+                          isActive ? "bg-branco/10 text-laranja font-bold" : "text-cinza-claro/80 hover:text-branco hover:bg-branco/5"
+                        }`
+                      }
+                    >
+                      {sub.rotulo}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+              </div>
             ))}
           </nav>
         </div>

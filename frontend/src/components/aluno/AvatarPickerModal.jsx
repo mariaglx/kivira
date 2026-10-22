@@ -6,7 +6,7 @@ import { useAvatares } from "../../controllers/useAvatares";
 // Modal de troca de bichinho usado em Configurações — mesma grade de
 // EscolherAvatar.jsx (tela cheia do primeiro acesso), só que num overlay,
 // seguindo o mesmo padrão de modal já usado no app (fixed inset-0 + backdrop).
-export function AvatarPickerModal({ avatarAtual, onFechar, onSalvar }) {
+export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar }) {
   const { categorias, categoriaAtiva, setCategoriaAtiva, avataresDaCategoria, erro: erroAvatares } = useAvatares();
   const [selecionado, setSelecionado] = useState(avatarAtual || null);
   const [salvando, setSalvando] = useState(false);
@@ -33,7 +33,9 @@ export function AvatarPickerModal({ avatarAtual, onFechar, onSalvar }) {
           Escolha seu bichinho! ✨
         </h2>
         <p className="text-sm text-azul/60 text-center mb-5">
-          Esse vai ser o seu ícone aqui no Kivira.
+          {nivelAluno === Infinity
+            ? "Esse vai ser o seu ícone aqui no Kivira."
+            : "Os bichinhos com cadeado você libera subindo de nível!"}
         </p>
 
         {(erro || erroAvatares) && (
@@ -49,6 +51,7 @@ export function AvatarPickerModal({ avatarAtual, onFechar, onSalvar }) {
           avatares={avataresDaCategoria}
           selecionado={selecionado}
           onSelecionar={setSelecionado}
+          nivelAluno={nivelAluno}
         />
 
         <div className="flex gap-3 mt-6">

@@ -17,6 +17,8 @@ from core.rbac import admin_ou_professor, pode_gerenciar
 from schemas.atividade import AtividadeSchema, AtividadeUpdateSchema, SalvarQuestoesSchema, SalvarImagemPixabaySchema, ConcluirAtividadeSchema
 from services.cloudinary_service import enviar_imagem_atividade, enviar_imagem_do_pixabay
 from services.auditoria_service import registrar_log
+from services.sessao_jogo_service import nivel_por_xp
+from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, media, porcentagem, SEM_SESSAO
 
 atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencies=[Depends(verificar_token_kivira)])
 
@@ -27,10 +29,8 @@ atividade_router = APIRouter(prefix="/atividade", tags=["atividade"],dependencie
 # - XP = soma dos pontos das questões (já existe em Questao.pontos) vezes um
 #   multiplicador de dificuldade, escalado pelas estrelas — perder tempo
 #   corrigindo rende menos que acertar de primeira.
-# XP_POR_NIVEL espelha o mesmo valor do front (ver frontend/src/utils/xp.js);
-# como o cálculo de nível é feito aqui, os dois precisam ficar em sincronia.
+# O nível sai do XP pela curva de services/sessao_jogo_service.py (nivel_por_xp).
 XP_MULTIPLICADOR_DIFICULDADE = {"facil": 1, "medio": 1.5, "dificil": 2}
-XP_POR_NIVEL = 100
 
 def calcular_estrelas(tentativas):
     return max(1, min(3, 4 - tentativas))
@@ -48,11 +48,13 @@ def listar_atividades_do_professor(
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
 ):
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-    query = session.query(Atividade).filter(Atividade.professor_id == professor.id)
+    query = session.query(Atividade)
+    # Admin enxerga as atividades de todos os professores
+    if usuario.tipo != "admin":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+        query = query.filter(Atividade.professor_id == professor.id)
     if turma_id is not None:
         query = query.filter(Atividade.turma_id == turma_id)
     atividades = query.all()
@@ -66,10 +68,17 @@ def listar_atividades_do_professor(
             session.query(Turma.id, Turma.nome).filter(Turma.id.in_(turma_ids)).all()
         )
 
+    nome_professor = dict(
+        session.query(Professor.id, Professor.nome_completo)
+        .filter(Professor.id.in_({a.professor_id for a in atividades}))
+        .all()
+    ) if atividades else {}
+
     resultado = []
     for a in atividades:
         resultado.append({
             "id": a.id,
+            "professor_nome": nome_professor.get(a.professor_id),
             "titulo": a.titulo,
             "disciplina": a.disciplina,
             "tipo_atividade": a.tipo_atividade,
@@ -152,6 +161,12 @@ def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_s
 
     if usuario.tipo == "admin" and atividade_schema.professor_id is not None:
         professor_id = atividade_schema.professor_id
+    elif usuario.tipo == "admin" and atividade_schema.turma_id is not None:
+        # Admin criando pela tela do professor: a atividade fica com o dono da turma
+        turma = session.query(Turma).filter(Turma.id == atividade_schema.turma_id).first()
+        if not turma:
+            raise HTTPException(status_code=404, detail="Turma não encontrada")
+        professor_id = turma.professor_id
     elif professor:
         professor_id = professor.id
     else:
@@ -346,10 +361,10 @@ def concluir_atividade(id_atividade: int, dados: ConcluirAtividadeSchema, sessio
 
     estrelas = calcular_estrelas(dados.tentativas)
     xp_ganho = calcular_xp_ganho(pontuacao_base, atividade.dificuldade, estrelas)
-    nivel_antigo = aluno.nivel_atual or 1
+    nivel_antigo = nivel_por_xp(aluno.xp_total)
 
     aluno.xp_total = (aluno.xp_total or 0) + xp_ganho
-    aluno.nivel_atual = aluno.xp_total // XP_POR_NIVEL + 1
+    aluno.nivel_atual = nivel_por_xp(aluno.xp_total)
 
     session.add(SessaoJogo(
         aluno_id=aluno.id,
@@ -581,3 +596,77 @@ def deletar_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira),
     )
 
     return {"mensagem": f"Atividade '{titulo_atividade}' excluída com sucesso"}
+
+
+
+# Relatório do professor: resumo da atividade, situação de cada aluno da turma e
+# quais questões mais erram. As regras (primeira conclusão, primeira resposta)
+# ficam em services/relatorio_service.py, compartilhadas com aluno e turma.
+@atividade_router.get("/{id_atividade}/relatorio", dependencies=[Depends(admin_ou_professor)])
+def relatorio_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    atividade = session.query(Atividade).filter(Atividade.id == id_atividade).first()
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
+    if not pode_gerenciar(session, usuario, atividade):
+        raise HTTPException(status_code=401, detail="Você não tem autorização para ver esse relatório")
+
+    alunos = session.query(Aluno).join(AlunoTurma, AlunoTurma.aluno_id == Aluno.id).filter(
+        AlunoTurma.turma_id == atividade.turma_id,
+        AlunoTurma.ativo == 1,
+    ).order_by(Aluno.nome_completo).all() if atividade.turma_id else []
+
+    sessoes = session.query(SessaoJogo).filter(SessaoJogo.atividade_id == atividade.id).order_by(SessaoJogo.id).all()
+    situacao = situacao_por_aluno_atividade(sessoes)
+
+    linhas_alunos = []
+    primeiras_conclusoes = []
+    for aluno in alunos:
+        sit = situacao.get((aluno.id, atividade.id), SEM_SESSAO)
+        primeira = sit["primeira"]
+        if primeira:
+            primeiras_conclusoes.append(primeira)
+        linhas_alunos.append({
+            "aluno_id": aluno.id,
+            "nome": aluno.apelido or aluno.nome_completo,
+            "status": sit["status"],
+            "tentativas": sit["tentativas"],
+            "acertos_primeira": primeira.acertos_primeira if primeira else None,
+            "tempo_gasto_seg": primeira.tempo_gasto_seg if primeira else None,
+            "reinicios": primeira.reinicios if primeira else None,
+        })
+
+    respostas_por_questao = {}
+    for (_, questao_id), acertou in primeiras_respostas(session, sessoes).items():
+        respostas_por_questao.setdefault(questao_id, []).append(acertou)
+
+    questoes = session.query(Questao).filter(Questao.atividade_id == atividade.id).order_by(Questao.ordem).all()
+    relatorio_questoes = []
+    for q in questoes:
+        respostas = respostas_por_questao.get(q.id, [])
+        relatorio_questoes.append({
+            "questao_id": q.id,
+            "ordem": q.ordem,
+            "texto_questao": q.texto_questao,
+            "respostas": len(respostas),
+            "acertos_primeira": sum(respostas),
+            "taxa_acerto_primeira": porcentagem(respostas),
+        })
+    # Quem mais erra primeiro; questão sem resposta vai pro fim
+    relatorio_questoes.sort(key=lambda r: (r["taxa_acerto_primeira"] is None, r["taxa_acerto_primeira"] or 0, r["ordem"]))
+
+    return {
+        "atividade_id": atividade.id,
+        "titulo": atividade.titulo,
+        "turma_id": atividade.turma_id,
+        "total_questoes": len(questoes),
+        "resumo": {
+            "alunos_turma": len(alunos),
+            "alunos_concluiram": len(primeiras_conclusoes),
+            "media_acertos_primeira": media([s.acertos_primeira for s in primeiras_conclusoes]),
+            "media_tempo_seg": media([s.tempo_gasto_seg for s in primeiras_conclusoes]),
+            "media_reinicios": media([s.reinicios for s in primeiras_conclusoes]),
+        },
+        "alunos": linhas_alunos,
+        "questoes": relatorio_questoes,
+    }
