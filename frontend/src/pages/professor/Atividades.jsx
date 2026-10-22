@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Lista, Item, Modal } from "../../components/ui/Animacao";
+import { ehAdmin } from "../../services/sessao";
 
 const TIPO_LABEL = {
   multipla_escolha: "Múltipla escolha",
@@ -88,7 +89,7 @@ export function Atividades() {
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Atividades</h1>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
-              Suas atividades, Professor(a)!
+              {ehAdmin() ? "Atividades de todas as turmas" : "Suas atividades, Professor(a)!"}
             </h2>
             <p className="text-azul/70 text-sm mt-1">
               Gerencie e acompanhe todas as atividades criadas
@@ -166,6 +167,12 @@ export function Atividades() {
                     {atividade.dificuldade}
                   </span>
                 </div>
+                {ehAdmin() && (
+                  <div className="flex justify-between">
+                    <span className="text-azul/40 font-bold uppercase tracking-wider">Professor</span>
+                    <span className="text-azul font-semibold">{atividade.professor_nome ?? "—"}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-azul/40 font-bold uppercase tracking-wider">
                     Turma

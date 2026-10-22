@@ -378,11 +378,14 @@ def buscar_meus_alunos(busca: str = "", session = Depends(pegar_sessao_kivira), 
     if not termo:
         return []
 
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    query_turmas = session.query(Turma.id)
+    if usuario.tipo != "admin":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+        query_turmas = query_turmas.filter(Turma.professor_id == professor.id)
 
-    turma_ids = [t.id for t in session.query(Turma.id).filter(Turma.professor_id == professor.id).all()]
+    turma_ids = [t.id for t in query_turmas.all()]
     if not turma_ids:
         return []
 
@@ -466,6 +469,14 @@ def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
     if usuario.tipo not in ("professor", "admin"):
         raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação")
+
+    # Antes qualquer professor gerava senha nova pra QUALQUER aluno (e com ela
+    # podia entrar na conta da criança). Agora precisa ser aluno de turma sua.
+    turmas_do_aluno = session.query(Turma).join(AlunoTurma, AlunoTurma.turma_id == Turma.id).filter(
+        AlunoTurma.aluno_id == aluno.id,
+    ).all()
+    if not any(pode_gerenciar(session, usuario, turma) for turma in turmas_do_aluno):
+        raise HTTPException(status_code=401, detail="Esse aluno não está em nenhuma turma sua")
 
     usuario_aluno = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 

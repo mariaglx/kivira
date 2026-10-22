@@ -70,14 +70,18 @@ def resumo_dashboard_professor(
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
 ):
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-    turmas = session.query(Turma).filter(Turma.professor_id == professor.id).all()
+    # Admin vê o painel da escola inteira (todas as turmas e atividades)
+    if usuario.tipo == "admin":
+        professor = None
+        turmas = session.query(Turma).all()
+        total_atividades = session.query(Atividade).count()
+    else:
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+        turmas = session.query(Turma).filter(Turma.professor_id == professor.id).all()
+        total_atividades = session.query(Atividade).filter(Atividade.professor_id == professor.id).count()
     turma_ids = [turma.id for turma in turmas]
-
-    total_atividades = session.query(Atividade).filter(Atividade.professor_id == professor.id).count()
 
     # Antes: 1 query de contagem por turma (x2) dentro do loop das recentes, mais o
     # count() de total_alunos — 1 + 2N idas ao banco. Agora são só 2 agregadas no
@@ -114,8 +118,8 @@ def resumo_dashboard_professor(
 
     return {
         "professor": {
-            "nome": professor.apelido or professor.nome_completo,
-            "avatar_url": professor.avatar_url,
+            "nome": (professor.apelido or professor.nome_completo) if professor else "Administrador",
+            "avatar_url": professor.avatar_url if professor else None,
         },
         "metricas": {
             "total_turmas": len(turmas),

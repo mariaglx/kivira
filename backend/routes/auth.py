@@ -38,6 +38,26 @@ def autenticar_usuario_kivira(email, senha, session):
     return usuario
 
 
+# Tentativa de login que falhou também vira log: é o que mostra alguém tentando
+# adivinhar a senha de uma conta. Se o usuário existe, o log fica ligado a ele
+# (senha errada); se não, guarda só o que foi digitado. Login por e-mail é a tela
+# de professor/admin, então um e-mail desconhecido fica registrado como professor.
+def _registrar_falha_login(session, identificador, via, usuario=None, papel="professor"):
+    registrar_log(
+        session,
+        usuario,
+        acao="LOGIN_FALHOU",
+        entidade="usuario",
+        entidade_id=usuario.id if usuario else None,
+        detalhes={
+            "identificador": identificador,
+            "via": via,
+            "motivo": "senha_incorreta" if usuario else "usuario_inexistente",
+        },
+        papel=papel,
+    )
+
+
 # Login
 
 
@@ -49,13 +69,14 @@ def login(
     usuario = autenticar_usuario_kivira(login_schema.email, login_schema.senha, session)
 
     if not usuario:
+        _registrar_falha_login(session, login_schema.email, "login", session.query(Usuario).filter(Usuario.email == login_schema.email).first())
         raise HTTPException(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
     else:
         access_token = criar_token(usuario)
 
-        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id)
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"identificador": login_schema.email, "via": "login"})
 
         return {
             "access_token": access_token,
@@ -76,13 +97,14 @@ def login_form(
     )
 
     if not usuario:
+        _registrar_falha_login(session, dados_formulario.username, "login_form", session.query(Usuario).filter(Usuario.email == dados_formulario.username).first())
         raise HTTPException(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
     else:
         access_token = criar_token(usuario)
 
-        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_form"})
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"identificador": dados_formulario.username, "via": "login_form"})
 
         return {"access_token": access_token, "token_type": "Bearer"}
 
@@ -114,13 +136,16 @@ def login_aluno(
     )
 
     if not usuario:
+        aluno = session.query(Aluno).filter(Aluno.username == login_schema.username).first()
+        dono = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first() if aluno else None
+        _registrar_falha_login(session, login_schema.username, "login_aluno", dono, papel="estudante")
         raise HTTPException(
             status_code=400, detail="Usuário inexistente ou Login/Senha incorretos"
         )
     else:
         access_token = criar_token(usuario)
 
-        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_aluno"})
+        registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"identificador": login_schema.username, "via": "login_aluno"})
 
         return {
             "access_token": access_token,

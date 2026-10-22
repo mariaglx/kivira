@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { comemorar } from "../utils/comemorar";
+import { ehAdmin } from "../services/sessao";
+import { useApi } from "./useApi";
 
 // O backend devolve as listas na ordem de criação, mas a professora procura
 // por nome. Ordena sempre pelo mesmo texto que aparece na tela, e com
@@ -43,6 +45,11 @@ export function useTurmaForm() {
   const [carregando, setCarregando] = useState(modoEdicao);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
+
+  // Admin criando turma escolhe de qual professor ela vai ser
+  const escolherProfessor = ehAdmin() && !modoEdicao;
+  const { dados: professores } = useApi(escolherProfessor ? "/admin/professores" : null);
+  const [professorId, setProfessorId] = useState("");
 
   // Alunos e atividades só existem quando a turma já foi criada — uma "Nova
   // Turma" não tem id ainda pra buscar nada disso
@@ -145,6 +152,11 @@ export function useTurmaForm() {
     e.preventDefault();
     if (salvando) return;
 
+    if (escolherProfessor && !professorId) {
+      setErro("Escolha o professor responsável pela turma");
+      return;
+    }
+
     setSalvando(true);
     setErro(null);
     try {
@@ -154,6 +166,7 @@ export function useTurmaForm() {
         ano_letivo: Number(formData.ano_letivo),
         descricao: formData.descricao || null,
         ativo: formData.ativo,
+        ...(escolherProfessor && { professor_id: Number(professorId) }),
       };
 
       if (modoEdicao) {
@@ -433,6 +446,10 @@ export function useTurmaForm() {
   return {
     id,
     modoEdicao,
+    escolherProfessor,
+    professores: professores ?? [],
+    professorId,
+    setProfessorId,
     formData,
     codigoAcesso,
     alunos,

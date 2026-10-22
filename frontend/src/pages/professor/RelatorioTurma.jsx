@@ -10,6 +10,7 @@ import { Lista, Item } from "../../components/ui/Animacao";
 import { Indicador } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
 import { subtituloTurma } from "../../utils/turma";
+import { ehAdmin } from "../../services/sessao";
 
 const porcento = (valor) => (valor == null ? "—" : `${valor}%`);
 
@@ -211,6 +212,9 @@ export function RelatorioTurma() {
               {[subtituloTurma(turma), "Código de acesso: "].filter(Boolean).join(" · ")}
               <span className="font-bold text-azul/70 tracking-wider">{turma.codigo_acesso}</span>
             </p>
+            {ehAdmin() && turma.professor_nome && (
+              <p className="text-xs font-bold text-coral mt-0.5">Prof. {turma.professor_nome}</p>
+            )}
           </div>
           <Button as={Link} to={`/professor/turmas/${turma.id}/editar`} tamanho="sm" variante="contorno">
             Editar turma

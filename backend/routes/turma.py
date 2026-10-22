@@ -46,6 +46,13 @@ def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Dep
     else:
         turmas = session.query(Turma).filter(Turma.professor_id == professor.id).all()
 
+    # Nome do professor responsável: é o que o admin usa pra saber de quem é cada turma
+    nome_professor = dict(
+        session.query(Professor.id, Professor.nome_completo)
+        .filter(Professor.id.in_({t.professor_id for t in turmas}))
+        .all()
+    ) if turmas else {}
+
     # Antes: 1 query de contagem por turma (x2, alunos + atividades) dentro do loop —
     # com N turmas isso virava 1 + 2N idas ao banco. Agora são só 3 no total,
     # não importa quantas turmas existam.
@@ -74,6 +81,7 @@ def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Dep
             "descricao": turma.descricao,
             "ativo": turma.ativo,
             "professor_id": turma.professor_id,
+            "professor_nome": nome_professor.get(turma.professor_id),
             "alunos_count": alunos_por_turma.get(turma.id, 0),
             "atividades_count": atividades_por_turma.get(turma.id, 0),
         }
@@ -378,6 +386,7 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
         "turma": {
             "id": turma.id,
             "nome": turma.nome,
+            "professor_nome": session.query(Professor.nome_completo).filter(Professor.id == turma.professor_id).scalar(),
             "ano_escolar": turma.ano_escolar,
             "ano_letivo": turma.ano_letivo,
             "codigo_acesso": turma.codigo_acesso,

@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Lista, Item } from "../../components/ui/Animacao";
 import { subtituloTurma } from "../../utils/turma";
+import { ehAdmin } from "../../services/sessao";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
@@ -82,6 +83,9 @@ export function Turmas() {
                     <div className="min-w-0">
                       <h3 className="text-lg font-bold text-azul break-words">{turma.nome}</h3>
                       <span className="text-xs text-azul/50 font-medium">{subtituloTurma(turma)}</span>
+                      {ehAdmin() && turma.professor_nome && (
+                        <span className="block text-xs text-coral font-bold mt-0.5">Prof. {turma.professor_nome}</span>
+                      )}
                     </div>
                     {turma.ativo ? (
                       <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">

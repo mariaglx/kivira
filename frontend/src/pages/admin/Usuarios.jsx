@@ -48,8 +48,9 @@ export function Usuarios() {
     };
   }, [tipoFiltro]);
 
+  const termo = busca.trim().toLowerCase();
   const usuariosFiltrados = usuarios.filter((usuario) =>
-    (usuario.email || "").toLowerCase().includes(busca.toLowerCase())
+    `${usuario.nome ?? ""} ${usuario.identificador ?? ""} ${usuario.turmas.join(" ")}`.toLowerCase().includes(termo)
   );
 
   const abrirConfirmacaoPromover = (usuario) => {
@@ -99,7 +100,7 @@ export function Usuarios() {
           </span>
           <input
             type="text"
-            placeholder="Buscar por e-mail..."
+            placeholder="Buscar por nome, login ou turma..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
@@ -131,7 +132,8 @@ export function Usuarios() {
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-azul/40 font-bold border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>
-                <th className="px-5 py-3">E-mail</th>
+                <th className="px-5 py-3">Nome</th>
+                <th className="px-5 py-3">Login</th>
                 <th className="px-5 py-3">Papel</th>
                 <th className="px-5 py-3">Criado em</th>
                 <th className="px-5 py-3">Primeiro acesso</th>
@@ -142,7 +144,13 @@ export function Usuarios() {
               {usuariosFiltrados.map((usuario) => (
                 <tr key={usuario.id} className="border-b border-cinza-claro/10 last:border-0">
                   <td className="px-5 py-3 text-azul/60">{usuario.id}</td>
-                  <td className="px-5 py-3 font-medium text-azul">{usuario.email || "—"}</td>
+                  <td className="px-5 py-3 font-medium text-azul">
+                    {usuario.nome || "—"}
+                    {usuario.turmas.length > 0 && (
+                      <span className="block text-xs font-normal text-azul/50">{usuario.turmas.join(", ")}</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-azul/70">{usuario.identificador || "—"}</td>
                   <td className="px-5 py-3">
                     <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/60"}`}>
                       {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
@@ -170,7 +178,7 @@ export function Usuarios() {
 
               {usuariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-azul/50">
+                  <td colSpan={7} className="px-5 py-8 text-center text-azul/50">
                     Nenhum usuário encontrado.
                   </td>
                 </tr>
@@ -185,7 +193,7 @@ export function Usuarios() {
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
             <p className="font-extrabold text-azul text-lg mb-2">Tornar admin?</p>
             <p className="text-sm text-azul/60 mb-1">
-              <span className="font-semibold text-azul">{usuarioParaPromover.email}</span> passará
+              <span className="font-semibold text-azul">{usuarioParaPromover.nome || usuarioParaPromover.identificador}</span> passará
               a ter acesso irrestrito ao sistema: gestão de todos os usuários, turmas e logs de
               auditoria.
             </p>

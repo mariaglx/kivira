@@ -48,11 +48,13 @@ def listar_atividades_do_professor(
     session = Depends(pegar_sessao_kivira),
     usuario: Usuario = Depends(verificar_token_kivira),
 ):
-    professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-    query = session.query(Atividade).filter(Atividade.professor_id == professor.id)
+    query = session.query(Atividade)
+    # Admin enxerga as atividades de todos os professores
+    if usuario.tipo != "admin":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor não encontrado")
+        query = query.filter(Atividade.professor_id == professor.id)
     if turma_id is not None:
         query = query.filter(Atividade.turma_id == turma_id)
     atividades = query.all()
@@ -66,10 +68,17 @@ def listar_atividades_do_professor(
             session.query(Turma.id, Turma.nome).filter(Turma.id.in_(turma_ids)).all()
         )
 
+    nome_professor = dict(
+        session.query(Professor.id, Professor.nome_completo)
+        .filter(Professor.id.in_({a.professor_id for a in atividades}))
+        .all()
+    ) if atividades else {}
+
     resultado = []
     for a in atividades:
         resultado.append({
             "id": a.id,
+            "professor_nome": nome_professor.get(a.professor_id),
             "titulo": a.titulo,
             "disciplina": a.disciplina,
             "tipo_atividade": a.tipo_atividade,
@@ -152,6 +161,12 @@ def criar_atividade(atividade_schema: AtividadeSchema, session = Depends(pegar_s
 
     if usuario.tipo == "admin" and atividade_schema.professor_id is not None:
         professor_id = atividade_schema.professor_id
+    elif usuario.tipo == "admin" and atividade_schema.turma_id is not None:
+        # Admin criando pela tela do professor: a atividade fica com o dono da turma
+        turma = session.query(Turma).filter(Turma.id == atividade_schema.turma_id).first()
+        if not turma:
+            raise HTTPException(status_code=404, detail="Turma não encontrada")
+        professor_id = turma.professor_id
     elif professor:
         professor_id = professor.id
     else:
