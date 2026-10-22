@@ -22,7 +22,7 @@ const Atividades = lazy(() => import("./pages/professor/Atividades"));
 const CriarAtividade = lazy(() => import("./pages/professor/CriarAtividade"));
 const RelatorioAtividade = lazy(() => import("./pages/professor/RelatorioAtividade"));
 const RelatorioAluno = lazy(() => import("./pages/professor/RelatorioAluno"));
-const Alunos = lazy(() => import("./pages/professor/Alunos"));
+const RelatorioTurma = lazy(() => import("./pages/professor/RelatorioTurma"));
 const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
 const EscolherAvatar = lazy(() => import("./pages/aluno/EscolherAvatar"));
@@ -64,13 +64,13 @@ function App() {
             <Route path="/professor/turmas" element={<Turmas />} />
             <Route path="/professor/turmas/nova" element={<TurmaForm />} />
             <Route path="/professor/turmas/:id/editar" element={<TurmaForm />} />
+            <Route path="/professor/turmas/:id" element={<RelatorioTurma />} />
+            <Route path="/professor/turmas/:id/alunos" element={<RelatorioTurma />} />
+            <Route path="/professor/turmas/:id/alunos/:alunoId" element={<RelatorioAluno />} />
             <Route path="/professor/atividades" element={<Atividades />} />
             <Route path="/professor/atividades/criar" element={<CriarAtividade />} />
             <Route path="/professor/atividades/:id/editar" element={<CriarAtividade />} />
             <Route path="/professor/atividades/:id/relatorio" element={<RelatorioAtividade />} />
-            <Route path="/professor/alunos" element={<Alunos />} />
-            <Route path="/professor/alunos/turma/:turmaId" element={<Alunos />} />
-            <Route path="/professor/alunos/:id" element={<RelatorioAluno />} />
             <Route path="/professor/configuracoes" element={<Configuracoes />} />
           </Route>
         </Route>

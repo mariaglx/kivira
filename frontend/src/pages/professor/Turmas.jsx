@@ -1,45 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { Search } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
-import { Lista, Item, Modal } from "../../components/ui/Animacao";
+import { Lista, Item } from "../../components/ui/Animacao";
 
 export function Turmas() {
   const [busca, setBusca] = useState("");
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
   const [listaTurmas, setListaTurmas] = useState([]);
-  const [turmaVisualizada, setTurmaVisualizada] = useState(null);
-  const [alunosVisualizados, setAlunosVisualizados] = useState([]);
-  const [carregandoAlunos, setCarregandoAlunos] = useState(false);
-
-  // Guarda qual turma foi clicada por último — se o professor clicar em "Ver
-  // turma" de A e depois de B antes da resposta de A voltar, essa referência
-  // garante que só a resposta da turma ainda selecionada (B) é aplicada,
-  // mesmo que a resposta de A chegue depois da de B.
-  const turmaVisualizadaIdRef = useRef(null);
-
-  const abrirVerTurma = (turma) => {
-    turmaVisualizadaIdRef.current = turma.id;
-    setTurmaVisualizada(turma);
-    setAlunosVisualizados([]);
-    setCarregandoAlunos(true);
-    apiRequest(`/aluno_turma/turma/${turma.id}`)
-      .then((dados) => {
-        if (turmaVisualizadaIdRef.current === turma.id) setAlunosVisualizados(dados);
-      })
-      .finally(() => {
-        if (turmaVisualizadaIdRef.current === turma.id) setCarregandoAlunos(false);
-      });
-  };
-
-  const fecharVerTurma = () => {
-    turmaVisualizadaIdRef.current = null;
-    setTurmaVisualizada(null);
-  };
 
   useEffect(() => {
     let cancelado = false;
@@ -145,7 +117,7 @@ export function Turmas() {
                 </div>
 
                 <div className="flex gap-2 w-full">
-                  <Button tamanho="sm" onClick={() => abrirVerTurma(turma)} className="flex-1">
+                  <Button tamanho="sm" onClick={() => navigate(`/professor/turmas/${turma.id}`)} className="flex-1">
                     Ver turma
                   </Button>
                   <Button
@@ -176,64 +148,6 @@ export function Turmas() {
         )}
       </main>
 
-      <Modal aberto={!!turmaVisualizada} onFechar={fecharVerTurma}>
-        {turmaVisualizada && (
-          <>
-            <div className="flex items-start justify-between mb-1">
-              <div>
-                <p className="font-extrabold text-azul text-lg">{turmaVisualizada.nome}</p>
-                {turmaVisualizada.ativo ? (
-                  <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
-                    Ativa
-                  </span>
-                ) : (
-                  <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold mt-1.5">
-                    Inativa
-                  </span>
-                )}
-              </div>
-              <Button
-                variante="fantasma"
-                tamanho="icone"
-                aria-label="Fechar"
-                onClick={fecharVerTurma}
-              >
-                ×
-              </Button>
-            </div>
-
-            <p className="text-xs font-bold uppercase tracking-wider text-azul/50 mt-5 mb-2">
-              Alunos ({alunosVisualizados.length})
-            </p>
-
-            {carregandoAlunos ? (
-              <p className="text-sm text-azul/60 py-2">Carregando...</p>
-            ) : alunosVisualizados.length === 0 ? (
-              <p className="text-sm text-azul/60 py-2">Nenhum aluno matriculado ainda.</p>
-            ) : (
-              <ul className="flex flex-col max-h-72 overflow-y-auto">
-                {alunosVisualizados.map((aluno) => (
-                  <li
-                    key={aluno.matricula_id}
-                    className="flex items-center gap-3 py-2.5 border-b border-cinza-claro/20 last:border-0"
-                  >
-                    {aluno.avatar_url && (
-                      <img
-                        src={`/avatares/${aluno.avatar_url}`}
-                        alt=""
-                        className="w-8 h-8 rounded-lg object-cover"
-                      />
-                    )}
-                    <span className="text-sm font-semibold text-azul">
-                      {aluno.apelido || aluno.nome_completo}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )}
-      </Modal>
     </>
   );
 }

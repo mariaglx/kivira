@@ -98,7 +98,7 @@ export function RelatorioAtividade() {
                 {alunos.map((a) => (
                   <tr key={a.aluno_id}>
                     <td className="p-3 font-semibold">
-                      <Link to={`/professor/alunos/${a.aluno_id}`} className="hover:text-coral underline-offset-2 hover:underline">
+                      <Link to={`/professor/turmas/${relatorio.turma_id}/alunos/${a.aluno_id}`} className="hover:text-coral underline-offset-2 hover:underline">
                         {a.nome}
                       </Link>
                     </td>

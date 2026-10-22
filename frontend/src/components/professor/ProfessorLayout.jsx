@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
-import { House, Users, GraduationCap, Blocks, Settings } from "lucide-react";
+import { House, Users, Blocks, Settings } from "lucide-react";
 import { SidebarPainel } from "../SidebarPainel";
 import { useProfessorAtual } from "../../controllers/useProfessorAtual";
 import { useApi } from "../../controllers/useApi";
@@ -8,12 +8,11 @@ import { useApi } from "../../controllers/useApi";
 function montarItens(turmas) {
   return [
     { to: "/professor", Icone: House, rotulo: "Dashboard", end: true },
-    { to: "/professor/turmas", Icone: Users, rotulo: "Turmas" },
     {
-      to: "/professor/alunos",
-      Icone: GraduationCap,
-      rotulo: "Alunos",
-      subitens: turmas.map((t) => ({ to: `/professor/alunos/turma/${t.id}`, rotulo: t.nome })),
+      to: "/professor/turmas",
+      Icone: Users,
+      rotulo: "Turmas",
+      subitens: turmas.map((t) => ({ to: `/professor/turmas/${t.id}`, rotulo: t.nome })),
     },
     { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" },
     { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
@@ -30,7 +29,7 @@ function montarItens(turmas) {
 export function ProfessorLayout() {
   const { professor, setProfessor, carregando } = useProfessorAtual();
   const { pathname } = useLocation();
-  // Turmas do submenu "Alunos". Rebusca a cada navegação (sai do cache do
+  // Turmas do submenu de "Turmas". Rebusca a cada navegação (sai do cache do
   // apiRequest) pra turma recém-criada aparecer sem recarregar a página.
   const { dados: turmas } = useApi("/turma/", pathname);
 

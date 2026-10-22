@@ -24,9 +24,9 @@ function Metrica({ rotulo, valor }) {
 }
 
 export function RelatorioAluno() {
-  const { id } = useParams();
+  const { alunoId } = useParams();
   const navigate = useNavigate();
-  const { dados: relatorio, erro, carregando } = useApi(`/aluno/${id}/relatorio`);
+  const { dados: relatorio, erro, carregando } = useApi(`/aluno/${alunoId}/relatorio`);
 
   const voltar = (
     <button

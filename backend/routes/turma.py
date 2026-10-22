@@ -7,12 +7,14 @@ from models.aluno_turma import AlunoTurma
 from models.atividade import Atividade
 from models.aluno import Aluno
 from models.sessao_jogo import SessaoJogo
+from models.questao import Questao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
 from services.auditoria_service import registrar_log
+from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
 turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
 
@@ -278,3 +280,113 @@ def deletar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario
     )
 
     return {"mensagem": f"Turma '{nome_turma}' excluída com sucesso"}
+
+# Relatório da turma como um todo: quanto da turma concluiu cada atividade, a
+# taxa de acerto de primeira, os alunos (com o desempenho de cada um) e as
+# questões que a turma mais erra — o que puxar na próxima aula presencial.
+@turma_router.get("/{id_turma}/relatorio")
+def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    turma = session.query(Turma).filter(Turma.id == id_turma).first()
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+
+    if not pode_gerenciar(session, usuario, turma):
+        raise HTTPException(status_code=401, detail="Você não tem autorização para ver esse relatório")
+
+    alunos = session.query(Aluno).join(AlunoTurma, AlunoTurma.aluno_id == Aluno.id).filter(
+        AlunoTurma.turma_id == turma.id,
+        AlunoTurma.ativo == 1,
+    ).order_by(Aluno.nome_completo).all()
+    aluno_ids = [a.id for a in alunos]
+
+    atividades = session.query(Atividade).filter(
+        Atividade.turma_id == turma.id,
+        Atividade.publicado == True,
+    ).order_by(Atividade.data_criacao.desc()).all()
+    atividade_ids = [a.id for a in atividades]
+
+    # Só sessões de quem está na turma hoje e das atividades dela
+    sessoes = session.query(SessaoJogo).filter(
+        SessaoJogo.atividade_id.in_(atividade_ids),
+        SessaoJogo.aluno_id.in_(aluno_ids),
+    ).order_by(SessaoJogo.id).all() if atividade_ids and aluno_ids else []
+    situacao = situacao_por_aluno_atividade(sessoes)
+    respostas = primeiras_respostas(session, sessoes)
+
+    questoes = session.query(Questao).filter(Questao.atividade_id.in_(atividade_ids)).all() if atividade_ids else []
+    atividade_da_questao = {q.id: q.atividade_id for q in questoes}
+    total_questoes = {}
+    for q in questoes:
+        total_questoes[q.atividade_id] = total_questoes.get(q.atividade_id, 0) + 1
+
+    respostas_por_aluno, respostas_por_atividade, respostas_por_questao = {}, {}, {}
+    for (aluno_id, questao_id), acertou in respostas.items():
+        respostas_por_aluno.setdefault(aluno_id, []).append(acertou)
+        respostas_por_atividade.setdefault(atividade_da_questao.get(questao_id), []).append(acertou)
+        respostas_por_questao.setdefault(questao_id, []).append(acertou)
+
+    def concluiu(aluno_id, atividade_id):
+        return situacao.get((aluno_id, atividade_id), SEM_SESSAO)["status"] == "concluido"
+
+    relatorio_atividades = [
+        {
+            "atividade_id": a.id,
+            "titulo": a.titulo,
+            "disciplina": a.disciplina,
+            "total_questoes": total_questoes.get(a.id, 0),
+            "alunos_concluiram": sum(1 for aluno_id in aluno_ids if concluiu(aluno_id, a.id)),
+            "taxa_acerto_primeira": porcentagem(respostas_por_atividade.get(a.id, [])),
+        }
+        for a in atividades
+    ]
+
+    relatorio_alunos = [
+        {
+            "aluno_id": a.id,
+            "nome_completo": a.nome_completo,
+            "apelido": a.apelido,
+            "matricula": a.matricula,
+            "avatar_url": a.avatar_url,
+            "nivel_atual": a.nivel_atual or 1,
+            "atividades_concluidas": sum(1 for atividade_id in atividade_ids if concluiu(a.id, atividade_id)),
+            "taxa_acerto_primeira": porcentagem(respostas_por_aluno.get(a.id, [])),
+        }
+        for a in alunos
+    ]
+
+    titulo_atividade = {a.id: a.titulo for a in atividades}
+    questoes_dificeis = sorted(
+        (
+            {
+                "atividade_id": q.atividade_id,
+                "atividade_titulo": titulo_atividade[q.atividade_id],
+                "ordem": q.ordem,
+                "texto_questao": q.texto_questao,
+                "respostas": len(respostas_por_questao[q.id]),
+                "taxa_acerto_primeira": porcentagem(respostas_por_questao[q.id]),
+            }
+            for q in questoes
+            # Só entra quem alguém errou — questão 100% não é ponto de atenção
+            if q.id in respostas_por_questao and not all(respostas_por_questao[q.id])
+        ),
+        key=lambda r: (r["taxa_acerto_primeira"], -r["respostas"]),
+    )[:5]
+
+    pares = len(aluno_ids) * len(atividade_ids)
+    return {
+        "turma": {
+            "id": turma.id,
+            "nome": turma.nome,
+            "ano_escolar": turma.ano_escolar,
+            "codigo_acesso": turma.codigo_acesso,
+        },
+        "resumo": {
+            "alunos": len(alunos),
+            "atividades": len(atividades),
+            "taxa_conclusao": round(100 * sum(a["alunos_concluiram"] for a in relatorio_atividades) / pares) if pares else None,
+            "taxa_acerto_primeira": porcentagem(list(respostas.values())),
+        },
+        "atividades": relatorio_atividades,
+        "alunos": relatorio_alunos,
+        "questoes_dificeis": questoes_dificeis,
+    }

@@ -9,7 +9,6 @@ from models.aluno_turma import AlunoTurma
 from models.professor import Professor
 from models.atividade import Atividade
 from models.sessao_jogo import SessaoJogo
-from models.sessao_jogo_questao import SessaoJogoQuestao
 from models.questao import Questao
 from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
@@ -17,6 +16,7 @@ from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
+from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
 
@@ -657,6 +657,7 @@ def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuar
     return resultado
 
 
+
 # Histórico detalhado de um aluno pro professor: perfil (avatar, nível, turmas)
 # e, por atividade, a situação, a primeira conclusão e as questões que ele errou
 # na primeira tentativa. O professor só enxerga o aluno se ele estiver
@@ -689,59 +690,43 @@ def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
         SessaoJogo.aluno_id == aluno.id,
         SessaoJogo.atividade_id.in_(atividade_ids),
     ).order_by(SessaoJogo.id).all() if atividade_ids else []
-    sessoes_por_atividade = {}
-    for s in sessoes:
-        sessoes_por_atividade.setdefault(s.atividade_id, []).append(s)
+    situacao = situacao_por_aluno_atividade(sessoes)
+    respostas = {questao_id: acertou for (_, questao_id), acertou in primeiras_respostas(session, sessoes).items()}
 
-    questoes = session.query(Questao).filter(Questao.atividade_id.in_(atividade_ids)).all() if atividade_ids else []
+    questoes = session.query(Questao).filter(
+        Questao.atividade_id.in_(atividade_ids)
+    ).order_by(Questao.ordem).all() if atividade_ids else []
     questoes_por_atividade = {}
     for q in questoes:
         questoes_por_atividade.setdefault(q.atividade_id, []).append(q)
 
-    # Primeira resposta do aluno a cada questão (sessões em ordem de id) — mesma
-    # regra do relatório da atividade
-    linhas_questao = session.query(SessaoJogoQuestao).filter(
-        SessaoJogoQuestao.sessao_id.in_([s.id for s in sessoes])
-    ).order_by(SessaoJogoQuestao.sessao_id).all() if sessoes else []
-    primeira_resposta = {}
-    for linha in linhas_questao:
-        primeira_resposta.setdefault(linha.questao_id, linha.acertou_primeira)
-
     resultado = []
     for atividade in atividades:
-        do_aluno = sessoes_por_atividade.get(atividade.id, [])
-        concluidas = [s for s in do_aluno if s.status == "concluido"]
-        primeira = concluidas[0] if concluidas else None
-        if primeira:
-            status = "concluido"
-        elif any(s.status == "em_andamento" for s in do_aluno):
-            status = "em_andamento"
-        elif do_aluno:
-            status = "abandonado"
-        else:
-            status = "nao_iniciado"
-
-        questoes_da_atividade = sorted(questoes_por_atividade.get(atividade.id, []), key=lambda q: q.ordem)
+        sit = situacao.get((aluno.id, atividade.id), SEM_SESSAO)
+        primeira = sit["primeira"]
+        questoes_da_atividade = questoes_por_atividade.get(atividade.id, [])
         resultado.append({
             "atividade_id": atividade.id,
             "titulo": atividade.titulo,
             "disciplina": atividade.disciplina,
             "turma_nome": nome_turma.get(atividade.turma_id),
-            "status": status,
-            "tentativas": len(do_aluno),
+            "status": sit["status"],
+            "tentativas": sit["tentativas"],
             "total_questoes": len(questoes_da_atividade),
             "acertos_primeira": primeira.acertos_primeira if primeira else None,
             "tempo_gasto_seg": primeira.tempo_gasto_seg if primeira else None,
             "reinicios": primeira.reinicios if primeira else None,
-            "ultima_vez": max((s.finalizado_em or s.iniciado_em for s in do_aluno), default=None),
+            "ultima_vez": max(
+                (s.finalizado_em or s.iniciado_em for s in sessoes if s.atividade_id == atividade.id),
+                default=None,
+            ),
             "questoes_erradas": [
                 {"ordem": q.ordem, "texto_questao": q.texto_questao}
                 for q in questoes_da_atividade
-                if primeira_resposta.get(q.id) is False
+                if respostas.get(q.id) is False
             ],
         })
 
-    respondidas = list(primeira_resposta.values())
     return {
         "aluno": {
             "id": aluno.id,
@@ -756,7 +741,7 @@ def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
         "resumo": {
             "atividades_total": len(atividades),
             "atividades_concluidas": sum(1 for r in resultado if r["status"] == "concluido"),
-            "taxa_acerto_primeira": round(100 * sum(respondidas) / len(respondidas)) if respondidas else None,
+            "taxa_acerto_primeira": porcentagem(list(respostas.values())),
             "tempo_total_seg": sum(s.tempo_gasto_seg or 0 for s in sessoes),
         },
         "atividades": resultado,

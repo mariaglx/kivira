@@ -79,6 +79,7 @@ class TestRelatorioAtividade(unittest.TestCase):
         s.add(atividade)
         s.flush()
         cls.atividade_id = atividade.id
+        cls.turma_id = turma.id
         q1, q2 = Questao("1/2", 1, 10, None, None), Questao("3/4", 2, 10, None, None)
         q1.atividade_id = q2.atividade_id = atividade.id
         s.add_all([q1, q2])
@@ -155,6 +156,19 @@ class TestRelatorioAtividade(unittest.TestCase):
         # Bia errou as duas na partida que abandonou — é essa que vale
         bia = self.relatorio_aluno(self.bia_id, self.token_dono).json()
         self.assertEqual([q["ordem"] for q in bia["atividades"][0]["questoes_erradas"]], [1, 2])
+
+
+    def test_relatorio_da_turma(self):
+        url = f"/turma/{self.turma_id}/relatorio"
+        self.assertEqual(self.client.get(url, headers={"Authorization": f"Bearer {self.token_outro}"}).status_code, 401)
+
+        dados = self.client.get(url, headers={"Authorization": f"Bearer {self.token_dono}"}).json()
+        # 3 alunos x 1 atividade, 2 concluíram; primeiras respostas: Ana 1/2, Bia 0/2
+        self.assertEqual(dados["resumo"], {"alunos": 3, "atividades": 1, "taxa_conclusao": 67, "taxa_acerto_primeira": 25})
+        self.assertEqual(dados["atividades"][0]["alunos_concluiram"], 2)
+        por_nome = {a["nome_completo"]: (a["atividades_concluidas"], a["taxa_acerto_primeira"]) for a in dados["alunos"]}
+        self.assertEqual(por_nome, {"Ana": (1, 50), "Bia": (1, 0), "Caio": (0, None)})
+        self.assertEqual([(q["ordem"], q["taxa_acerto_primeira"]) for q in dados["questoes_dificeis"]], [(2, 0), (1, 50)])
 
 
 if __name__ == "__main__":
