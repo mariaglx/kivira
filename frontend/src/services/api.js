@@ -10,6 +10,9 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CACHE_MS = 5 * 60 * 1000;
 const cache = new Map();
 
+// Troca de identidade sem passar por POST (ver como aluno / voltar pro admin)
+export const limparCache = () => cache.clear();
+
 export async function apiRequest(endpoint, { method = 'GET', data = null, headers = {}, signal = null, semCache = false } = {}) {
   const token = localStorage.getItem('access_token');
 
@@ -56,7 +59,8 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
     // Token expirado/inválido: um único tratamento pra todas as telas. Login
     // fica de fora porque lá 401 significa só "credencial errada".
     if (response.status === 401 && token && !endpoint.startsWith('/auth_kivira/')) {
-      const destino = localStorage.getItem('user_type') === 'estudante' ? '/login_aluno' : '/login';
+      // Admin vendo como aluno cai no login do admin, não no da criança
+      const destino = localStorage.getItem('user_type') === 'estudante' && !localStorage.getItem('admin_token') ? '/login_aluno' : '/login';
       limparSessao();
       window.location.assign(destino);
     }

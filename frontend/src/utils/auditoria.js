@@ -3,7 +3,7 @@
 
 export const CATEGORIAS = [
   { chave: "", rotulo: "Tudo", acoes: [] },
-  { chave: "acessos", rotulo: "Acessos", acoes: ["LOGIN", "LOGIN_FALHOU", "LOGOUT", "PRIMEIRO_ACESSO_ALUNO"] },
+  { chave: "acessos", rotulo: "Acessos", acoes: ["LOGIN", "LOGIN_FALHOU", "LOGOUT", "PRIMEIRO_ACESSO_ALUNO", "VER_COMO_ALUNO"] },
   { chave: "falhas", rotulo: "Tentativas falhas", acoes: ["LOGIN_FALHOU"] },
   {
     chave: "turmas",
@@ -40,6 +40,7 @@ const VERBOS = {
   LOGIN: "entrou no sistema",
   LOGOUT: "saiu do sistema",
   PRIMEIRO_ACESSO_ALUNO: "fez o primeiro acesso e criou a senha",
+  VER_COMO_ALUNO: "abriu o app como o aluno",
   CRIAR_TURMA: "criou a turma",
   ATUALIZAR_TURMA: "editou a turma",
   EXCLUIR_TURMA: "excluiu a turma",

@@ -16,11 +16,13 @@ kivira_auth_router = APIRouter(prefix="/auth_kivira", tags=["auth"])
 
 # Processo de criação de token para o usuário se manter logado. A duração
 # depende do perfil: o token é a sessão inteira (não há refresh token).
-def criar_token(usuario):
-    minutos = ALUNO_TOKEN_EXPIRE_MINUTES if usuario.tipo == "estudante" else PROFESSOR_TOKEN_EXPIRE_MINUTES
+# `minutos` e `extras` servem pro "ver como aluno" do admin (token curto e marcado).
+def criar_token(usuario, minutos=None, extras=None):
+    if minutos is None:
+        minutos = ALUNO_TOKEN_EXPIRE_MINUTES if usuario.tipo == "estudante" else PROFESSOR_TOKEN_EXPIRE_MINUTES
     id_usuario = usuario.id
     data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=minutos)
-    dict_info = {"sub": str(id_usuario), "exp": data_expiracao}
+    dict_info = {"sub": str(id_usuario), "exp": data_expiracao, **(extras or {})}
     jwt_codificado = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
 
     return jwt_codificado

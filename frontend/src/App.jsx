@@ -33,6 +33,7 @@ const Conquistas = lazy(() => import("./pages/aluno/Conquistas"));
 const ConfiguracoesAluno = lazy(() => import("./pages/aluno/Configuracoes"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
+const PerfilAdmin = lazy(() => import("./pages/admin/PerfilAdmin"));
 
 function CarregandoRota() {
   return (
@@ -101,6 +102,7 @@ function App() {
           <Route element={<PainelLayout />}>
             <Route path="/admin" element={<Usuarios />} />
             <Route path="/admin/logs-auditoria" element={<LogsAuditoria />} />
+            <Route path="/admin/perfil" element={<PerfilAdmin />} />
           </Route>
         </Route>
       </Routes>

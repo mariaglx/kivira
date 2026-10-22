@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 import { House, Users, Blocks, Settings, UserCog, ShieldCheck } from "lucide-react";
@@ -49,6 +50,10 @@ export function PainelLayout() {
   // Turmas do submenu de "Turmas". Rebusca a cada navegação (sai do cache do
   // apiRequest) pra turma recém-criada aparecer sem recarregar a página.
   const { dados: turmas } = useApi("/turma/", pathname);
+  // Avatar do admin (perfil_admin); a tela de perfil troca e avisa por aqui
+  const { dados: perfilAdmin } = useApi(admin ? "/admin/me" : null);
+  const [avatarAdminNovo, setAvatarAdmin] = useState(null);
+  const avatarAdmin = avatarAdminNovo ?? perfilAdmin?.avatar_url;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -58,7 +63,7 @@ export function PainelLayout() {
         itens={montarItens(turmas ?? [], admin)}
         usuario={
           admin
-            ? { nome: "Administrador" }
+            ? { nome: "Administrador", avatar: avatarAdmin, perfilUrl: "/admin/perfil" }
             : {
                 nome: professor?.apelido || "Professor(a)",
                 avatar: professor?.avatar_url,
@@ -75,7 +80,7 @@ export function PainelLayout() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <Outlet context={{ professor, setProfessor, carregandoProfessor: carregando }} />
+        <Outlet context={{ professor, setProfessor, carregandoProfessor: carregando, perfilAdmin, avatarAdmin, setAvatarAdmin }} />
       </motion.div>
     </div>
     </MotionConfig>

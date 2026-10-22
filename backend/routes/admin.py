@@ -12,6 +12,10 @@ from models.professor import Professor
 from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
+from models.perfil_admin import PerfilAdmin
+from routes.auth import criar_token
+from routes.avatar import nivel_minimo_do_avatar
+from schemas.admin import PerfilAdminSchema
 from models.log_auditoria import LogAuditoria
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import somente_admin
@@ -28,7 +32,7 @@ def _pessoas(session, usuario_ids):
     if not usuario_ids:
         return {}
     pessoas = {
-        u.id: {"nome": None, "identificador": u.email, "turmas": []}
+        u.id: {"nome": None, "identificador": u.email, "turmas": [], "aluno_id": None}
         for u in session.query(Usuario).filter(Usuario.id.in_(usuario_ids)).all()
     }
     for p in session.query(Professor).filter(Professor.usuario_id.in_(usuario_ids)).all():
@@ -39,12 +43,60 @@ def _pessoas(session, usuario_ids):
     for a in alunos:
         pessoas[a.usuario_id]["nome"] = a.nome_completo
         pessoas[a.usuario_id]["identificador"] = a.username
+        pessoas[a.usuario_id]["aluno_id"] = a.id
     if alunos:
         for aluno_id, turma_nome in session.query(AlunoTurma.aluno_id, Turma.nome).join(
             Turma, Turma.id == AlunoTurma.turma_id
         ).filter(AlunoTurma.aluno_id.in_(usuario_do_aluno), AlunoTurma.ativo == 1).all():
             pessoas[usuario_do_aluno[aluno_id]]["turmas"].append(turma_nome)
     return pessoas
+
+
+# Perfil do admin logado (o avatar do menu). Admin escolhe qualquer bichinho,
+# sem trava de nível.
+
+@admin_router.get("/me")
+def meu_perfil_admin(session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    perfil = session.get(PerfilAdmin, usuario.id)
+    return {"email": usuario.email, "avatar_url": perfil.avatar_url if perfil else None}
+
+
+@admin_router.patch("/me")
+def editar_perfil_admin(dados: PerfilAdminSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    if nivel_minimo_do_avatar(session, dados.avatar_url) is None:
+        raise HTTPException(status_code=400, detail="Avatar não encontrado")
+    perfil = session.get(PerfilAdmin, usuario.id) or PerfilAdmin(usuario_id=usuario.id)
+    perfil.avatar_url = dados.avatar_url
+    session.add(perfil)
+    session.commit()
+    return {"email": usuario.email, "avatar_url": perfil.avatar_url}
+
+
+# "Ver como aluno": o admin recebe um token da conta da criança pra ver o app do
+# jeito que ela vê. O token dura pouco, é só leitura (ver verificar_token_kivira)
+# e carrega quem está olhando — e a entrada fica na auditoria.
+MINUTOS_VER_COMO_ALUNO = 30
+
+
+@admin_router.post("/alunos/{id_aluno}/ver_como")
+def ver_como_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
+    conta = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first() if aluno else None
+    if not conta:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    registrar_log(
+        session,
+        usuario,
+        acao="VER_COMO_ALUNO",
+        entidade="aluno",
+        entidade_id=aluno.id,
+        detalhes={"nome": aluno.nome_completo, "username": aluno.username},
+    )
+    return {
+        "access_token": criar_token(conta, minutos=MINUTOS_VER_COMO_ALUNO, extras={"visualizado_por": usuario.id}),
+        "nome": aluno.apelido or aluno.nome_completo,
+    }
 
 
 # Lista todos os usuários cadastrados no sistema (qualquer papel).
@@ -69,6 +121,7 @@ def listar_usuarios(
             "nome": pessoas[usuario.id]["nome"],
             "identificador": pessoas[usuario.id]["identificador"],
             "turmas": pessoas[usuario.id]["turmas"],
+            "aluno_id": pessoas[usuario.id]["aluno_id"],
             "tipo": usuario.tipo,
             "data_criacao": usuario.data_criacao,
             "primeiro_acesso": usuario.primeiro_acesso,

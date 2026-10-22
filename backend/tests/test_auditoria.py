@@ -46,7 +46,7 @@ def sessao_teste():
 class TestAuditoria(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade", "log_auditoria"]
+        tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade", "log_auditoria", "perfil_admin"]
         Base.metadata.create_all(engine, tables=[Base.metadata.tables[t] for t in tabelas])
         app.dependency_overrides[pegar_sessao_kivira] = sessao_teste
         cls.client = TestClient(app)
@@ -98,7 +98,7 @@ class TestAuditoria(unittest.TestCase):
 
     def test_login_registra_quem_e_de_onde(self):
         login = self.logs(acao="LOGIN")["itens"][0]
-        self.assertEqual(login["usuario"], {"nome": "Ana Souza", "identificador": "ana.souza", "turmas": ["3º A"]})
+        self.assertEqual(login["usuario"], {"nome": "Ana Souza", "identificador": "ana.souza", "turmas": ["3º A"], "aluno_id": self.aluno_id})
         self.assertEqual(login["detalhes"]["ip"], "200.1.2.3")
         self.assertEqual(login["detalhes"]["navegador"], "Mozilla/5.0 (iPhone)")
         self.assertTrue(login["data_criacao"].endswith("Z"))
@@ -132,6 +132,29 @@ class TestAuditoria(unittest.TestCase):
         resposta = self.client.patch(f"/aluno/{self.aluno_id}/resetar_senha", headers=self.outro_prof)
         self.assertEqual(resposta.status_code, 401)
         self.assertEqual(self.client.patch(f"/aluno/{self.aluno_id}/resetar_senha", headers=self.admin).status_code, 200)
+
+
+    def test_ver_como_aluno_e_so_leitura(self):
+        resposta = self.client.post(f"/admin/alunos/{self.aluno_id}/ver_como", headers=self.admin)
+        self.assertEqual(resposta.status_code, 200)
+        como_aluno = {"Authorization": f"Bearer {resposta.json()['access_token']}"}
+        self.assertEqual(self.client.get("/aluno/me", headers=como_aluno).json()["username"], "ana.souza")
+        # não altera nada pela conta da criança
+        self.assertEqual(self.client.patch(f"/aluno/{self.aluno_id}", json={"apelido": "x"}, headers=como_aluno).status_code, 403)
+        self.assertEqual(self.logs(acao="VER_COMO_ALUNO")["total"], 1)
+        # professor não consegue
+        self.assertEqual(self.client.post(f"/admin/alunos/{self.aluno_id}/ver_como", headers=self.outro_prof).status_code, 403)
+
+    def test_admin_escolhe_qualquer_avatar(self):
+        from models.avatar import Avatar
+        s = SessaoTeste()
+        s.add_all([Avatar(f"Bicho {i}", f"bicho{i}.png", "animais") for i in range(12)])
+        s.commit()
+        s.close()
+        # bicho11 é de nível 2 — aluno nível 1 não pega, admin pega
+        self.assertEqual(self.client.patch("/admin/me", json={"avatar_url": "bicho11.png"}, headers=self.admin).status_code, 200)
+        self.assertEqual(self.client.get("/admin/me", headers=self.admin).json()["avatar_url"], "bicho11.png")
+        self.assertEqual(self.client.patch("/admin/me", json={"avatar_url": "nao-existe.png"}, headers=self.admin).status_code, 400)
 
 
 if __name__ == "__main__":

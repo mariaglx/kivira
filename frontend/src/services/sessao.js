@@ -7,8 +7,28 @@ export function salvarSessao({ accessToken, tipo }) {
 }
 
 export function limparSessao() {
-  ["access_token", "refresh_token", "user_type"].forEach((k) => localStorage.removeItem(k));
+  ["access_token", "refresh_token", "user_type", ...CHAVES_VISUALIZACAO].forEach((k) => localStorage.removeItem(k));
 }
+
+// "Ver como aluno" do admin: guarda o token do admin de lado, entra com o token
+// (só leitura) da criança e, ao voltar, restaura o admin onde ele estava.
+const CHAVES_VISUALIZACAO = ["admin_token", "visualizando_aluno", "admin_voltar_para"];
+
+export function entrarComoAluno({ accessToken, nome, voltarPara }) {
+  localStorage.setItem("admin_token", localStorage.getItem("access_token"));
+  localStorage.setItem("visualizando_aluno", nome);
+  localStorage.setItem("admin_voltar_para", voltarPara);
+  salvarSessao({ accessToken, tipo: "estudante" });
+}
+
+export function voltarParaAdmin() {
+  const voltarPara = localStorage.getItem("admin_voltar_para") || "/professor";
+  salvarSessao({ accessToken: localStorage.getItem("admin_token"), tipo: "admin" });
+  CHAVES_VISUALIZACAO.forEach((k) => localStorage.removeItem(k));
+  return voltarPara;
+}
+
+export const alunoVisualizado = () => localStorage.getItem("visualizando_aluno");
 
 export const ehAdmin = () => localStorage.getItem("user_type") === "admin";
 

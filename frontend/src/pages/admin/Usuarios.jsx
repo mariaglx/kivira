@@ -4,6 +4,7 @@ import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Search } from "lucide-react";
 import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
+import { useVerComoAluno } from "../../controllers/useVerComoAluno";
 
 export function Usuarios() {
   const [busca, setBusca] = useState("");
@@ -11,6 +12,7 @@ export function Usuarios() {
   const [carregando, setCarregando] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [erro, setErro] = useState("");
+  const { verComoAluno, abrindo, erro: erroVerComo } = useVerComoAluno();
 
   const [usuarioParaPromover, setUsuarioParaPromover] = useState(null);
   const [promovendo, setPromovendo] = useState(false);
@@ -118,6 +120,10 @@ export function Usuarios() {
         </div>
       </div>
 
+      {erroVerComo && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+      )}
+
       {erro && (
         <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
           {erro}
@@ -163,15 +169,27 @@ export function Usuarios() {
                     {usuario.primeiro_acesso ? "Sim" : "Não"}
                   </td>
                   <td className="px-5 py-3">
-                    {usuario.tipo !== "admin" && (
-                      <button
-                        type="button"
-                        onClick={() => abrirConfirmacaoPromover(usuario)}
-                        className="text-xs font-bold text-coral hover:underline"
-                      >
-                        Tornar admin
-                      </button>
-                    )}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {usuario.aluno_id && (
+                        <button
+                          type="button"
+                          onClick={() => verComoAluno(usuario.aluno_id)}
+                          disabled={abrindo === usuario.aluno_id}
+                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                        >
+                          {abrindo === usuario.aluno_id ? "Abrindo..." : "Ver como aluno"}
+                        </button>
+                      )}
+                      {usuario.tipo !== "admin" && (
+                        <button
+                          type="button"
+                          onClick={() => abrirConfirmacaoPromover(usuario)}
+                          className="text-xs font-bold text-coral hover:underline whitespace-nowrap"
+                        >
+                          Tornar admin
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

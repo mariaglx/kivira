@@ -33,7 +33,9 @@ export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar 
           Escolha seu bichinho! ✨
         </h2>
         <p className="text-sm text-azul/60 text-center mb-5">
-          Os com cadeado 🔒 você libera subindo de nível!
+          {nivelAluno === Infinity
+            ? "Esse vai ser o seu ícone aqui no Kivira."
+            : "Os bichinhos com cadeado você libera subindo de nível!"}
         </p>
 
         {(erro || erroAvatares) && (

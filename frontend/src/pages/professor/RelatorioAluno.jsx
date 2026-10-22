@@ -1,5 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { ehAdmin } from "../../services/sessao";
+import { useVerComoAluno } from "../../controllers/useVerComoAluno";
 import { Avatar } from "../../components/ui/Avatar";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Carregando } from "../../components/ui/Carregando";
@@ -26,6 +29,7 @@ function Metrica({ rotulo, valor }) {
 export function RelatorioAluno() {
   const { alunoId } = useParams();
   const navigate = useNavigate();
+  const { verComoAluno, abrindo, erro: erroVerComo } = useVerComoAluno();
   const { dados: relatorio, erro, carregando } = useApi(`/aluno/${alunoId}/relatorio`);
 
   const voltar = (
@@ -81,12 +85,27 @@ export function RelatorioAluno() {
             ))}
           </div>
         </div>
+        {ehAdmin() && (
+          <Button
+            tamanho="sm"
+            variante="secundario"
+            onClick={() => verComoAluno(aluno.id)}
+            disabled={abrindo === aluno.id}
+            className="flex items-center gap-2 shrink-0"
+          >
+            <Eye size={14} /> {abrindo === aluno.id ? "Abrindo..." : "Ver como aluno"}
+          </Button>
+        )}
         <div className="w-full sm:w-56 shrink-0">
           <p className="text-sm font-bold text-coral mb-1.5">Nível {progresso.nivel}</p>
           <BarraProgresso valor={progresso.xpNoNivel} max={progresso.xpDoNivel} />
           <p className="text-xs text-azul/60 font-semibold mt-1">{aluno.xp_total} XP no total</p>
         </div>
       </header>
+
+      {erroVerComo && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+      )}
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Indicador rotulo="Atividades concluídas" valor={`${resumo.atividades_concluidas}/${resumo.atividades_total}`} />
