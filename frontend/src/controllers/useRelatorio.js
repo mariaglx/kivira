@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
 import { mensagemErroCarregamento } from "../utils/erroCarregamento";
 
-// Busca o relatório de uma atividade (resumo, alunos e questões) — ver
-// GET /atividade/{id}/relatorio no backend.
-export function useRelatorioAtividade(id) {
+// Busca um relatório do professor — da atividade (GET /atividade/{id}/relatorio)
+// ou do aluno (GET /aluno/{id}/relatorio).
+export function useRelatorio(endpoint) {
   const [relatorio, setRelatorio] = useState(null);
   const [erro, setErro] = useState(null);
 
@@ -12,7 +12,7 @@ export function useRelatorioAtividade(id) {
     let cancelado = false;
     const controller = new AbortController();
 
-    apiRequest(`/atividade/${id}/relatorio`, { signal: controller.signal })
+    apiRequest(endpoint, { signal: controller.signal })
       .then((dados) => {
         if (!cancelado) setRelatorio(dados);
       })
@@ -26,7 +26,7 @@ export function useRelatorioAtividade(id) {
       cancelado = true;
       controller.abort();
     };
-  }, [id]);
+  }, [endpoint]);
 
   return { relatorio, erro, carregando: !relatorio && !erro };
 }

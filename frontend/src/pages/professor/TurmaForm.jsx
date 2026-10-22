@@ -424,7 +424,9 @@ export function TurmaForm() {
                             />
                           )}
                           <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <span className="truncate">{aluno.apelido || aluno.nome_completo}</span>
+                            <Link to={`/professor/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral hover:underline underline-offset-2">
+                              {aluno.apelido || aluno.nome_completo}
+                            </Link>
                             {aluno.matricula && (
                               <span className="text-[10px] font-bold text-azul/40 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                                 {aluno.matricula}

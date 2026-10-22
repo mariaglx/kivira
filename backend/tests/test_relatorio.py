@@ -9,6 +9,8 @@ import unittest
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.mysql import YEAR
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -21,12 +23,19 @@ from models.professor import Professor
 from models.aluno import Aluno
 from models.aluno_turma import AlunoTurma
 from models.atividade import Atividade
+from models.turma import Turma
 from models.questao import Questao
 from models.sessao_jogo import SessaoJogo
 from models.sessao_jogo_questao import SessaoJogoQuestao
 
 engine = create_engine("sqlite://", poolclass=StaticPool, connect_args={"check_same_thread": False})
 SessaoTeste = sessionmaker(bind=engine)
+
+
+# turma.ano_letivo é YEAR (só MySQL); no SQLite vira INTEGER
+@compiles(YEAR, "sqlite")
+def _year_no_sqlite(tipo, compilador, **kw):
+    return "INTEGER"
 
 
 def sessao_teste():
@@ -40,8 +49,7 @@ def sessao_teste():
 class TestRelatorioAtividade(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Sem a tabela turma (usa YEAR, exclusivo do MySQL): SQLite não cobra a FK.
-        tabelas = ["usuario", "avatar", "professor", "aluno", "aluno_turma", "atividade",
+        tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade",
                    "questao", "sessao_jogo", "sessao_jogo_questao"]
         Base.metadata.create_all(engine, tables=[Base.metadata.tables[t] for t in tabelas])
         app.dependency_overrides[pegar_sessao_kivira] = sessao_teste
@@ -58,9 +66,16 @@ class TestRelatorioAtividade(unittest.TestCase):
         s.flush()
         cls.token_dono, cls.token_outro = criar_token(dono), criar_token(outro)
 
+        professor_dono = s.query(Professor).filter(Professor.usuario_id == dono.id).one()
+        turma = Turma("3º A", "3º ano", 2026, None)
+        turma.professor_id = professor_dono.id
+        turma.codigo_acesso = "ABC123"
+        s.add(turma)
+        s.flush()
+
         atividade = Atividade("Frações", "arrastar_soltar", None, "Matemática")
-        atividade.professor_id = s.query(Professor).filter(Professor.usuario_id == dono.id).one().id
-        atividade.turma_id = 1
+        atividade.professor_id = professor_dono.id
+        atividade.turma_id = turma.id
         s.add(atividade)
         s.flush()
         cls.atividade_id = atividade.id
@@ -72,11 +87,12 @@ class TestRelatorioAtividade(unittest.TestCase):
         s.add_all(alunos)
         s.flush()
         for a in alunos:
-            s.add(AlunoTurma(turma_id=1, aluno_id=a.id))
+            s.add(AlunoTurma(turma_id=turma.id, aluno_id=a.id))
         ana, bia, _caio = alunos
+        cls.ana_id, cls.bia_id = ana.id, bia.id
 
         def sessao(aluno, status, acertos, tempo, reinicios, respostas):
-            sj = SessaoJogo(atividade_id=atividade.id, aluno_id=aluno.id, turma_id=1, status=status,
+            sj = SessaoJogo(atividade_id=atividade.id, aluno_id=aluno.id, turma_id=turma.id, status=status,
                             acertos_primeira=acertos, tempo_gasto_seg=tempo, reinicios=reinicios)
             s.add(sj)
             s.flush()
@@ -120,6 +136,25 @@ class TestRelatorioAtividade(unittest.TestCase):
         questoes = self.relatorio(self.token_dono).json()["questoes"]
         # q2: ninguém acertou de primeira; q1: só Ana (Bia errou na sessão abandonada)
         self.assertEqual([(q["ordem"], q["respostas"], q["taxa_acerto_primeira"]) for q in questoes], [(2, 2, 0), (1, 2, 50)])
+
+
+    def relatorio_aluno(self, aluno_id, token):
+        return self.client.get(f"/aluno/{aluno_id}/relatorio", headers={"Authorization": f"Bearer {token}"})
+
+    def test_aluno_de_outra_turma_nao_aparece(self):
+        self.assertEqual(self.relatorio_aluno(self.ana_id, self.token_outro).status_code, 401)
+
+    def test_historico_do_aluno(self):
+        ana = self.relatorio_aluno(self.ana_id, self.token_dono).json()
+        self.assertEqual(ana["aluno"]["turmas"], ["3º A"])
+        self.assertEqual(ana["resumo"]["taxa_acerto_primeira"], 50)
+        atividade = ana["atividades"][0]
+        self.assertEqual((atividade["status"], atividade["tentativas"], atividade["acertos_primeira"]), ("concluido", 2, 1))
+        self.assertEqual([q["ordem"] for q in atividade["questoes_erradas"]], [2])
+
+        # Bia errou as duas na partida que abandonou — é essa que vale
+        bia = self.relatorio_aluno(self.bia_id, self.token_dono).json()
+        self.assertEqual([q["ordem"] for q in bia["atividades"][0]["questoes_erradas"]], [1, 2])
 
 
 if __name__ == "__main__":

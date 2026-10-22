@@ -2,33 +2,13 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
-import { useRelatorioAtividade } from "../../controllers/useRelatorioAtividade";
-
-const STATUS = {
-  concluido: { texto: "Concluiu", estilo: "bg-green-100 text-green-600" },
-  em_andamento: { texto: "Jogando", estilo: "bg-amber-100 text-amber-600" },
-  abandonado: { texto: "Não terminou", estilo: "bg-red-100 text-red-500" },
-  nao_iniciado: { texto: "Não começou", estilo: "bg-cinza-claro text-azul/60" },
-};
-
-function formatarTempo(segundos) {
-  if (segundos == null) return "—";
-  const s = Math.round(segundos);
-  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min ${s % 60}s`;
-}
-
-function Indicador({ rotulo, valor }) {
-  return (
-    <div className="cartao rounded-2xl p-4 flex flex-col gap-1">
-      <span className="rotulo">{rotulo}</span>
-      <span className="text-2xl font-extrabold text-azul">{valor}</span>
-    </div>
-  );
-}
+import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
+import { useRelatorio } from "../../controllers/useRelatorio";
+import { formatarTempo } from "../../utils/tempo";
 
 export function RelatorioAtividade() {
   const { id } = useParams();
-  const { relatorio, erro, carregando } = useRelatorioAtividade(id);
+  const { relatorio, erro, carregando } = useRelatorio(`/atividade/${id}/relatorio`);
 
   if (carregando) return <Carregando texto="Carregando relatório..." />;
 
@@ -117,11 +97,13 @@ export function RelatorioAtividade() {
               <tbody className="divide-y divide-cinza-claro text-azul">
                 {alunos.map((a) => (
                   <tr key={a.aluno_id}>
-                    <td className="p-3 font-semibold">{a.nome}</td>
+                    <td className="p-3 font-semibold">
+                      <Link to={`/professor/alunos/${a.aluno_id}`} className="hover:text-coral underline-offset-2 hover:underline">
+                        {a.nome}
+                      </Link>
+                    </td>
                     <td className="p-3">
-                      <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${STATUS[a.status].estilo}`}>
-                        {STATUS[a.status].texto}
-                      </span>
+                      <SeloStatus status={a.status} />
                     </td>
                     <td className="p-3">{a.acertos_primeira == null ? "—" : `${a.acertos_primeira}/${totalQuestoes}`}</td>
                     <td className="p-3">{formatarTempo(a.tempo_gasto_seg)}</td>
