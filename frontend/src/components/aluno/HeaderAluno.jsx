@@ -6,13 +6,16 @@ import { Avatar } from "../ui/Avatar";
 import { XP_POR_NIVEL, xpNoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
-import { MapPin, Sparkles, Users, Settings, Star } from "lucide-react";
+import { MapPin, Sparkles, Users, Settings, Star, Smile } from "lucide-react";
 
 const ABAS = [
   { to: "/aluno/home", Icone: MapPin, rotulo: "Trilha de Jogos" },
   { to: "/aluno/conquistas", Icone: Sparkles, rotulo: "Conquistas" },
   { to: "/aluno/turmas", Icone: Users, rotulo: "Minha Turma" },
 ];
+
+// Entra como 4a aba só enquanto o aluno não respondeu o questionário.
+const ABA_FEEDBACK = { to: "/aluno/feedback", Icone: Smile, rotulo: "Opinião" };
 
 // Cabeçalho fixo das telas do aluno — 3 blocos: logo, abas em pílula e o
 // badge do aluno com XP + dropdown de Ajustes/Sair. No celular as abas descem
@@ -21,6 +24,10 @@ const ABAS = [
 export function HeaderAluno({ aluno }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+
+  // "já sei que não respondeu", não "não respondeu": com aluno ainda null no
+  // carregamento, a segunda forma mostraria a aba e a tiraria em seguida.
+  const abas = aluno && !aluno.respondeu_feedback ? [...ABAS, ABA_FEEDBACK] : ABAS;
 
   const sair = async () => {
     try {
@@ -36,8 +43,8 @@ export function HeaderAluno({ aluno }) {
     <header className="sticky top-0 z-30 bg-branco border-b-2 border-laranja/30 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
       <LogoKivira className="h-9 w-auto" />
 
-      <nav className="fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 gap-1 bg-branco border-t-2 border-laranja/30 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:static sm:flex sm:items-center sm:gap-1.5 sm:border-0 sm:p-0 sm:bg-transparent">
-        {ABAS.map(({ to, Icone, rotulo }) => (
+      <nav className={`fixed bottom-0 inset-x-0 z-30 grid ${abas.length === 4 ? "grid-cols-4" : "grid-cols-3"} gap-1 bg-branco border-t-2 border-laranja/30 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] sm:static sm:flex sm:items-center sm:gap-1.5 sm:border-0 sm:p-0 sm:bg-transparent`}>
+        {abas.map(({ to, Icone, rotulo }) => (
           <NavLink
             key={to}
             to={to}
@@ -51,7 +58,7 @@ export function HeaderAluno({ aluno }) {
             }
           >
             <Icone size={20} />
-            <span className="sm:hidden lg:inline">{rotulo}</span>
+            <span className="sm:hidden lg:inline text-center leading-tight">{rotulo}</span>
           </NavLink>
         ))}
       </nav>

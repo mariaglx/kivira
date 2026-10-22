@@ -10,6 +10,7 @@ from models.professor import Professor
 from models.atividade import Atividade
 from models.sessao_jogo import SessaoJogo
 from routes.atividade import calcular_estrelas, calcular_xp_ganho
+from models.feedback_aluno import FeedbackAluno
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 import bcrypt, secrets, unicodedata
@@ -31,6 +32,10 @@ def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = 
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
 
+    # Vai junto do perfil (em vez de um endpoint próprio) porque as abas precisam
+    # saber disso no primeiro desenho pra não piscar o item e tirar.
+    respondeu_feedback = session.query(FeedbackAluno.id).filter(FeedbackAluno.usuario_id == usuario.id).first() is not None
+
     return {
         "id": aluno.id,
         "nome_completo": aluno.nome_completo,
@@ -39,6 +44,7 @@ def meu_perfil_aluno(session = Depends(pegar_sessao_kivira), usuario: Usuario = 
         "xp_total": aluno.xp_total,
         "nivel_atual": aluno.nivel_atual,
         "username": aluno.username,
+        "respondeu_feedback": respondeu_feedback,
     }
 
 # Usado na Home pública: depois que o código da turma foi validado, o front pede o username
