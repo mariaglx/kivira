@@ -9,7 +9,7 @@ avatar_router = APIRouter(prefix="/avatar", tags=["avatar"])
 # A ordem intercala as categorias (1º de cada uma, depois o 2º de cada...) pra
 # todo nível trazer bichinhos variados e o começo já ter um pouco de tudo.
 AVATARES_INICIAIS = 10
-AVATARES_POR_NIVEL = 5
+AVATARES_POR_NIVEL = 4
 
 
 # ponytail: nível calculado pela ordem dos ids, sem coluna no banco — um avatar

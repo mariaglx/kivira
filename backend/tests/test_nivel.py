@@ -43,9 +43,9 @@ class TestCurvaDeNivel(unittest.TestCase):
     def test_avatares_intercalam_categorias(self):
         avatares = [SimpleNamespace(id=i, arquivo=f"{cat}{i}.png", categoria=cat) for i, cat in enumerate("aaaaaaaaabbbbbbbbb")]
         niveis = niveis_dos_avatares(avatares)
-        # 10 primeiros (5 de cada categoria) no nível 1, depois 5 por nível
+        # 10 primeiros (5 de cada categoria) no nível 1, depois 4 por nível
         self.assertEqual(sum(1 for n in niveis.values() if n == 1), 10)
-        self.assertEqual(sorted(niveis.values())[10:], [2, 2, 2, 2, 2, 3, 3, 3])
+        self.assertEqual(sorted(niveis.values())[10:], [2, 2, 2, 2, 3, 3, 3, 3])
         self.assertEqual(niveis["a0.png"], 1)
         self.assertEqual(niveis["b9.png"], 1)
 
