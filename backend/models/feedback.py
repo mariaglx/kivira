@@ -1,10 +1,17 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, Text
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, SmallInteger, Text
 from database import Base
 from sqlalchemy import func
 
 
 class Feedback(Base):
     __tablename__ = "feedback"
+    __table_args__ = (
+        CheckConstraint(
+            "facilidade_uso BETWEEN 1 AND 5 AND autonomia_aluno BETWEEN 1 AND 5"
+            " AND alinhamento_conteudo BETWEEN 1 AND 5 AND usaria_nas_aulas BETWEEN 1 AND 5",
+            name="ck_feedback_notas",
+        ),
+    )
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     usuario_id = Column("usuario_id", Integer, ForeignKey("usuario.id"), unique=True, nullable=False)

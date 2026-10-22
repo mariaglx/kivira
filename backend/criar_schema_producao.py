@@ -31,6 +31,7 @@ from models import (
     sessao_jogo_questao,
     perfil_admin,
     feedback,
+    feedback_aluno,
 )
 
 

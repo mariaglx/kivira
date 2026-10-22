@@ -46,7 +46,7 @@ def sessao_teste():
 class TestAuditoria(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade", "log_auditoria", "perfil_admin"]
+        tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade", "log_auditoria", "perfil_admin", "feedback_aluno"]
         Base.metadata.create_all(engine, tables=[Base.metadata.tables[t] for t in tabelas])
         app.dependency_overrides[pegar_sessao_kivira] = sessao_teste
         cls.client = TestClient(app)

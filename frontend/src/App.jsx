@@ -32,6 +32,7 @@ const TurmaDetalhe = lazy(() => import("./pages/aluno/TurmaDetalhe"));
 const Historico = lazy(() => import("./pages/aluno/Historico"));
 const Conquistas = lazy(() => import("./pages/aluno/Conquistas"));
 const ConfiguracoesAluno = lazy(() => import("./pages/aluno/Configuracoes"));
+const FeedbackAluno = lazy(() => import("./pages/aluno/Feedback"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
 const PerfilAdmin = lazy(() => import("./pages/admin/PerfilAdmin"));
@@ -95,6 +96,7 @@ function App() {
             <Route path="/aluno/turmas/:id" element={<TurmaDetalhe />} />
             <Route path="/aluno/historico" element={<Historico />} />
             <Route path="/aluno/configuracoes" element={<ConfiguracoesAluno />} />
+            <Route path="/aluno/feedback" element={<FeedbackAluno />} />
           </Route>
         </Route>
 
