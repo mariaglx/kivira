@@ -1,12 +1,19 @@
 # É onde criamos as classes do nosso banco de dados
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, SmallInteger
 from database import Base
 from sqlalchemy import func
 
 
 class FeedbackAluno(Base):
     __tablename__ = "feedback_aluno"
+    __table_args__ = (
+        CheckConstraint(
+            "diversao BETWEEN 1 AND 5 AND autonomia BETWEEN 1 AND 3"
+            " AND jogar_de_novo BETWEEN 1 AND 3",
+            name="ck_feedback_aluno_notas",
+        ),
+    )
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     usuario_id = Column("usuario_id", Integer, ForeignKey("usuario.id"), unique=True, nullable=False)

@@ -28,6 +28,8 @@ from models import (
     avatar,
     log_auditoria,
     sessao_jogo,
+    feedback,
+    feedback_aluno,
 )
 
 
