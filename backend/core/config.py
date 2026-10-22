@@ -5,7 +5,10 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback_chave_segura_desenvolvimento")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+# Quanto tempo o login dura, por perfil. Aluno tem prazo menor porque usa
+# computador compartilhado da escola: cobre um turno de aula.
+PROFESSOR_TOKEN_EXPIRE_MINUTES = int(os.getenv("PROFESSOR_TOKEN_EXPIRE_MINUTES", 60 * 24))
+ALUNO_TOKEN_EXPIRE_MINUTES = int(os.getenv("ALUNO_TOKEN_EXPIRE_MINUTES", 60 * 4))
 
 # APP_ENV controla qual banco a aplicação usa: "test" (padrão) ou "production".
 # Os dois podem conviver no mesmo .env — só troca o APP_ENV pra apontar pra um ou outro.

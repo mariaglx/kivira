@@ -8,17 +8,18 @@ from sqlalchemy.orm import Session
 from schemas.auth import LoginSchema, LoginAlunoSchema
 from datetime import datetime, timedelta, timezone
 from jose import jwt
-from core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from core.config import SECRET_KEY, ALGORITHM, PROFESSOR_TOKEN_EXPIRE_MINUTES, ALUNO_TOKEN_EXPIRE_MINUTES
 from services.auditoria_service import registrar_log
 
 kivira_auth_router = APIRouter(prefix="/auth_kivira", tags=["auth"])
 
 
-# Processo de criação de token para o usuário se manter logado
-def criar_token(
-    id_usuario, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-):
-    data_expiracao = datetime.now(timezone.utc) + duracao_token
+# Processo de criação de token para o usuário se manter logado. A duração
+# depende do perfil: o token é a sessão inteira (não há refresh token).
+def criar_token(usuario):
+    minutos = ALUNO_TOKEN_EXPIRE_MINUTES if usuario.tipo == "estudante" else PROFESSOR_TOKEN_EXPIRE_MINUTES
+    id_usuario = usuario.id
+    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=minutos)
     dict_info = {"sub": str(id_usuario), "exp": data_expiracao}
     jwt_codificado = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
 
@@ -52,14 +53,12 @@ def login(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
     else:
-        access_token = criar_token(usuario.id)
-        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        access_token = criar_token(usuario)
 
         registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id)
 
         return {
             "access_token": access_token,
-            "refresh_token": refresh_token,
             "token_type": "Bearer",
             "tipo_usuario": usuario.tipo,
         }
@@ -81,7 +80,7 @@ def login_form(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
     else:
-        access_token = criar_token(usuario.id)
+        access_token = criar_token(usuario)
 
         registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_form"})
 
@@ -119,14 +118,12 @@ def login_aluno(
             status_code=400, detail="Usuário inexistente ou Login/Senha incorretos"
         )
     else:
-        access_token = criar_token(usuario.id)
-        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        access_token = criar_token(usuario)
 
         registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"via": "login_aluno"})
 
         return {
             "access_token": access_token,
-            "refresh_token": refresh_token,
             "token_type": "Bearer",
         }
 

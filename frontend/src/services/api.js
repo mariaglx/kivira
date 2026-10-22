@@ -2,8 +2,22 @@ import { limparSessao } from './sessao';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
+// Cache em memória das respostas de GET: voltar pra uma tela já visitada abre
+// na hora. Qualquer POST/PUT/DELETE (inclusive login e logout) limpa tudo, pra
+// não mostrar dado velho depois de uma alteração nem dado de outro usuário.
+// F5 também limpa, porque vive só na memória da aba.
+const CACHE_MS = 5 * 60 * 1000;
+const cache = new Map();
+
 export async function apiRequest(endpoint, { method = 'GET', data = null, headers = {}, signal = null } = {}) {
   const token = localStorage.getItem('access_token');
+
+  if (method !== 'GET') {
+    cache.clear();
+  } else {
+    const salvo = cache.get(endpoint);
+    if (salvo && Date.now() - salvo.em < CACHE_MS) return salvo.dados;
+  }
 
   const config = {
     method,
@@ -57,5 +71,6 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
     throw erro;
   }
 
+  if (method === 'GET') cache.set(endpoint, { dados: responseData, em: Date.now() });
   return responseData;
 }
