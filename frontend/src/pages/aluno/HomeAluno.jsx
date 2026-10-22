@@ -2,8 +2,6 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useHomeAluno } from "../../controllers/useHomeAluno";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { progressoNivel } from "../../utils/xp";
-import { useAvatares } from "../../controllers/useAvatares";
-import { ProximosAvatares } from "../../components/aluno/ProximosAvatares";
 import { TrilhaFases } from "../../components/aluno/TrilhaFases";
 import { MapPin, ClipboardList } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
@@ -14,7 +12,6 @@ export function HomeAluno() {
   const navigate = useNavigate();
   const { aluno, carregandoAluno } = useOutletContext();
   const { atividades, carregando } = useHomeAluno();
-  const { avatares } = useAvatares();
   const progresso = progressoNivel(aluno?.xp_total);
 
   if (carregandoAluno || carregando) {
@@ -40,7 +37,6 @@ export function HomeAluno() {
           <p className="text-xs text-azul/60 font-semibold mt-1">
             {progresso.xpNoNivel}/{progresso.xpDoNivel} XP pro próximo nível
           </p>
-          <ProximosAvatares avatares={avatares} nivel={progresso.nivel} />
         </div>
       </Entrada>
 
