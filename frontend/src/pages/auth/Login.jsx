@@ -37,7 +37,7 @@ export function Login() {
         },
       });
 
-      salvarSessao({ accessToken: data?.access_token, refreshToken: data?.refresh_token, tipo: data?.tipo_usuario });
+      salvarSessao({ accessToken: data?.access_token, tipo: data?.tipo_usuario });
 
       if (data.tipo_usuario === "admin") {
         navigate("/admin");

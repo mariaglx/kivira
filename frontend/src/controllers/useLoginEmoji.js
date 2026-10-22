@@ -33,7 +33,7 @@ export function useLoginEmoji(username) {
         data: { username, senha: emojis.join("") },
       });
 
-      salvarSessao({ accessToken: login?.access_token, refreshToken: login?.refresh_token, tipo: "estudante" });
+      salvarSessao({ accessToken: login?.access_token, tipo: "estudante" });
 
       const perfil = await apiRequest("/aluno/me");
       navigate(perfil.avatar_url ? "/aluno/home" : "/aluno/escolher-avatar");

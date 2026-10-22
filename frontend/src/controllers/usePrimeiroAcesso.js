@@ -45,7 +45,7 @@ export function usePrimeiroAcesso(username) {
         data: { username, senha: emojis.join("") },
       });
 
-      salvarSessao({ accessToken: login?.access_token, refreshToken: login?.refresh_token, tipo: "estudante" });
+      salvarSessao({ accessToken: login?.access_token, tipo: "estudante" });
 
       navigate("/aluno/escolher-avatar");
     } catch (err) {

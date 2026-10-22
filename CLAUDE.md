@@ -33,9 +33,14 @@ uvicorn main:app --reload
 pip install -r requirements.txt
 ```
 
-There are no automated tests configured in either the backend or frontend yet (root `npm test` is a stub; no `tests/` directory exists despite being referenced in CONTRIBUTING.md's aspirational layout).
+Tests (also run by `.github/workflows/ci.yml` on every PR):
+```
+npm test                                   # from frontend/ — Vitest, files next to the code (*.test.js)
+python -m unittest discover tests          # from backend/ — stdlib unittest + FastAPI TestClient on in-memory SQLite
+```
+Backend tests set `DATABASE_URL_PROD=sqlite://` before importing the app and create only the tables they need (some models use MySQL-only types like `YEAR`).
 
-Env files: `backend/.env` (see `backend/.env.example` — `DATABASE_URL`) and `frontend/.env` (see `frontend/.env.example` — `VITE_API_URL`). Backend also reads `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES` (see `backend/core/config.py`), each with an insecure development fallback if unset.
+Env files: `backend/.env` (see `backend/.env.example` — `DATABASE_URL`) and `frontend/.env` (see `frontend/.env.example` — `VITE_API_URL`). Backend also reads `SECRET_KEY`, `ALGORITHM`, `PROFESSOR_TOKEN_EXPIRE_MINUTES` (default 24h), `ALUNO_TOKEN_EXPIRE_MINUTES` (default 4h) (see `backend/core/config.py`), each with an insecure development fallback if unset.
 
 ## Backend Architecture (`backend/`)
 
