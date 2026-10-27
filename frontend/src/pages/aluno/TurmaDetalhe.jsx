@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { useTurmaAluno } from "../../controllers/useTurmaAluno";
+import { PerfilAlunoModal } from "../../components/PerfilAlunoModal";
 import { useTurmasAluno } from "../../controllers/useTurmasAluno";
 import { Avatar } from "../../components/ui/Avatar";
 import { Carregando } from "../../components/ui/Carregando";
@@ -21,6 +23,8 @@ function Campo({ rotulo, children }) {
 export function TurmaDetalhe() {
   const { carregandoAluno } = useOutletContext();
   const { turma, erro, carregando } = useTurmaAluno();
+  // id do colega cujo perfil está aberto (null = nenhum)
+  const [perfilAberto, setPerfilAberto] = useState(null);
   // Com 1 turma só, /aluno/turmas redireciona pra cá direto (ver Turmas.jsx)
   // — mostrar "← Turmas" nesse caso só devolveria o aluno pro mesmo lugar.
   const { turmas: minhasTurmas } = useTurmasAluno();
@@ -118,11 +122,17 @@ export function TurmaDetalhe() {
                         </span>
                       )}
 
-                      <Avatar arquivo={colega.avatar_url} nome={colega.nome} className="w-9 h-9 text-sm rounded-xl" />
-
-                      <span className="text-sm font-semibold grow min-w-0 truncate">
-                        {colega.nome}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPerfilAberto(colega.aluno_id)}
+                        title={`Ver perfil de ${colega.nome}`}
+                        className="flex items-center gap-3 grow min-w-0 cursor-pointer rounded-xl hover:bg-azul/5 transition-colors py-0.5 px-1 -mx-1 text-left"
+                      >
+                        <Avatar arquivo={colega.avatar_url} nome={colega.nome} className="w-9 h-9 text-sm rounded-xl" />
+                        <span className="text-sm font-semibold min-w-0 truncate">
+                          {colega.nome}
+                        </span>
+                      </button>
 
                       {colega.sou_eu && (
                         <span className="text-[11px] font-bold text-coral bg-coral/15 rounded-md px-2 py-0.5 shrink-0">
@@ -145,6 +155,10 @@ export function TurmaDetalhe() {
           </>
         )}
       </main>
+
+      {perfilAberto && (
+        <PerfilAlunoModal alunoId={perfilAberto} onFechar={() => setPerfilAberto(null)} />
+      )}
     </>
   );
 }

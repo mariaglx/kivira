@@ -18,6 +18,7 @@ import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
 from services.sessao_jogo_service import nivel_por_xp
+from services.conquista_service import conquistas_do_aluno
 from routes.avatar import nivel_minimo_do_avatar
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
@@ -778,4 +779,69 @@ def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
             "tempo_total_seg": sum(s.tempo_gasto_seg or 0 for s in sessoes),
         },
         "atividades": resultado,
+    }
+
+
+# Perfil público do aluno — o cartãozinho que abre ao clicar no avatar (estilo
+# Discord), usado tanto pela lista de colegas do aluno quanto pela lista de
+# alunos do professor. "Público" aqui é só dentro da turma: nome, bichinho,
+# nível, XP e conquistas. Nada de matrícula, nota por atividade ou erro
+# específico — isso é relatório, e relatório é só do professor.
+
+def _pode_ver_perfil(session, usuario, aluno_alvo):
+    """Admin vê todos; professor vê aluno de turma sua; aluno vê colega de turma
+    (e a si mesmo). Sem isso, trocar o id na URL exporia qualquer aluno da escola."""
+    if usuario.tipo == "admin":
+        return True
+
+    turmas_do_alvo = {
+        m.turma_id for m in session.query(AlunoTurma).filter(
+            AlunoTurma.aluno_id == aluno_alvo.id,
+            AlunoTurma.ativo == 1,
+        ).all()
+    }
+    if not turmas_do_alvo:
+        return False
+
+    if usuario.tipo == "professor":
+        professor = session.query(Professor).filter(Professor.usuario_id == usuario.id).first()
+        if not professor:
+            return False
+        return session.query(Turma).filter(
+            Turma.id.in_(turmas_do_alvo),
+            Turma.professor_id == professor.id,
+        ).first() is not None
+
+    # estudante: precisa dividir pelo menos uma turma ativa com o alvo
+    eu = session.query(Aluno).filter(Aluno.usuario_id == usuario.id).first()
+    if not eu:
+        return False
+    if eu.id == aluno_alvo.id:
+        return True
+    return session.query(AlunoTurma).filter(
+        AlunoTurma.aluno_id == eu.id,
+        AlunoTurma.turma_id.in_(turmas_do_alvo),
+        AlunoTurma.ativo == 1,
+    ).first() is not None
+
+
+@aluno_router.get("/{id_aluno}/perfil")
+def perfil_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
+
+    # 404 nos dois casos de propósito: quem não pode ver não descobre nem se o
+    # aluno existe testando ids na URL (mesmo padrão de detalhe_da_minha_turma).
+    if not aluno or not _pode_ver_perfil(session, usuario, aluno):
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+
+    conquistas, estatisticas = conquistas_do_aluno(session, aluno.id, aluno.xp_total)
+
+    return {
+        "aluno_id": aluno.id,
+        "nome": aluno.apelido or aluno.nome_completo,
+        "avatar_url": aluno.avatar_url,
+        "xp_total": aluno.xp_total or 0,
+        "nivel_atual": nivel_por_xp(aluno.xp_total),
+        "conquistas": conquistas,
+        "estatisticas": estatisticas,
     }
