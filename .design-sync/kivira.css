@@ -1,0 +1,9 @@
+/* CSS do Claude Design: o mesmo index.css do app, compilado com as classes do
+   app, das previews e uma lista de utilitários de layout comuns pro agente. */
+@import "../frontend/src/index.css";
+@source "../frontend/src";
+@source "./previews";
+@source inline("{sm:,md:,lg:,}{flex,inline-flex,grid,hidden,block,flex-col,flex-row,flex-wrap,flex-1,items-{start,center,end,stretch},justify-{start,center,end,between},grid-cols-{1,2,3,4},col-span-{1,2,3},gap-{1,2,3,4,5,6,8,10},p-{2,3,4,5,6,8,10},px-{2,3,4,5,6,8},py-{1,2,3,4,6,8,10},m-{0,auto},mx-auto,mt-{1,2,3,4,6,8},mb-{1,2,3,4,6,8},space-y-{2,3,4,6},w-full,h-full,min-w-0,min-h-11,max-w-{sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl},text-{xs,sm,base,lg,xl,2xl,3xl,4xl},text-{left,center,right},truncate}");
+@source inline("{bg,text,border}-{azul,coral,laranja,laranja-claro,bege,branco,cinza-claro,verde,vermelho,pessego-bg,pessego-fg,mat-bg,mat-fg,cie-bg,cie-fg,por-bg,por-fg,ouro-bg,ouro-fg}");
+@source inline("{text-azul,bg-azul,border-azul,bg-coral,text-coral,border-coral,border-cinza-claro}/{5,10,15,20,30,40,50,60,70,80}");
+@source inline("{font-{medium,semibold,bold,extrabold,black},rounded-{lg,xl,2xl,3xl,full},shadow-{sm,md,lg,xl},border,border-2,uppercase,tracking-wider,leading-tight,overflow-hidden,overflow-x-auto,relative,absolute,sticky,shrink-0}");
