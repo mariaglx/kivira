@@ -43,7 +43,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
 
   return (
     <div
-      className={`absolute z-20 top-full mt-3 w-64 bg-branco rounded-3xl shadow-xl border border-cinza-claro/20 p-4 animate__animated animate__zoomIn ${alinhamentoClasse}`}
+      className={`absolute top-full mt-3 w-64 bg-branco rounded-3xl shadow-xl border border-cinza-claro/20 p-4 animate__animated animate__zoomIn ${alinhamentoClasse}`}
       style={{ animationDuration: "0.25s" }}
     >
       <div className="w-full h-24 rounded-2xl overflow-hidden mb-3">
@@ -83,6 +83,9 @@ export function TrilhaFases({ atividades, onJogar }) {
 
   return (
     <div className="relative mx-auto max-w-2xl pb-16" style={{ height: alturaTotal }}>
+      {faseAberta !== null && (
+        <div className="fixed inset-0 z-10" onClick={() => setFaseAberta(null)} />
+      )}
       <svg
         className="absolute inset-0 w-full h-full"
         viewBox={`0 0 100 ${alturaTotal}`}
@@ -115,7 +118,9 @@ export function TrilhaFases({ atividades, onJogar }) {
         return (
           <div
             key={atividade.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
+            // O translate cria um contexto de empilhamento por fase: o z do card
+            // só vale aqui dentro, então é a fase aberta inteira que sobe.
+            className={`absolute -translate-x-1/2 -translate-y-1/2 ${aberta ? "z-20" : ""}`}
             style={{ top: indice * ALTURA_LINHA + ALTURA_LINHA / 2, left: `${x}%` }}
           >
             <button
@@ -144,14 +149,11 @@ export function TrilhaFases({ atividades, onJogar }) {
             )}
 
             {aberta && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setFaseAberta(null)} />
-                <CardPreview
-                  atividade={atividade}
-                  onJogar={() => onJogar(atividade.id)}
-                  alinhamento={x <= 30 ? "esquerda" : x >= 70 ? "direita" : "centro"}
-                />
-              </>
+              <CardPreview
+                atividade={atividade}
+                onJogar={() => onJogar(atividade.id)}
+                alinhamento={x <= 30 ? "esquerda" : x >= 70 ? "direita" : "centro"}
+              />
             )}
           </div>
         );
