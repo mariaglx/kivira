@@ -1,0 +1,45 @@
+{
+  "projectId": "4f056b2a-411d-4631-a8b3-5a1d9e59e89b",
+  "shape": "package",
+  "pkg": "kivira",
+  "globalName": "Kivira",
+  "entry": ".design-sync/entry.js",
+  "buildCmd": "npm ci --prefix frontend && node .design-sync/build-css.mjs",
+  "srcDir": "frontend/src/components/ui",
+  "cssEntry": ".design-sync/.cache/kivira.css",
+  "componentSrcMap": {
+    "Avatar": "frontend/src/components/ui/Avatar.jsx",
+    "BarraProgresso": "frontend/src/components/ui/BarraProgresso.jsx",
+    "Button": "frontend/src/components/ui/Button.jsx",
+    "Carregando": "frontend/src/components/ui/Carregando.jsx",
+    "EstadoVazio": "frontend/src/components/ui/EstadoVazio.jsx",
+    "Input": "frontend/src/components/ui/Input.jsx",
+    "SelectCustom": "frontend/src/components/ui/SelectCustom.jsx",
+    "Entrada": "frontend/src/components/ui/Animacao.jsx",
+    "Lista": "frontend/src/components/ui/Animacao.jsx",
+    "Item": "frontend/src/components/ui/Animacao.jsx",
+    "Contador": "frontend/src/components/ui/Animacao.jsx",
+    "Modal": "frontend/src/components/ui/Animacao.jsx"
+  },
+  "dtsPropsFor": {
+    "Avatar": "/** Arquivo em /avatares (ex: \"lontra.png\"); sem ele mostra a inicial de `nome` sobre o coral. */ arquivo?: string; nome?: string; /** Tamanho, raio, texto e anel. Padrão: \"w-10 h-10 text-sm rounded-xl\". */ className?: string;",
+    "BarraProgresso": "valor: number; max: number; /** Um pedaço por unidade (\"3 de 6 peças\") em vez da barra contínua. */ segmentos?: boolean; /** Classe do fundo. Padrão \"bg-azul/15\". */ trilha?: string; /** Classe do preenchimento. Padrão \"bg-coral\". */ preenchimento?: string; className?: string;",
+    "Button": "/** Cor. Padrão \"primario\" (coral). Todas menos \"fantasma\" são táteis (sombra sólida embaixo). */ variante?: \"primario\" | \"secundario\" | \"contorno\" | \"perigo\" | \"fantasma\"; /** Escala. Padrão \"md\". \"icone\" = círculo de 36px. */ tamanho?: \"md\" | \"sm\" | \"icone\"; /** Troca a tag (ex: um Link do router). Padrão \"button\". */ as?: React.ElementType; children?: React.ReactNode; className?: string; disabled?: boolean; type?: \"button\" | \"submit\" | \"reset\"; onClick?: (e: React.MouseEvent) => void; [prop: string]: unknown;",
+    "Carregando": "/** Padrão \"Carregando...\". */ texto?: string; /** true dentro de uma página que já tem <main>; false ocupa a página (renderiza <main>). */ embutido?: boolean;",
+    "EstadoVazio": "/** Mensagem da lista vazia. */ children: React.ReactNode; /** Ação opcional abaixo do texto (normalmente um <Button>). */ acao?: React.ReactNode; className?: string;",
+    "Input": "type?: string; placeholder?: string; /** Componente de ícone (ex: lucide-react) desenhado à esquerda, size 16. */ icone?: React.ComponentType<{ size?: number; className?: string }>; className?: string; value?: string; name?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; [prop: string]: unknown;",
+    "SelectCustom": "label?: string; name?: string; value: string | number; /** Recebe um evento sintético { target: { name, value } }, igual a um <select>. */ onChange: (e: { target: { name?: string; value: string | number } }) => void; options: { value: string | number; label: string }[]; /** Padrão \"Selecione\". */ placeholder?: string;",
+    "Entrada": "children: React.ReactNode; /** Atraso em segundos, pra escalonar blocos. */ delay?: number; className?: string;",
+    "Lista": "/** Os filhos devem ser <Item>, que entram em cascata. */ children: React.ReactNode; className?: string;",
+    "Item": "children: React.ReactNode; className?: string; /** Pulinho no hover/press, pra cards clicáveis. */ elevar?: boolean; /** Tag HTML do motion (\"div\", \"li\", \"button\", \"a\"...). Padrão \"div\". */ as?: string; [prop: string]: unknown;",
+    "Contador": "/** Número final; anima de 0 até ele. */ valor: number;",
+    "Modal": "/** Controla a abertura e a animação de saída. */ aberto: boolean; /** Chamado no Esc e no clique fora da caixa. */ onFechar: () => void; children: React.ReactNode; /** Largura da caixa. Padrão \"max-w-sm\". */ className?: string;"
+  },
+  "overrides": {
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "640x420"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
