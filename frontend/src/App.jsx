@@ -36,6 +36,7 @@ const FeedbackAluno = lazy(() => import("./pages/aluno/Feedback"));
 const Usuarios = lazy(() => import("./pages/admin/Usuarios"));
 const LogsAuditoria = lazy(() => import("./pages/admin/LogsAuditoria"));
 const PerfilAdmin = lazy(() => import("./pages/admin/PerfilAdmin"));
+const ResultadosFeedback = lazy(() => import("./pages/admin/ResultadosFeedback"));
 
 function CarregandoRota() {
   return (
@@ -107,6 +108,7 @@ function App() {
             <Route path="/admin" element={<Usuarios />} />
             <Route path="/admin/logs-auditoria" element={<LogsAuditoria />} />
             <Route path="/admin/perfil" element={<PerfilAdmin />} />
+            <Route path="/admin/feedback" element={<ResultadosFeedback />} />
           </Route>
         </Route>
       </Routes>

@@ -20,7 +20,7 @@ function montarItens(turmas, admin, professor) {
   const atividades = { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" };
 
   // Admin usa as mesmas telas do professor (vendo turmas e atividades de todos)
-  // mais as dele: usuários e auditoria. Não tem perfil próprio pra configurar.
+  // mais as dele: usuários, auditoria e resultados do feedback. Não tem perfil próprio pra configurar.
   if (admin) {
     return [
       { to: "/professor", Icone: House, rotulo: "Painel", end: true },
@@ -28,6 +28,7 @@ function montarItens(turmas, admin, professor) {
       atividades,
       { to: "/admin", Icone: UserCog, rotulo: "Usuários", end: true },
       { to: "/admin/logs-auditoria", Icone: ShieldCheck, rotulo: "Auditoria" },
+      { to: "/admin/feedback", Icone: MessageSquare, rotulo: "Feedback" },
     ];
   }
   // A condição é "já sei que não respondeu", não "não respondeu": com professor

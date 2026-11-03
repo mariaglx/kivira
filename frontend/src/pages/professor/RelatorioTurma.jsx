@@ -7,6 +7,7 @@ import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
 import { Input } from "../../components/ui/Input";
 import { Lista, Item } from "../../components/ui/Animacao";
+import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Indicador } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
 import { subtituloTurma } from "../../utils/turma";
@@ -102,9 +103,13 @@ function VisaoGeral({ relatorio }) {
 
 function AbaAlunos({ relatorio }) {
   const [busca, setBusca] = useState("");
+  const [soPendentes, setSoPendentes] = useState(false);
   const { turma, resumo } = relatorio;
   const termo = busca.trim().toLowerCase();
+  // Professor só vê SE o aluno respondeu o feedback, pra poder cobrar — as respostas são só do admin
+  const responderam = relatorio.alunos.filter((a) => a.respondeu_feedback).length;
   const alunos = relatorio.alunos
+    .filter((a) => !soPendentes || !a.respondeu_feedback)
     .filter((a) => !termo || `${a.apelido ?? ""} ${a.nome_completo} ${a.matricula ?? ""}`.toLowerCase().includes(termo))
     .sort((a, b) => (a.apelido || a.nome_completo).localeCompare(b.apelido || b.nome_completo, "pt-BR"));
 
@@ -120,18 +125,45 @@ function AbaAlunos({ relatorio }) {
 
   return (
     <>
-      <div className="w-full max-w-sm">
-        <Input
-          icone={Search}
-          placeholder="Buscar aluno..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="py-2.5 text-sm bg-branco shadow-sm"
-        />
+      <div className="cartao rounded-2xl p-4 flex flex-col gap-2">
+        <p className="text-sm text-azul">
+          <span className="font-extrabold">{responderam} de {relatorio.alunos.length}</span> alunos responderam o feedback
+        </p>
+        <BarraProgresso valor={responderam} max={relatorio.alunos.length} preenchimento="bg-verde" />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="w-full max-w-sm">
+          <Input
+            icone={Search}
+            placeholder="Buscar aluno..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="py-2.5 text-sm bg-branco shadow-sm"
+          />
+        </div>
+        <div className="flex gap-2" role="group" aria-label="Filtrar pelo feedback">
+          {[
+            [false, "Todos"],
+            [true, `Feedback pendente (${relatorio.alunos.length - responderam})`],
+          ].map(([valor, rotulo]) => (
+            <button
+              key={rotulo}
+              type="button"
+              aria-pressed={soPendentes === valor}
+              onClick={() => setSoPendentes(valor)}
+              className={`px-4 min-h-11 flex items-center rounded-full text-sm font-bold whitespace-nowrap transition ${
+                soPendentes === valor ? "bg-coral text-branco shadow-sm" : "bg-branco text-azul/70 hover:text-azul border border-cinza-claro"
+              }`}
+            >
+              {rotulo}
+            </button>
+          ))}
+        </div>
       </div>
 
       {alunos.length === 0 ? (
-        <EstadoVazio>Nenhum aluno encontrado com esse nome.</EstadoVazio>
+        <EstadoVazio>{soPendentes && !termo ? "Todos os alunos já responderam o feedback." : "Nenhum aluno encontrado com esse nome."}</EstadoVazio>
       ) : (
         <Lista className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {alunos.map((a) => (
@@ -151,7 +183,16 @@ function AbaAlunos({ relatorio }) {
                     {a.apelido && a.apelido !== a.nome_completo && (
                       <p className="text-xs text-azul/50 truncate">{a.nome_completo}</p>
                     )}
-                    <p className="text-xs font-bold text-coral">Nível {a.nivel_atual}</p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <p className="text-xs font-bold text-coral">Nível {a.nivel_atual}</p>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${
+                          a.respondeu_feedback ? "bg-verde/15 text-verde" : "bg-coral/10 text-coral"
+                        }`}
+                      >
+                        {a.respondeu_feedback ? "Feedback enviado" : "Feedback pendente"}
+                      </span>
+                    </div>
                   </div>
                   <ChevronRight size={18} className="text-coral shrink-0" />
                 </div>
