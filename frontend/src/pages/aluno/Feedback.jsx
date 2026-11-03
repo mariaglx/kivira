@@ -1,42 +1,11 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { apiRequest } from "../../services/api";
+import { PERGUNTAS_ALUNO as PERGUNTAS } from "../../utils/feedback";
 import { Carregando } from "../../components/ui/Carregando";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Entrada } from "../../components/ui/Animacao";
 import { comemorar } from "../../utils/comemorar";
-
-const PERGUNTAS = [
-  {
-    campo: "diversao",
-    titulo: "O que você achou do Kivira?",
-    opcoes: [
-      { valor: 1, rosto: "😖", rotulo: "Ruim" },
-      { valor: 2, rosto: "🙁", rotulo: "Meio ruim" },
-      { valor: 3, rosto: "😐", rotulo: "Normal" },
-      { valor: 4, rosto: "🙂", rotulo: "Bom" },
-      { valor: 5, rosto: "😍", rotulo: "Muito bom" },
-    ],
-  },
-  {
-    campo: "autonomia",
-    titulo: "Você conseguiu jogar sozinho?",
-    opcoes: [
-      { valor: 1, rosto: "👎", rotulo: "Não" },
-      { valor: 2, rosto: "🤔", rotulo: "Mais ou menos" },
-      { valor: 3, rosto: "👍", rotulo: "Sim" },
-    ],
-  },
-  {
-    campo: "jogar_de_novo",
-    titulo: "Você quer jogar de novo?",
-    opcoes: [
-      { valor: 1, rosto: "👎", rotulo: "Não" },
-      { valor: 2, rosto: "🤔", rotulo: "Talvez" },
-      { valor: 3, rosto: "👍", rotulo: "Sim" },
-    ],
-  },
-];
 
 export function Feedback() {
   const { aluno, setAluno, carregandoAluno } = useOutletContext();
