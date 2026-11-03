@@ -40,6 +40,10 @@ export const PERGUNTAS_PROFESSOR = [
   },
 ];
 
+// A 5ª do professor, de texto livre
+export const PERGUNTA_ABERTA_PROFESSOR =
+  "Deixe abaixo sugestões, críticas ou comentários que possam contribuir para a melhoria do Kivira.";
+
 export const PERGUNTAS_ALUNO = [
   {
     campo: "diversao",

@@ -5,7 +5,7 @@ import { Entrada } from "../../components/ui/Animacao";
 import { Indicador } from "../../components/professor/Relatorio";
 import { CartaoGrafico } from "../../components/admin/CartaoGrafico";
 import { BarrasEmpilhadas } from "../../components/admin/BarrasEmpilhadas";
-import { COR, CORES_ESCALA, PERGUNTAS_ALUNO, PERGUNTAS_PROFESSOR } from "../../utils/feedback";
+import { COR, CORES_ESCALA, PERGUNTA_ABERTA_PROFESSOR, PERGUNTAS_ALUNO, PERGUNTAS_PROFESSOR } from "../../utils/feedback";
 import { useApi } from "../../controllers/useApi";
 
 const CHAVE_ANONIMO = "feedback_modo_anonimo";
@@ -166,6 +166,52 @@ function AbaAlunos({ alunos, anonimo }) {
   );
 }
 
+// Só leitura: os textos vêm de utils/feedback.js, os mesmos que os formulários
+// usam — mudar uma pergunta é mudar lá (e o git guarda o histórico).
+function AbaPerguntas() {
+  const publicos = [
+    { titulo: "Professores", perguntas: PERGUNTAS_PROFESSOR, aberta: PERGUNTA_ABERTA_PROFESSOR },
+    { titulo: "Alunos", perguntas: PERGUNTAS_ALUNO },
+  ];
+
+  return publicos.map(({ titulo, perguntas, aberta }) => (
+    <section key={titulo} className="flex flex-col gap-3">
+      <h3 className="text-lg font-bold text-azul">
+        {titulo} <span className="text-sm font-semibold text-azul/50">({perguntas.length + (aberta ? 1 : 0)} perguntas)</span>
+      </h3>
+      <div className="cartao rounded-2xl divide-y divide-cinza-claro">
+        {perguntas.map((p, i) => {
+          const opcoes = p.opcoes.map((o) => (typeof o === "string" ? o : `${o.rosto} ${o.rotulo}`));
+          return (
+            <article key={p.campo} className="p-4 flex flex-col gap-2">
+              <div>
+                <span className="text-xs font-bold text-azul/40">
+                  {i + 1} · {p.curto} · escala de 1 a {opcoes.length}
+                </span>
+                <p className="font-bold text-azul">{p.titulo}</p>
+              </div>
+              <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+                {opcoes.map((rotulo, n) => (
+                  <li key={n} className="flex items-center gap-1.5 text-xs font-semibold text-azul/70">
+                    <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: CORES_ESCALA[opcoes.length][n] }} />
+                    {n + 1} · {rotulo}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          );
+        })}
+        {aberta && (
+          <article className="p-4">
+            <span className="text-xs font-bold text-azul/40">{perguntas.length + 1} · Comentário · texto livre</span>
+            <p className="font-bold text-azul">{aberta}</p>
+          </article>
+        )}
+      </div>
+    </section>
+  ));
+}
+
 // Dashboard dos questionários de feedback (só admin — GET /feedback/resumo).
 // O modo anônimo troca nomes de professores e turmas por rótulos genéricos,
 // pra tela e os PNGs irem direto pro artigo.
@@ -217,16 +263,23 @@ export function ResultadosFeedback() {
         </label>
       </header>
 
-      <nav className="flex gap-2" aria-label="Público do questionário">
+      <nav className="flex flex-wrap gap-2" aria-label="Seções do feedback">
         <button type="button" className={classeAba(aba === "professores")} aria-pressed={aba === "professores"} onClick={() => setAba("professores")}>
           Professores ({dados.professores.respostas})
         </button>
         <button type="button" className={classeAba(aba === "alunos")} aria-pressed={aba === "alunos"} onClick={() => setAba("alunos")}>
           Alunos ({dados.alunos.respostas})
         </button>
+        <button type="button" className={classeAba(aba === "perguntas")} aria-pressed={aba === "perguntas"} onClick={() => setAba("perguntas")}>
+          Perguntas
+        </button>
       </nav>
 
-      {grupo.respostas === 0 ? (
+      {aba === "perguntas" ? (
+        <Entrada key={aba} className="flex flex-col gap-6 lg:gap-8">
+          <AbaPerguntas />
+        </Entrada>
+      ) : grupo.respostas === 0 ? (
         <EstadoVazio>Ninguém respondeu ainda.</EstadoVazio>
       ) : (
         <Entrada key={aba} className="flex flex-col gap-6 lg:gap-8">

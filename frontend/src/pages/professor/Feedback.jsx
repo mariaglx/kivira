@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Check, MessageSquare } from "lucide-react";
 import { apiRequest } from "../../services/api";
-import { PERGUNTAS_PROFESSOR as PERGUNTAS } from "../../utils/feedback";
+import { PERGUNTA_ABERTA_PROFESSOR, PERGUNTAS_PROFESSOR as PERGUNTAS } from "../../utils/feedback";
 import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
@@ -186,8 +186,7 @@ export function Feedback() {
             <div className="flex items-start gap-3 mb-4">
               <Numero>{TOTAL_PERGUNTAS}</Numero>
               <label htmlFor="comentario" className="font-bold text-azul leading-snug">
-                Deixe abaixo sugestões, críticas ou comentários que possam contribuir
-                para a melhoria do Kivira.
+                {PERGUNTA_ABERTA_PROFESSOR}
               </label>
             </div>
             <textarea
