@@ -8,6 +8,7 @@ from models.atividade import Atividade
 from models.aluno import Aluno
 from models.sessao_jogo import SessaoJogo
 from models.questao import Questao
+from models.feedback_aluno import FeedbackAluno
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
 from core.rbac import pode_gerenciar
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
@@ -307,6 +308,11 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
         AlunoTurma.ativo == 1,
     ).order_by(Aluno.nome_completo).all()
     aluno_ids = [a.id for a in alunos]
+    # Professor só vê SE o aluno respondeu (pra cobrar), nunca o que respondeu
+    usuarios_alunos = [a.usuario_id for a in alunos if a.usuario_id]
+    responderam = {
+        u for (u,) in session.query(FeedbackAluno.usuario_id).filter(FeedbackAluno.usuario_id.in_(usuarios_alunos))
+    } if usuarios_alunos else set()
 
     atividades = session.query(Atividade).filter(
         Atividade.turma_id == turma.id,
@@ -359,6 +365,7 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
             "nivel_atual": nivel_por_xp(a.xp_total),
             "atividades_concluidas": sum(1 for atividade_id in atividade_ids if concluiu(a.id, atividade_id)),
             "taxa_acerto_primeira": porcentagem(respostas_por_aluno.get(a.id, [])),
+            "respondeu_feedback": a.usuario_id in responderam,
         }
         for a in alunos
     ]
