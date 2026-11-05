@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
 import { salvarSessao } from "../../services/sessao";
+import { VerificarDoisFatores } from "./VerificarDoisFatores";
 
 export function Login() {
   const navigate = useNavigate();
@@ -16,6 +17,13 @@ export function Login() {
 
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+  // Preenchido quando o login é de admin: { token, qrCode?, segredo? }
+  const [doisFatores, setDoisFatores] = useState(null);
+
+  const entrar = (data) => {
+    salvarSessao({ accessToken: data?.access_token, tipo: data?.tipo_usuario });
+    navigate(data.tipo_usuario === "admin" || data.tipo_usuario === "professor" ? "/professor" : "/");
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,13 +45,19 @@ export function Login() {
         },
       });
 
-      salvarSessao({ accessToken: data?.access_token, tipo: data?.tipo_usuario });
-
-      if (data.tipo_usuario === "admin" || data.tipo_usuario === "professor") {
-        navigate("/professor");
-      } else {
-        navigate("/");
+      // Admin: a senha só libera a etapa do 2FA. Sem 2FA ainda, já gera o QR aqui
+      // (no clique, não num useEffect, pra não gerar dois segredos no StrictMode)
+      if (data.requer_2fa) {
+        const config = data.configurado
+          ? {}
+          : await apiRequest("/auth_kivira/2fa/configurar", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${data.token_2fa}` },
+            });
+        setDoisFatores({ token: data.token_2fa, qrCode: config.qr_code, segredo: config.segredo });
+        return;
       }
+      entrar(data);
     } catch (err) {
       setErro(err.message || "E-mail ou senha incorretos.");
     } finally {
@@ -68,6 +82,9 @@ export function Login() {
           </div>
         )}
 
+        {doisFatores ? (
+          <VerificarDoisFatores {...doisFatores} onEntrar={entrar} onVoltar={() => setDoisFatores(null)} />
+        ) : (
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-start text-gray-600 text-base font-medium">
@@ -124,6 +141,7 @@ export function Login() {
             </p>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

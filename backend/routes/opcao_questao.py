@@ -2,14 +2,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.opcao_questao import OpcaoQuestao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor
 from schemas.opcao_questao import OpcaoQuestaoSchema, OpcaoQuestaoUpdateSchema
 from models.usuario import Usuario
 from models.questao import Questao
 from models.atividade import Atividade
 from services.auditoria_service import registrar_log
 
-opcao_questao_router = APIRouter(prefix="/opcao_questao", tags=["opcao_questao"], dependencies=[Depends(verificar_token_kivira)])
+opcao_questao_router = APIRouter(prefix="/opcao_questao", tags=["opcao_questao"], dependencies=[Depends(admin_ou_professor)])
 
 @opcao_questao_router.post("/criar")
 def criar_opcao_questao(opcao_questao_schema: OpcaoQuestaoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
@@ -43,10 +43,14 @@ def criar_opcao_questao(opcao_questao_schema: OpcaoQuestaoSchema, session = Depe
 
 
 @opcao_questao_router.get("/{id_opcao_questao}")
-def buscar_opcao_questao(id_opcao_questao: int, session = Depends(pegar_sessao_kivira)):
+def buscar_opcao_questao(id_opcao_questao: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     opcao_questao = session.query(OpcaoQuestao).filter(OpcaoQuestao.id == id_opcao_questao).first()
     if not opcao_questao:
         raise HTTPException(status_code=404, detail="Opção de questão não encontrada")
+    questao = session.query(Questao).filter(Questao.id == opcao_questao.questao_id).first()
+    atividade = session.query(Atividade).filter(Atividade.id == questao.atividade_id).first() if questao else None
+    if not pode_gerenciar(session, usuario, atividade):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para ver essa opção")
 
     return {
         "id": opcao_questao.id,

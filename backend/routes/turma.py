@@ -9,7 +9,7 @@ from models.aluno import Aluno
 from models.sessao_jogo import SessaoJogo
 from models.questao import Questao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
@@ -17,7 +17,7 @@ from services.auditoria_service import registrar_log
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 from services.sessao_jogo_service import nivel_por_xp
 
-turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
+turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(admin_ou_professor)])
 
 # Router separado e sem autenticação: o aluno ainda não tem token nesse ponto do fluxo
 # (ele está na Home informando o código da turma pela primeira vez).
