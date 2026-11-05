@@ -22,6 +22,7 @@ from models.usuario import Usuario
 from models.professor import Professor
 from models.aluno import Aluno
 from models.aluno_turma import AlunoTurma
+from models.feedback_aluno import FeedbackAluno
 from models.atividade import Atividade
 from models.turma import Turma
 from models.questao import Questao
@@ -50,7 +51,7 @@ class TestRelatorioAtividade(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade",
-                   "questao", "sessao_jogo", "sessao_jogo_questao"]
+                   "questao", "sessao_jogo", "sessao_jogo_questao", "feedback_aluno"]
         Base.metadata.create_all(engine, tables=[Base.metadata.tables[t] for t in tabelas])
         app.dependency_overrides[pegar_sessao_kivira] = sessao_teste
         cls.client = TestClient(app)
@@ -91,6 +92,12 @@ class TestRelatorioAtividade(unittest.TestCase):
             s.add(AlunoTurma(turma_id=turma.id, aluno_id=a.id))
         ana, bia, _caio = alunos
         cls.ana_id, cls.bia_id = ana.id, bia.id
+        # Só a Ana respondeu o feedback
+        usuario_ana = Usuario(senha_hash="x", tipo="estudante")
+        s.add(usuario_ana)
+        s.flush()
+        ana.usuario_id = usuario_ana.id
+        s.add(FeedbackAluno(usuario_id=usuario_ana.id, diversao=5, autonomia=3, jogar_de_novo=3))
 
         def sessao(aluno, status, acertos, tempo, reinicios, respostas):
             sj = SessaoJogo(atividade_id=atividade.id, aluno_id=aluno.id, turma_id=turma.id, status=status,
@@ -168,6 +175,7 @@ class TestRelatorioAtividade(unittest.TestCase):
         self.assertEqual(dados["atividades"][0]["alunos_concluiram"], 2)
         por_nome = {a["nome_completo"]: (a["atividades_concluidas"], a["taxa_acerto_primeira"]) for a in dados["alunos"]}
         self.assertEqual(por_nome, {"Ana": (1, 50), "Bia": (1, 0), "Caio": (0, None)})
+        self.assertEqual({a["nome_completo"]: a["respondeu_feedback"] for a in dados["alunos"]}, {"Ana": True, "Bia": False, "Caio": False})
         self.assertEqual([(q["ordem"], q["taxa_acerto_primeira"]) for q in dados["questoes_dificeis"]], [(2, 0), (1, 50)])
 
 

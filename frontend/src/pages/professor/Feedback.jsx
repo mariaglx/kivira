@@ -2,45 +2,11 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Check, MessageSquare } from "lucide-react";
 import { apiRequest } from "../../services/api";
+import { PERGUNTA_ABERTA_PROFESSOR, PERGUNTAS_PROFESSOR as PERGUNTAS } from "../../utils/feedback";
 import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Entrada } from "../../components/ui/Animacao";
-
-const PERGUNTAS = [
-  {
-    campo: "facilidade_uso",
-    titulo: "Foi fácil entender como utilizar o Kivira?",
-    opcoes: ["Muito difícil", "Difícil", "Neutro", "Fácil", "Muito fácil"],
-  },
-  {
-    campo: "autonomia_aluno",
-    titulo: "Você acha que o aluno consegue jogar no Kivira sozinho, sem precisar de ajuda?",
-    opcoes: [
-      "Não consegue",
-      "Consegue com dificuldade",
-      "Neutro",
-      "Consegue",
-      "Consegue tranquilamente",
-    ],
-  },
-  {
-    campo: "alinhamento_conteudo",
-    titulo: "Os conteúdos que você consegue montar no Kivira atendem o que você precisa ensinar?",
-    opcoes: ["Não atendem", "Atendem pouco", "Neutro", "Atendem", "Atendem totalmente"],
-  },
-  {
-    campo: "usaria_nas_aulas",
-    titulo: "Você usaria o Kivira nas suas aulas?",
-    opcoes: [
-      "Com certeza não",
-      "Provavelmente não",
-      "Talvez",
-      "Provavelmente sim",
-      "Com certeza sim",
-    ],
-  },
-];
 
 const TOTAL_PERGUNTAS = PERGUNTAS.length + 1;
 
@@ -220,8 +186,7 @@ export function Feedback() {
             <div className="flex items-start gap-3 mb-4">
               <Numero>{TOTAL_PERGUNTAS}</Numero>
               <label htmlFor="comentario" className="font-bold text-azul leading-snug">
-                Deixe abaixo sugestões, críticas ou comentários que possam contribuir
-                para a melhoria do Kivira.
+                {PERGUNTA_ABERTA_PROFESSOR}
               </label>
             </div>
             <textarea
