@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 import { House, Users, Blocks, Settings, UserCog, ShieldCheck, MessageSquare } from "lucide-react";
 import { SidebarPainel } from "./SidebarPainel";
+import { AvisoVisualizacao } from "./AvisoVisualizacao";
 import { useProfessorAtual } from "../controllers/useProfessorAtual";
 import { useApi } from "../controllers/useApi";
 import { ehAdmin } from "../services/sessao";
@@ -66,6 +67,7 @@ export function PainelLayout() {
 
   return (
     <MotionConfig reducedMotion="user">
+    <AvisoVisualizacao />
     <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
       <SidebarPainel
         titulo={admin ? "Administração" : "Menu"}

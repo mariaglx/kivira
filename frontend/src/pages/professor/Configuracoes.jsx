@@ -4,7 +4,7 @@ import { buscarAvatares } from "../../services/avatarService";
 import { useConfiguracoesProfessor } from "../../controllers/useConfiguracoesProfessor";
 import {
   Pencil,
-  Trash2,
+  UserX,
   X,
   User,
   Sparkles,
@@ -22,7 +22,7 @@ import { Carregando } from "../../components/ui/Carregando";
 import { Entrada, Modal } from "../../components/ui/Animacao";
 
 export function Configuracoes() {
-  const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
+  const FRASE_CONFIRMACAO_DESATIVACAO = "desativar minha conta";
 
   const { professor, setProfessor, carregandoProfessor } = useOutletContext();
   const {
@@ -33,32 +33,32 @@ export function Configuracoes() {
     salvarPerfil,
     salvarAvatar,
     alterarSenha,
-    excluirConta,
+    desativarConta,
   } = useConfiguracoesProfessor({ professor, setProfessor, carregandoProfessor });
 
   const [modalAvatarAberto, setModalAvatarAberto] = useState(false);
   const [modalPerfilAberto, setModalPerfilAberto] = useState(false);
   const [modalSegurancaAberto, setModalSegurancaAberto] = useState(false);
-  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
-  const [textoConfirmacaoExclusao, setTextoConfirmacaoExclusao] = useState("");
+  const [modalDesativacaoAberto, setModalDesativacaoAberto] = useState(false);
+  const [textoConfirmacaoDesativacao, setTextoConfirmacaoDesativacao] = useState("");
   const [erroSenha, setErroSenha] = useState("");
 
-  const exclusaoConfirmada =
-    textoConfirmacaoExclusao.trim().toLowerCase() ===
-    FRASE_CONFIRMACAO_EXCLUSAO;
+  const desativacaoConfirmada =
+    textoConfirmacaoDesativacao.trim().toLowerCase() ===
+    FRASE_CONFIRMACAO_DESATIVACAO;
 
-  function abrirExclusao() {
-    setTextoConfirmacaoExclusao("");
-    setModalExclusaoAberto(true);
+  function abrirDesativacao() {
+    setTextoConfirmacaoDesativacao("");
+    setModalDesativacaoAberto(true);
   }
 
-  function fecharExclusao() {
-    setModalExclusaoAberto(false);
-    setTextoConfirmacaoExclusao("");
+  function fecharDesativacao() {
+    setModalDesativacaoAberto(false);
+    setTextoConfirmacaoDesativacao("");
   }
 
-  async function confirmarExclusao() {
-    if (await excluirConta()) fecharExclusao();
+  async function confirmarDesativacao() {
+    if (await desativarConta()) fecharDesativacao();
   }
 
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
@@ -236,17 +236,17 @@ export function Configuracoes() {
               </div>
             </div>
 
-            {/* Excluir conta */}
+            {/* Desativar conta (não apaga nada; só um admin reativa) */}
             <div className="mt-auto p-6 pt-5">
               <hr className="border-cinza-claro mb-4" />
               <Button
                 variante="fantasma"
                 tamanho="sm"
-                onClick={abrirExclusao}
+                onClick={abrirDesativacao}
                 className="w-full gap-2 text-vermelho hover:bg-vermelho/10"
               >
-                <Trash2 size={16} />
-                Excluir minha conta
+                <UserX size={16} />
+                Desativar minha conta
               </Button>
             </div>
           </Entrada>
@@ -516,47 +516,47 @@ export function Configuracoes() {
             </form>
       </Modal>
 
-      <Modal aberto={modalExclusaoAberto} onFechar={fecharExclusao} className="max-w-sm p-6">
+      <Modal aberto={modalDesativacaoAberto} onFechar={fecharDesativacao} className="max-w-sm p-6">
             <div className="w-12 h-12 rounded-2xl bg-vermelho/10 text-vermelho flex items-center justify-center text-xl mb-4">
               <TriangleAlert size={20} />
             </div>
             <h3 className="text-lg font-extrabold text-azul">
-              Excluir sua conta?
+              Desativar sua conta?
             </h3>
             <p className="text-sm text-azul/70 mt-2">
-              Essa ação não pode ser desfeita. Suas turmas, atividades e dados
-              de acesso serão apagados permanentemente.
+              Você sai agora e não consegue mais entrar. Nada é apagado: suas turmas,
+              atividades e relatórios ficam guardados até um administrador reativar a conta.
             </p>
 
             <div className="flex flex-col gap-2 mt-5">
               <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
                 Digite{" "}
                 <span className="text-vermelho">
-                  "{FRASE_CONFIRMACAO_EXCLUSAO}"
+                  "{FRASE_CONFIRMACAO_DESATIVACAO}"
                 </span>{" "}
                 para confirmar
               </label>
               <Input
                 type="text"
                 autoFocus
-                value={textoConfirmacaoExclusao}
-                onChange={(e) => setTextoConfirmacaoExclusao(e.target.value)}
-                placeholder={FRASE_CONFIRMACAO_EXCLUSAO}
+                value={textoConfirmacaoDesativacao}
+                onChange={(e) => setTextoConfirmacaoDesativacao(e.target.value)}
+                placeholder={FRASE_CONFIRMACAO_DESATIVACAO}
                 className="w-full"
               />
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variante="fantasma" onClick={fecharExclusao} className="flex-1">
+              <Button variante="fantasma" onClick={fecharDesativacao} className="flex-1">
                 Cancelar
               </Button>
               <Button
                 variante="perigo"
-                disabled={!exclusaoConfirmada}
-                onClick={confirmarExclusao}
+                disabled={!desativacaoConfirmada}
+                onClick={confirmarDesativacao}
                 className="flex-1"
               >
-                Excluir conta
+                Desativar conta
               </Button>
             </div>
       </Modal>

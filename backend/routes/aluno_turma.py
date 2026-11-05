@@ -5,11 +5,11 @@ from models.turma import Turma
 from models.aluno import Aluno
 from models.usuario import Usuario
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor
 from schemas.aluno_turma import AlunoTurmaSchema, AlunoTurmaUpdateSchema
 from services.auditoria_service import registrar_log
 
-aluno_turma_router = APIRouter(prefix="/aluno_turma", tags=["aluno_turma"], dependencies=[Depends(verificar_token_kivira)])
+aluno_turma_router = APIRouter(prefix="/aluno_turma", tags=["aluno_turma"], dependencies=[Depends(admin_ou_professor)])
 
 
 @aluno_turma_router.post("/criar")
@@ -73,6 +73,11 @@ def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
             for aluno in session.query(Aluno).filter(Aluno.id.in_(aluno_ids)).all()
         }
 
+    # Conta desativada continua na lista (o professor vê e pode reativar)
+    conta_ativa = dict(session.query(Usuario.id, Usuario.ativo).filter(
+        Usuario.id.in_([a.usuario_id for a in alunos_por_id.values()])
+    ).all()) if alunos_por_id else {}
+
     resultado = []
     for matricula in matriculas:
         aluno = alunos_por_id.get(matricula.aluno_id)
@@ -84,6 +89,7 @@ def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
             "matricula": aluno.matricula,
             "avatar_url": aluno.avatar_url,
             "ativo": matricula.ativo,
+            "conta_ativa": conta_ativa.get(aluno.usuario_id, True),
             "data_inscricao": matricula.data_inscricao
         })
 
@@ -91,10 +97,12 @@ def listar_alunos_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira)
 
 
 @aluno_turma_router.get("/{id_matricula}")
-def buscar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira)):
+def buscar_matricula(id_matricula: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     matricula = session.query(AlunoTurma).filter(AlunoTurma.id == id_matricula).first()
     if not matricula:
         raise HTTPException(status_code=404, detail="Matrícula não encontrada")
+    if not pode_gerenciar(session, usuario, session.query(Turma).filter(Turma.id == matricula.turma_id).first()):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para ver essa matrícula")
 
     return {
         "id": matricula.id,

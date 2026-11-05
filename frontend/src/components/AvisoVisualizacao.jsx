@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Eye } from "lucide-react";
-import { limparCache } from "../../services/api";
-import { alunoVisualizado, voltarParaAdmin } from "../../services/sessao";
+import { limparCache } from "../services/api";
+import { contaVisualizada, voltarParaAdmin } from "../services/sessao";
 
-// Faixa no topo enquanto o admin vê o app pela conta de uma criança
-// (ver "Ver como aluno" em RelatorioAluno/Usuários). Some fora desse modo.
+// Faixa no topo enquanto o admin vê o app pela conta de um aluno ou professor
+// (ver "Ver como" em RelatorioAluno/Usuários). Some fora desse modo.
 export function AvisoVisualizacao() {
   const navigate = useNavigate();
-  const nome = alunoVisualizado();
+  const nome = contaVisualizada();
   if (!nome) return null;
 
   const voltar = () => {

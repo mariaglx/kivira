@@ -13,6 +13,9 @@ from models.aluno import Aluno
 from models.turma import Turma
 from models.aluno_turma import AlunoTurma
 from models.perfil_admin import PerfilAdmin
+from models.dois_fatores import DoisFatores
+from services.dois_fatores_service import conferir_codigo
+from schemas.auth import CodigoDoisFatoresSchema
 from routes.auth import criar_token
 from routes.avatar import nivel_minimo_do_avatar
 from schemas.admin import PerfilAdminSchema
@@ -32,11 +35,12 @@ def _pessoas(session, usuario_ids):
     if not usuario_ids:
         return {}
     pessoas = {
-        u.id: {"nome": None, "identificador": u.email, "turmas": [], "aluno_id": None}
+        u.id: {"nome": None, "identificador": u.email, "turmas": [], "aluno_id": None, "professor_id": None}
         for u in session.query(Usuario).filter(Usuario.id.in_(usuario_ids)).all()
     }
     for p in session.query(Professor).filter(Professor.usuario_id.in_(usuario_ids)).all():
         pessoas[p.usuario_id]["nome"] = p.nome_completo
+        pessoas[p.usuario_id]["professor_id"] = p.id
 
     alunos = session.query(Aluno).filter(Aluno.usuario_id.in_(usuario_ids)).all()
     usuario_do_aluno = {a.id: a.usuario_id for a in alunos}
@@ -72,10 +76,10 @@ def editar_perfil_admin(dados: PerfilAdminSchema, session = Depends(pegar_sessao
     return {"email": usuario.email, "avatar_url": perfil.avatar_url}
 
 
-# "Ver como aluno": o admin recebe um token da conta da criança pra ver o app do
-# jeito que ela vê. O token dura pouco, é só leitura (ver verificar_token_kivira)
+# "Ver como aluno/professor": o admin recebe um token da conta pra ver o app do
+# jeito que a pessoa vê. O token dura pouco, é só leitura (ver verificar_token_kivira)
 # e carrega quem está olhando — e a entrada fica na auditoria.
-MINUTOS_VER_COMO_ALUNO = 30
+MINUTOS_VER_COMO = 30
 
 
 @admin_router.post("/alunos/{id_aluno}/ver_como")
@@ -94,8 +98,30 @@ def ver_como_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuari
         detalhes={"nome": aluno.nome_completo, "username": aluno.username},
     )
     return {
-        "access_token": criar_token(conta, minutos=MINUTOS_VER_COMO_ALUNO, extras={"visualizado_por": usuario.id}),
+        "access_token": criar_token(conta, minutos=MINUTOS_VER_COMO, extras={"visualizado_por": usuario.id}),
         "nome": aluno.apelido or aluno.nome_completo,
+    }
+
+
+@admin_router.post("/professores/{id_professor}/ver_como")
+def ver_como_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+    professor = session.query(Professor).filter(Professor.id == id_professor).first()
+    conta = session.query(Usuario).filter(Usuario.id == professor.usuario_id).first() if professor else None
+    # Professor promovido a admin ainda tem linha em professor: esse não dá pra "ver como"
+    if not conta or conta.tipo != "professor":
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    registrar_log(
+        session,
+        usuario,
+        acao="VER_COMO_PROFESSOR",
+        entidade="professor",
+        entidade_id=professor.id,
+        detalhes={"nome": professor.nome_completo, "email": conta.email},
+    )
+    return {
+        "access_token": criar_token(conta, minutos=MINUTOS_VER_COMO, extras={"visualizado_por": usuario.id}),
+        "nome": professor.apelido or professor.nome_completo,
     }
 
 
@@ -122,7 +148,9 @@ def listar_usuarios(
             "identificador": pessoas[usuario.id]["identificador"],
             "turmas": pessoas[usuario.id]["turmas"],
             "aluno_id": pessoas[usuario.id]["aluno_id"],
+            "professor_id": pessoas[usuario.id]["professor_id"],
             "tipo": usuario.tipo,
+            "ativo": usuario.ativo,
             "data_criacao": usuario.data_criacao,
             "primeiro_acesso": usuario.primeiro_acesso,
         }
@@ -247,14 +275,16 @@ def resumo_logs_auditoria(session = Depends(pegar_sessao_kivira)):
     }
 
 
-# Promove um usuário existente (professor ou aluno) a admin. É assim que o sistema
-# resolve o "e como criamos o primeiro admin?": o primeiro precisa ser inserido
-# direto no banco (não tem quem promova o próprio primeiro admin), mas a partir
-# daí um admin já cadastrado pode promover qualquer outro usuário por aqui.
+# Promove um professor a admin. É assim que o sistema resolve o "e como criamos
+# o primeiro admin?": o primeiro precisa ser inserido direto no banco (não tem
+# quem promova o próprio primeiro admin), mas a partir daí um admin já cadastrado
+# promove professores por aqui. Aluno nunca vira admin (é criança). Como é a ação
+# mais sensível do sistema, pede um código novo do 2FA de quem está promovendo.
 
 @admin_router.post("/usuarios/{usuario_id}/promover-admin")
 def promover_para_admin(
     usuario_id: int,
+    dados: CodigoDoisFatoresSchema,
     session = Depends(pegar_sessao_kivira),
     usuario_logado: Usuario = Depends(verificar_token_kivira),
 ):
@@ -264,6 +294,12 @@ def promover_para_admin(
 
     if usuario_alvo.tipo == "admin":
         raise HTTPException(status_code=400, detail="Este usuário já é admin")
+    if usuario_alvo.tipo != "professor":
+        raise HTTPException(status_code=400, detail="Só professores podem virar admin")
+    if not usuario_alvo.ativo:
+        raise HTTPException(status_code=400, detail="Reative a conta antes de promover")
+
+    conferir_codigo(session, session.get(DoisFatores, usuario_logado.id), dados.codigo)
 
     papel_anterior = usuario_alvo.tipo
     usuario_alvo.tipo = "admin"

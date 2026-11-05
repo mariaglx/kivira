@@ -85,7 +85,7 @@ class TestResumoFeedback(unittest.TestCase):
         s.add(FeedbackAluno(usuario_id=alunos_usuarios[1].id, diversao=4, autonomia=2, jogar_de_novo=3))
         s.commit()
 
-        cls.admin = {"Authorization": f"Bearer {criar_token(admin)}"}
+        cls.admin = {"Authorization": f"Bearer {criar_token(admin, extras={'mfa': True})}"}
         cls.professor = {"Authorization": f"Bearer {criar_token(respondeu)}"}
         s.close()
 

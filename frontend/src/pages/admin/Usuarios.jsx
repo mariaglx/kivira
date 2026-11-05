@@ -4,7 +4,7 @@ import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Search } from "lucide-react";
 import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
-import { useVerComoAluno } from "../../controllers/useVerComoAluno";
+import { useVerComo } from "../../controllers/useVerComo";
 
 export function Usuarios() {
   const [busca, setBusca] = useState("");
@@ -12,11 +12,12 @@ export function Usuarios() {
   const [carregando, setCarregando] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [erro, setErro] = useState("");
-  const { verComoAluno, abrindo, erro: erroVerComo } = useVerComoAluno();
+  const { verComo, abrindo, erro: erroVerComo } = useVerComo();
 
   const [usuarioParaPromover, setUsuarioParaPromover] = useState(null);
   const [promovendo, setPromovendo] = useState(false);
   const [erroPromocao, setErroPromocao] = useState("");
+  const [codigo2fa, setCodigo2fa] = useState("");
 
   useEffect(() => {
     let cancelado = false;
@@ -57,6 +58,7 @@ export function Usuarios() {
 
   const abrirConfirmacaoPromover = (usuario) => {
     setErroPromocao("");
+    setCodigo2fa("");
     setUsuarioParaPromover(usuario);
   };
 
@@ -72,6 +74,7 @@ export function Usuarios() {
     try {
       await apiRequest(`/admin/usuarios/${usuarioParaPromover.id}/promover-admin`, {
         method: "POST",
+        data: { codigo: codigo2fa },
       });
       setUsuarios((lista) =>
         lista.map((u) => (u.id === usuarioParaPromover.id ? { ...u, tipo: "admin" } : u))
@@ -79,8 +82,27 @@ export function Usuarios() {
       setUsuarioParaPromover(null);
     } catch (err) {
       setErroPromocao(err.message || "Não foi possível promover este usuário.");
+      setCodigo2fa("");
     } finally {
       setPromovendo(false);
+    }
+  };
+
+  // Conta nunca é apagada: o admin desativa/reativa aluno e professor (admin não)
+  const [alternandoId, setAlternandoId] = useState(null);
+  const [erroConta, setErroConta] = useState("");
+
+  const alternarConta = async (usuario) => {
+    const url = usuario.aluno_id ? `/aluno/${usuario.aluno_id}/ativo` : `/professor/${usuario.professor_id}/ativo`;
+    setAlternandoId(usuario.id);
+    setErroConta("");
+    try {
+      const { ativo } = await apiRequest(url, { method: "PATCH", data: { ativo: !usuario.ativo } });
+      setUsuarios((lista) => lista.map((u) => (u.id === usuario.id ? { ...u, ativo } : u)));
+    } catch (err) {
+      setErroConta(err.message || "Não foi possível alterar essa conta.");
+    } finally {
+      setAlternandoId(null);
     }
   };
 
@@ -119,6 +141,10 @@ export function Usuarios() {
           />
         </div>
       </div>
+
+      {erroConta && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroConta}</div>
+      )}
 
       {erroVerComo && (
         <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
@@ -161,6 +187,11 @@ export function Usuarios() {
                     <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/60"}`}>
                       {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
                     </span>
+                    {!usuario.ativo && (
+                      <span className="badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold bg-vermelho/10 text-vermelho ml-1">
+                        Desativado
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-azul/60">
                     {usuario.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString("pt-BR") : "—"}
@@ -170,17 +201,38 @@ export function Usuarios() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex flex-wrap gap-x-4 gap-y-1">
-                      {usuario.aluno_id && (
+                      {usuario.aluno_id && usuario.ativo && (
                         <button
                           type="button"
-                          onClick={() => verComoAluno(usuario.aluno_id)}
-                          disabled={abrindo === usuario.aluno_id}
+                          onClick={() => verComo("aluno", usuario.aluno_id)}
+                          disabled={abrindo === `aluno:${usuario.aluno_id}`}
                           className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
                         >
-                          {abrindo === usuario.aluno_id ? "Abrindo..." : "Ver como aluno"}
+                          {abrindo === `aluno:${usuario.aluno_id}` ? "Abrindo..." : "Ver como aluno"}
                         </button>
                       )}
-                      {usuario.tipo !== "admin" && (
+                      {usuario.tipo === "professor" && usuario.professor_id && usuario.ativo && (
+                        <button
+                          type="button"
+                          onClick={() => verComo("professor", usuario.professor_id)}
+                          disabled={abrindo === `professor:${usuario.professor_id}`}
+                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                        >
+                          {abrindo === `professor:${usuario.professor_id}` ? "Abrindo..." : "Ver como professor"}
+                        </button>
+                      )}
+                      {(usuario.aluno_id || (usuario.tipo === "professor" && usuario.professor_id)) && (
+                        <button
+                          type="button"
+                          onClick={() => alternarConta(usuario)}
+                          disabled={alternandoId === usuario.id}
+                          className={`text-xs font-bold hover:underline whitespace-nowrap ${usuario.ativo ? "text-vermelho" : "text-azul"}`}
+                        >
+                          {alternandoId === usuario.id ? "Salvando..." : usuario.ativo ? "Desativar" : "Reativar"}
+                        </button>
+                      )}
+                      {/* Só professor (ativo) vira admin — o backend recusa aluno */}
+                      {usuario.tipo === "professor" && usuario.ativo && (
                         <button
                           type="button"
                           onClick={() => abrirConfirmacaoPromover(usuario)}
@@ -215,7 +267,21 @@ export function Usuarios() {
               a ter acesso irrestrito ao sistema: gestão de todos os usuários, turmas e logs de
               auditoria.
             </p>
-            <p className="text-sm text-azul/60 mb-5">Essa ação fica registrada no log de auditoria.</p>
+            <p className="text-sm text-azul/60 mb-4">Essa ação fica registrada no log de auditoria.</p>
+
+            <label htmlFor="codigo-2fa-promover" className="block text-sm font-bold text-azul mb-1.5">
+              Código do seu app autenticador
+            </label>
+            <input
+              id="codigo-2fa-promover"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              value={codigo2fa}
+              onChange={(e) => setCodigo2fa(e.target.value.replace(/\D/g, ""))}
+              className="w-full mb-5 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50"
+            />
 
             {erroPromocao && (
               <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg">
@@ -235,7 +301,7 @@ export function Usuarios() {
               <button
                 type="button"
                 onClick={confirmarPromover}
-                disabled={promovendo}
+                disabled={promovendo || codigo2fa.length !== 6}
                 className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-4 py-2 h-auto min-h-0 text-sm font-bold normal-case shadow-sm transition-all active:scale-95 disabled:opacity-50"
               >
                 {promovendo ? "Promovendo..." : "Confirmar"}
