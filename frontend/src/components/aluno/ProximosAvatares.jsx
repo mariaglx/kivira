@@ -8,7 +8,7 @@ export function ProximosAvatares({ avatares, nivel, className = "", tamanhoAvata
 
   return (
     <div className={className}>
-      <p className="text-sm font-bold text-azul/70 mb-3">
+      <p className="text-sm font-bold text-azul/80 mb-3">
         🎁 Chegue no nível {nivel + 1} e ganhe {proximos.length === 1 ? "esse bichinho" : "esses bichinhos"}:
       </p>
       <div className="flex gap-3 flex-wrap">

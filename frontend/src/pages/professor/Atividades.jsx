@@ -91,7 +91,7 @@ export function Atividades() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
               {ehAdmin() ? "Atividades de todas as turmas" : "Suas atividades, Professor(a)!"}
             </h2>
-            <p className="text-azul/70 text-sm mt-1">
+            <p className="text-azul/80 text-sm mt-1">
               Gerencie e acompanhe todas as atividades criadas
             </p>
           </div>
@@ -131,7 +131,7 @@ export function Atividades() {
                   <h3 className="text-lg font-bold text-azul">
                     {atividade.titulo}
                   </h3>
-                  <span className="text-xs text-azul/50 font-medium">
+                  <span className="text-xs text-azul/80 font-medium">
                     {atividade.disciplina}
                   </span>
                 </div>
@@ -150,7 +150,7 @@ export function Atividades() {
 
               <div className="flex flex-col gap-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-azul/40 font-bold uppercase tracking-wider">
+                  <span className="text-azul/80 font-bold uppercase tracking-wider">
                     Tipo
                   </span>
                   <span className="text-azul font-semibold">
@@ -158,7 +158,7 @@ export function Atividades() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-azul/40 font-bold uppercase tracking-wider">
+                  <span className="text-azul/80 font-bold uppercase tracking-wider">
                     Dificuldade
                   </span>
                   <span
@@ -169,12 +169,12 @@ export function Atividades() {
                 </div>
                 {ehAdmin() && (
                   <div className="flex justify-between">
-                    <span className="text-azul/40 font-bold uppercase tracking-wider">Professor</span>
+                    <span className="text-azul/80 font-bold uppercase tracking-wider">Professor</span>
                     <span className="text-azul font-semibold">{atividade.professor_nome ?? "—"}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-azul/40 font-bold uppercase tracking-wider">
+                  <span className="text-azul/80 font-bold uppercase tracking-wider">
                     Turma
                   </span>
                   <span className="text-azul font-semibold">
@@ -182,7 +182,7 @@ export function Atividades() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-azul/40 font-bold uppercase tracking-wider">
+                  <span className="text-azul/80 font-bold uppercase tracking-wider">
                     Blocos
                   </span>
                   <span className="text-azul font-semibold">
@@ -221,8 +221,8 @@ export function Atividades() {
               to="/professor/atividades/criar"
               className="flex-1 bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
             >
-              <span className="text-3xl text-coral font-bold">+</span>
-              <span className="text-sm font-bold text-coral/80">
+              <span className="text-3xl text-coral-texto font-bold">+</span>
+              <span className="text-sm font-bold text-coral-texto">
                 Criar nova atividade
               </span>
             </Link>
@@ -238,7 +238,7 @@ export function Atividades() {
               <div>
                 <p className="font-extrabold text-azul">Questões</p>
                 {modalQuestoes.titulo && (
-                  <p className="text-xs text-azul/50">{modalQuestoes.titulo}</p>
+                  <p className="text-xs text-azul/80">{modalQuestoes.titulo}</p>
                 )}
               </div>
               <Button
@@ -252,7 +252,7 @@ export function Atividades() {
             </div>
 
             {carregandoQuestoes && (
-              <p className="text-sm text-azul/60">Carregando questões...</p>
+              <p className="text-sm text-azul/80">Carregando questões...</p>
             )}
 
             {erroQuestoes && (
@@ -262,7 +262,7 @@ export function Atividades() {
             )}
 
             {!carregandoQuestoes && !erroQuestoes && modalQuestoes.questoes?.length === 0 && (
-              <p className="text-sm text-azul/60">
+              <p className="text-sm text-azul/80">
                 Essa atividade ainda não tem nenhuma questão cadastrada.
               </p>
             )}
@@ -274,7 +274,7 @@ export function Atividades() {
                     key={questao.id}
                     className="bg-bege/40 border border-bege rounded-2xl p-4 flex flex-col gap-2"
                   >
-                    <span className="text-xs font-bold text-azul/40">
+                    <span className="text-xs font-bold text-azul/80">
                       Questão {questao.ordem}
                     </span>
                     <p className="text-sm font-semibold text-azul">
@@ -288,7 +288,7 @@ export function Atividades() {
                             className={`text-xs px-3 py-1.5 rounded-lg ${
                               opcao.correta
                                 ? "bg-green-100 text-green-700 font-bold"
-                                : "bg-branco text-azul/60"
+                                : "bg-branco text-azul/80"
                             }`}
                           >
                             {opcao.correta ? "✓ " : ""}

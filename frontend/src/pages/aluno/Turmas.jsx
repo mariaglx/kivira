@@ -30,7 +30,7 @@ export function Turmas() {
 
         {turmas.length === 0 ? (
           <div className="cartao p-6 sm:p-10 text-center">
-            <p className="text-azul/70 font-semibold text-lg">
+            <p className="text-azul/80 font-semibold text-lg">
               Você ainda não está em nenhuma turma. Peça o código pro seu
               professor!
             </p>
@@ -45,7 +45,7 @@ export function Turmas() {
               >
                 <div>
                   <h3 className="text-lg font-extrabold">{turma.nome}</h3>
-                  <span className="text-xs text-azul/50 font-medium">
+                  <span className="text-xs text-azul/80 font-medium">
                     {turma.ano_escolar} · {turma.ano_letivo}
                   </span>
                 </div>
@@ -56,7 +56,7 @@ export function Turmas() {
                     nome={turma.professor_nome || "P"}
                   />
                   <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-azul/50">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-azul/80">
                       Professor(a)
                     </p>
                     <p className="text-sm font-semibold truncate">

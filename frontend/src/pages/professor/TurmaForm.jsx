@@ -32,11 +32,11 @@ function CredenciaisModal({
           </Button>
         </div>
 
-        <p className="text-sm text-azul/60 mb-4">{texto}</p>
+        <p className="text-sm text-azul/80 mb-4">{texto}</p>
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/50">
+            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
               Usuário
             </span>
             <button
@@ -47,14 +47,14 @@ function CredenciaisModal({
               <span className="font-mono font-extrabold tracking-wide text-azul text-sm">
                 {username}
               </span>
-              <span className="text-xs font-bold text-coral">
+              <span className="text-xs font-bold text-coral-texto">
                 {campoCopiado === "usuario" ? "Copiado!" : "Copiar"}
               </span>
             </button>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/50">
+            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
               Senha de primeiro acesso
             </span>
             <button
@@ -65,7 +65,7 @@ function CredenciaisModal({
               <span className="font-mono font-extrabold tracking-widest text-azul text-lg">
                 {senha}
               </span>
-              <span className="text-xs font-bold text-coral">
+              <span className="text-xs font-bold text-coral-texto">
                 {campoCopiado === "senha" ? "Copiado!" : "Copiar"}
               </span>
             </button>
@@ -209,7 +209,7 @@ export function TurmaForm() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/turmas"
-            className="text-azul/50 hover:text-azul text-sm font-bold"
+            className="text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Turmas
           </Link>
@@ -286,7 +286,7 @@ export function TurmaForm() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Nome da turma
               </label>
               <Input
@@ -302,7 +302,7 @@ export function TurmaForm() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Ano escolar
                 </label>
                 <Input
@@ -317,7 +317,7 @@ export function TurmaForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Ano letivo
                 </label>
                 <Input
@@ -332,7 +332,7 @@ export function TurmaForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Descrição
               </label>
               <textarea
@@ -341,7 +341,7 @@ export function TurmaForm() {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Uma breve descrição da turma (opcional)"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
               />
             </div>
 
@@ -350,7 +350,7 @@ export function TurmaForm() {
                 <hr className="m-0 border-t border-cinza-claro/60" />
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                     Código de acesso
                   </label>
                   <button
@@ -361,11 +361,11 @@ export function TurmaForm() {
                     <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
                       {codigoAcesso}
                     </span>
-                    <span className="text-xs font-bold text-coral">
+                    <span className="text-xs font-bold text-coral-texto">
                       {campoCopiado === "codigoAcesso" ? "Copiado!" : "Copiar"}
                     </span>
                   </button>
-                  <p className="text-[11px] text-azul/40">
+                  <p className="text-[11px] text-azul/80">
                     Gerado automaticamente, não pode ser alterado.
                   </p>
                 </div>
@@ -424,7 +424,7 @@ export function TurmaForm() {
                 </div>
                 <div className="px-6 py-2">
                   {alunos.length === 0 ? (
-                    <p className="text-sm text-azul/60 py-3">
+                    <p className="text-sm text-azul/80 py-3">
                       Nenhum aluno matriculado ainda. Compartilhe o código de acesso ou adicione direto por aqui.
                     </p>
                   ) : (
@@ -442,11 +442,11 @@ export function TurmaForm() {
                             />
                           )}
                           <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral hover:underline underline-offset-2">
+                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral-texto hover:underline underline-offset-2">
                               {aluno.apelido || aluno.nome_completo}
                             </Link>
                             {aluno.matricula && (
-                              <span className="text-[10px] font-bold text-azul/40 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                              <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                                 {aluno.matricula}
                               </span>
                             )}
@@ -462,7 +462,7 @@ export function TurmaForm() {
                             disabled={alternandoContaAlunoId === aluno.aluno_id}
                             aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
                             title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
-                            className={`${aluno.conta_ativa === false ? "" : "opacity-0"} group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral w-6 h-6 flex items-center justify-center shrink-0`}
+                            className={`${aluno.conta_ativa === false ? "" : "opacity-0"} group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0`}
                           >
                             {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
                           </button>
@@ -472,7 +472,7 @@ export function TurmaForm() {
                             disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="opacity-0 group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral w-6 h-6 flex items-center justify-center shrink-0"
+                            className="opacity-0 group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -513,7 +513,7 @@ export function TurmaForm() {
                 </div>
                 <div className="px-6 py-2">
                   {atividades.length === 0 ? (
-                    <p className="text-sm text-azul/60 py-3">
+                    <p className="text-sm text-azul/80 py-3">
                       Nenhuma atividade atribuída a essa turma ainda.
                     </p>
                   ) : (
@@ -610,8 +610,8 @@ export function TurmaForm() {
                   onClick={() => setAbaModalAluno(aba.chave)}
                   className={`flex-1 text-[11px] font-extrabold px-2 py-2 rounded-lg transition-all ${
                     abaModalAluno === aba.chave
-                      ? "bg-branco text-coral shadow-sm"
-                      : "text-azul/55 hover:text-azul"
+                      ? "bg-branco text-coral-texto shadow-sm"
+                      : "text-azul/80 hover:text-azul"
                   }`}
                 >
                   {aba.rotulo}
@@ -640,7 +640,7 @@ export function TurmaForm() {
                         <span className="font-bold text-azul flex-1 truncate flex items-center gap-1.5 min-w-0">
                           <span className="truncate">{aluno.nome_completo}</span>
                           {aluno.matricula && (
-                            <span className="text-[9.5px] font-bold text-azul/45 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                            <span className="text-[9.5px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                               {aluno.matricula}
                             </span>
                           )}
@@ -648,14 +648,14 @@ export function TurmaForm() {
                         <span className="font-mono font-extrabold text-azul bg-bege/60 rounded px-1.5 py-0.5 shrink-0">
                           {aluno.username}
                         </span>
-                        <span className="font-mono font-extrabold text-coral tracking-widest bg-bege/60 rounded px-1.5 py-0.5 shrink-0">
+                        <span className="font-mono font-extrabold text-coral-texto tracking-widest bg-bege/60 rounded px-1.5 py-0.5 shrink-0">
                           {aluno.senha_temporaria}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-[11px] text-azul/40">
+                  <p className="text-[11px] text-azul/80">
                     Anote agora, as senhas não aparecem de novo depois. Todos já foram adicionados à fila de impressão da turma.
                   </p>
 
@@ -671,9 +671,9 @@ export function TurmaForm() {
                       linha, Nome/Sobrenome empurravam Matrícula e o "×" pra fora
                       em telas mais estreitas. */}
                   <div className="flex gap-2.5 px-0.5">
-                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/45">Nome</span>
-                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/45">Sobrenome</span>
-                    <span className="w-28 shrink-0 text-[10px] font-bold uppercase tracking-wider text-azul/45">Matrícula</span>
+                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Nome</span>
+                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Sobrenome</span>
+                    <span className="w-28 shrink-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Matrícula</span>
                     <span className="w-7 shrink-0" />
                   </div>
 
@@ -742,12 +742,12 @@ export function TurmaForm() {
                   <button
                     type="button"
                     onClick={adicionarLinhaCadastro}
-                    className="border-2 border-dashed border-coral/40 rounded-2xl py-2.5 flex items-center justify-center gap-2 text-coral font-bold text-sm hover:bg-coral/5 transition-all active:scale-[0.99]"
+                    className="border-2 border-dashed border-coral/40 rounded-2xl py-2.5 flex items-center justify-center gap-2 text-coral-texto font-bold text-sm hover:bg-coral/5 transition-all active:scale-[0.99]"
                   >
                     <span className="text-lg leading-none">+</span> Adicionar outro aluno
                   </button>
 
-                  <p className="text-[11px] text-azul/40">
+                  <p className="text-[11px] text-azul/80">
                     Matrícula é opcional. Usuário e senha de cada um são gerados automaticamente.
                   </p>
 
@@ -775,7 +775,7 @@ export function TurmaForm() {
             {abaModalAluno === "existente" && (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                     Buscar por nome ou matrícula
                   </label>
                   <Input
@@ -796,13 +796,13 @@ export function TurmaForm() {
 
                 <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
                   {buscaAlunoExistente.trim().length < 2 && (
-                    <p className="text-xs text-azul/40 text-center py-4">
+                    <p className="text-xs text-azul/80 text-center py-4">
                       Digite pelo menos 2 letras ou números pra buscar.
                     </p>
                   )}
 
                   {buscaAlunoExistente.trim().length >= 2 && !buscandoAlunoExistente && resultadosBusca.length === 0 && (
-                    <p className="text-xs text-azul/40 text-center py-4">
+                    <p className="text-xs text-azul/80 text-center py-4">
                       Nenhum aluno seu bate com essa busca.
                     </p>
                   )}
@@ -821,7 +821,7 @@ export function TurmaForm() {
                           className="w-9 h-9 rounded-lg object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-lg bg-coral text-branco text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-coral text-azul-escuro text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
                           {(aluno.apelido || aluno.nome_completo || "?").charAt(0)}
                         </div>
                       )}
@@ -832,7 +832,7 @@ export function TurmaForm() {
                             {aluno.apelido || aluno.nome_completo}
                           </span>
                           {aluno.matricula && (
-                            <span className="text-[10px] font-bold text-azul/45 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                            <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                               {aluno.matricula}
                             </span>
                           )}
@@ -909,7 +909,7 @@ export function TurmaForm() {
             </div>
 
             {rankingAlunos.length === 0 ? (
-              <p className="text-sm text-azul/60 py-2">
+              <p className="text-sm text-azul/80 py-2">
                 Sem alunos na turma ainda. O ranking aparece quando eles entrarem.
               </p>
             ) : (
@@ -919,13 +919,13 @@ export function TurmaForm() {
                 <div className="flex items-center gap-3 mt-4 pb-2 border-b border-cinza-claro/40">
                   <span className="w-6 shrink-0" />
                   <span className="w-8 shrink-0" />
-                  <span className="grow text-[10px] font-bold uppercase tracking-wider text-azul/40">
+                  <span className="grow text-[10px] font-bold uppercase tracking-wider text-azul/80">
                     Aluno
                   </span>
-                  <span className="w-20 text-right text-[10px] font-bold uppercase tracking-wider text-azul/40 shrink-0">
+                  <span className="w-20 text-right text-[10px] font-bold uppercase tracking-wider text-azul/80 shrink-0">
                     Atividades
                   </span>
-                  <span className="w-16 text-right text-[10px] font-bold uppercase tracking-wider text-azul/40 shrink-0">
+                  <span className="w-16 text-right text-[10px] font-bold uppercase tracking-wider text-azul/80 shrink-0">
                     XP
                   </span>
                 </div>
@@ -951,7 +951,7 @@ export function TurmaForm() {
                         className="w-8 h-8 rounded-lg object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-coral text-branco text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-coral text-azul-escuro text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
                         {(aluno.nome || "?").charAt(0)}
                       </div>
                     )}
@@ -960,7 +960,7 @@ export function TurmaForm() {
                       {aluno.nome}
                     </span>
 
-                    <span className="w-20 text-right text-[11px] font-bold text-azul/45 shrink-0">
+                    <span className="w-20 text-right text-[11px] font-bold text-azul/80 shrink-0">
                       {aluno.atividades_concluidas} de {totalAtividadesPublicadas}
                     </span>
 
@@ -992,12 +992,12 @@ export function TurmaForm() {
             <h3 className="text-xl font-extrabold text-azul mt-3">
               Excluir a turma?
             </h3>
-            <p className="text-sm text-azul/60 mt-2">
+            <p className="text-sm text-azul/80 mt-2">
               <strong className="text-azul">{formData.nome}</strong> será
               removida e não tem como desfazer.
             </p>
 
-            <div className="text-xs text-azul/60 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
+            <div className="text-xs text-azul/80 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
               <span>
                 Os <strong className="text-azul">{alunos.length} aluno(s)</strong> saem
                 da turma, mas as contas deles continuam existindo.
@@ -1033,12 +1033,12 @@ export function TurmaForm() {
             <h3 className="text-xl font-extrabold text-azul mt-3">
               Remover da turma?
             </h3>
-            <p className="text-sm text-azul/60 mt-2">
+            <p className="text-sm text-azul/80 mt-2">
               <strong className="text-azul">{alunoParaRemover.nome}</strong> sai
               da lista e deixa de ver as atividades desta turma.
             </p>
 
-            <p className="text-xs text-azul/60 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4">
+            <p className="text-xs text-azul/80 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4">
               A conta dele <strong className="text-azul">não é apagada</strong>,
               ele continua nas outras turmas em que está matriculado, e pode ser
               adicionado de volta a esta depois.
@@ -1073,7 +1073,7 @@ export function TurmaForm() {
             <h3 className="text-xl font-extrabold text-azul">
               Ops, algo deu errado
             </h3>
-            <p className="text-sm text-azul/60">{erroAcaoAluno}</p>
+            <p className="text-sm text-azul/80">{erroAcaoAluno}</p>
             <Button variante="contorno" onClick={fecharErroAcaoAluno} className="px-6 py-2.5 text-sm mt-2">
               Entendi
             </Button>

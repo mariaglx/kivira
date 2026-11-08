@@ -135,7 +135,7 @@ export function Login() {
             </p>
             <p className="text-gray-600">
               É aluno?{" "}
-              <Link to="/login_aluno" className="text-coral font-bold hover:underline">
+              <Link to="/login_aluno" className="text-coral-texto font-bold hover:underline">
                 Entrar por aqui
               </Link>
             </p>

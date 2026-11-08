@@ -83,8 +83,8 @@ function AbaProfessores({ professores, anonimo }) {
           {comentarios.map((c, i) => (
             <article key={i} className="p-4 flex flex-col gap-1">
               <p className="text-sm text-azul whitespace-pre-line break-words">{c.texto}</p>
-              <p className="text-xs text-azul/50">
-                <span className="font-bold text-coral">
+              <p className="text-xs text-azul/80">
+                <span className="font-bold text-coral-texto">
                   {anonimo ? `Professor ${comentarios.length - i}` : c.apelido || c.nome_completo || "Professor"}
                 </span>
                 {!anonimo && c.apelido && c.nome_completo && c.apelido !== c.nome_completo && ` (${c.nome_completo})`}
@@ -177,7 +177,7 @@ function AbaPerguntas() {
   return publicos.map(({ titulo, perguntas, aberta }) => (
     <section key={titulo} className="flex flex-col gap-3">
       <h3 className="text-lg font-bold text-azul">
-        {titulo} <span className="text-sm font-semibold text-azul/50">({perguntas.length + (aberta ? 1 : 0)} perguntas)</span>
+        {titulo} <span className="text-sm font-semibold text-azul/80">({perguntas.length + (aberta ? 1 : 0)} perguntas)</span>
       </h3>
       <div className="cartao rounded-2xl divide-y divide-cinza-claro">
         {perguntas.map((p, i) => {
@@ -185,14 +185,14 @@ function AbaPerguntas() {
           return (
             <article key={p.campo} className="p-4 flex flex-col gap-2">
               <div>
-                <span className="text-xs font-bold text-azul/40">
+                <span className="text-xs font-bold text-azul/80">
                   {i + 1} · {p.curto} · escala de 1 a {opcoes.length}
                 </span>
                 <p className="font-bold text-azul">{p.titulo}</p>
               </div>
               <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
                 {opcoes.map((rotulo, n) => (
-                  <li key={n} className="flex items-center gap-1.5 text-xs font-semibold text-azul/70">
+                  <li key={n} className="flex items-center gap-1.5 text-xs font-semibold text-azul/80">
                     <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: CORES_ESCALA[opcoes.length][n] }} />
                     {n + 1} · {rotulo}
                   </li>
@@ -203,7 +203,7 @@ function AbaPerguntas() {
         })}
         {aberta && (
           <article className="p-4">
-            <span className="text-xs font-bold text-azul/40">{perguntas.length + 1} · Comentário · texto livre</span>
+            <span className="text-xs font-bold text-azul/80">{perguntas.length + 1} · Comentário · texto livre</span>
             <p className="font-bold text-azul">{aberta}</p>
           </article>
         )}
@@ -242,7 +242,7 @@ export function ResultadosFeedback() {
   const grupo = dados[aba];
   const classeAba = (ativa) =>
     `px-4 min-h-11 flex items-center rounded-full text-sm font-bold whitespace-nowrap transition ${
-      ativa ? "bg-coral text-branco shadow-sm" : "bg-branco text-azul/70 hover:text-azul border border-cinza-claro"
+      ativa ? "bg-coral text-azul-escuro shadow-sm" : "bg-branco text-azul/80 hover:text-azul border border-cinza-claro"
     }`;
 
   return (

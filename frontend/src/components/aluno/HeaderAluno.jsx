@@ -53,8 +53,8 @@ export function HeaderAluno({ aluno }) {
             className={({ isActive }) =>
               `shrink-0 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] sm:text-sm font-bold transition-colors ${
                 isActive
-                  ? "bg-coral text-branco"
-                  : "text-azul/60 hover:bg-bege sm:bg-bege/70"
+                  ? "bg-coral text-azul-escuro"
+                  : "text-azul/80 hover:bg-bege sm:bg-bege/70"
               }`
             }
           >
@@ -74,8 +74,8 @@ export function HeaderAluno({ aluno }) {
         </span>
         <div className="hidden sm:flex flex-col gap-1 w-36">
           <div className="flex items-baseline justify-between text-[11px] font-bold leading-tight">
-            <span className="text-coral">Nível {progresso.nivel}</span>
-            <span className="text-azul/50">
+            <span className="text-coral-texto">Nível {progresso.nivel}</span>
+            <span className="text-azul/80">
               {progresso.xpNoNivel}/{progresso.xpDoNivel} XP
             </span>
           </div>
@@ -116,7 +116,7 @@ export function HeaderAluno({ aluno }) {
                 <button
                   type="button"
                   onClick={sair}
-                  className="w-full text-left px-4 py-2.5 text-sm font-semibold text-coral hover:bg-bege/60"
+                  className="w-full text-left px-4 py-2.5 text-sm font-semibold text-coral-texto hover:bg-bege/60"
                 >
                   Sair
                 </button>

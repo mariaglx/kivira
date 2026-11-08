@@ -41,7 +41,7 @@ const ResultadosFeedback = lazy(() => import("./pages/admin/ResultadosFeedback")
 function CarregandoRota() {
   return (
     <div className="min-h-screen bg-bege flex items-center justify-center">
-      <p className="text-azul/60 font-medium">Carregando...</p>
+      <p className="text-azul/80 font-medium">Carregando...</p>
     </div>
   );
 }

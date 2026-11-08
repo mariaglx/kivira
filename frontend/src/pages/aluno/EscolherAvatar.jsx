@@ -25,7 +25,7 @@ export function EscolherAvatar() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-700">
             Escolha seu personagem! ✨
           </h2>
-          <p className="text-sm text-azul/60">
+          <p className="text-sm text-azul/80">
             Esse vai ser o seu ícone aqui no Kivira. Os bichinhos com cadeado você libera subindo de nível!
           </p>
         </div>

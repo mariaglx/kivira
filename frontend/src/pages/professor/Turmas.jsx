@@ -82,9 +82,9 @@ export function Turmas() {
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <h3 className="text-lg font-bold text-azul break-words">{turma.nome}</h3>
-                      <span className="text-xs text-azul/50 font-medium">{subtituloTurma(turma)}</span>
+                      <span className="text-xs text-azul/80 font-medium">{subtituloTurma(turma)}</span>
                       {ehAdmin() && turma.professor_nome && (
-                        <span className="block text-xs text-coral font-bold mt-0.5">Prof. {turma.professor_nome}</span>
+                        <span className="block text-xs text-coral-texto font-bold mt-0.5">Prof. {turma.professor_nome}</span>
                       )}
                     </div>
                     {turma.ativo ? (
@@ -103,13 +103,13 @@ export function Turmas() {
                   <div className="flex items-end gap-8">
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.alunos_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">Alunos</div>
+                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Alunos</div>
                     </div>
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.atividades_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/40 font-bold">Atividades</div>
+                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Atividades</div>
                     </div>
-                    <span className="ml-auto text-sm font-bold text-coral flex items-center gap-1">
+                    <span className="ml-auto text-sm font-bold text-coral-texto flex items-center gap-1">
                       Abrir <ChevronRight size={16} />
                     </span>
                   </div>
@@ -124,8 +124,8 @@ export function Turmas() {
               onClick={() => navigate("/professor/turmas/nova")}
               className="bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
             >
-              <span className="text-3xl text-coral font-bold">+</span>
-              <span className="text-sm font-bold text-coral/80">
+              <span className="text-3xl text-coral-texto font-bold">+</span>
+              <span className="text-sm font-bold text-coral-texto">
                 Criar nova turma
               </span>
             </Item>

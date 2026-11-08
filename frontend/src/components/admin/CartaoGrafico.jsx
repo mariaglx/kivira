@@ -25,7 +25,7 @@ export function CartaoGrafico({ titulo, subtitulo, legenda, arquivo, children })
       <header className="flex flex-wrap justify-between items-start gap-3">
         <div className="min-w-0">
           <h3 className="text-lg font-bold text-azul">{titulo}</h3>
-          {subtitulo && <p className="text-xs text-azul/50">{subtitulo}</p>}
+          {subtitulo && <p className="text-xs text-azul/80">{subtitulo}</p>}
         </div>
         <Button variante="contorno" tamanho="sm" onClick={baixar} disabled={baixando}>
           <Download size={14} className="mr-1.5" />
@@ -37,7 +37,7 @@ export function CartaoGrafico({ titulo, subtitulo, legenda, arquivo, children })
 
       <ul className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Legenda">
         {legenda.map(({ cor, rotulo }) => (
-          <li key={rotulo} className="flex items-center gap-1.5 text-xs font-semibold text-azul/70">
+          <li key={rotulo} className="flex items-center gap-1.5 text-xs font-semibold text-azul/80">
             <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: cor }} />
             {rotulo}
           </li>
