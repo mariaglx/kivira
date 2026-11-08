@@ -14,6 +14,7 @@ import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/pape
 import {
   CATEGORIAS, TELA_DE_LOGIN, categoriaDaAcao, descreverAparelho, descreverLog, detalhesExtras,
 } from "../../utils/auditoria";
+import { Alerta } from "../../components/ui/Alerta";
 
 const ESTILO_CATEGORIA = {
   acessos: { Icone: LogIn, cor: "bg-green-100 text-green-600" },
@@ -215,7 +216,7 @@ export function LogsAuditoria() {
       </section>
 
       {erro && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erro}</div>
+        <Alerta>{erro}</Alerta>
       )}
 
       {carregando ? (

@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Entrada } from "../../components/ui/Animacao";
+import { Alerta } from "../../components/ui/Alerta";
 
 const TOTAL_PERGUNTAS = PERGUNTAS.length + 1;
 
@@ -219,9 +220,9 @@ export function Feedback() {
             </div>
 
             {erro && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+              <Alerta>
                 {erro}
-              </div>
+              </Alerta>
             )}
 
             <Button type="submit" disabled={!completo || enviando} className="w-full">

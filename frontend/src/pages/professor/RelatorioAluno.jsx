@@ -12,6 +12,7 @@ import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
 import { formatarTempo } from "../../utils/tempo";
 import { progressoNivel } from "../../utils/xp";
+import { Alerta } from "../../components/ui/Alerta";
 
 function formatarData(valor) {
   return valor ? new Date(valor).toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) : null;
@@ -104,7 +105,7 @@ export function RelatorioAluno() {
       </header>
 
       {erroVerComo && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+        <Alerta>{erroVerComo}</Alerta>
       )}
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">

@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { usePrimeiroAcesso } from "../../controllers/usePrimeiroAcesso";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function PrimeiroAcesso() {
   const location = useLocation();
@@ -44,9 +45,9 @@ export function PrimeiroAcesso() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <form onSubmit={confirmar} className="flex flex-col gap-6">

@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function LoginAluno() {
   const location = useLocation();
@@ -70,9 +71,9 @@ export function LoginAluno() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

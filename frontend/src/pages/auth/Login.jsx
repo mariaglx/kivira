@@ -6,6 +6,7 @@ import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
 import { salvarSessao } from "../../services/sessao";
 import { VerificarDoisFatores } from "./VerificarDoisFatores";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Login() {
   const navigate = useNavigate();
@@ -77,9 +78,9 @@ export function Login() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         {doisFatores ? (

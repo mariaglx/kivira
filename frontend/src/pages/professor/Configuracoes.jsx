@@ -20,6 +20,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Entrada, Modal } from "../../components/ui/Animacao";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Configuracoes() {
   const FRASE_CONFIRMACAO_DESATIVACAO = "desativar minha conta";
@@ -172,9 +173,9 @@ export function Configuracoes() {
         </header>
 
         {erro && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+          <Alerta>
             {erro}
-          </div>
+          </Alerta>
         )}
 
         {/* Lado Esquerdo */}
@@ -442,9 +443,9 @@ export function Configuracoes() {
 
             <form onSubmit={handleAlterarSenha} className="flex flex-col gap-5">
               {erroSenha && (
-                <div className="p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                <Alerta>
                   {erroSenha}
-                </div>
+                </Alerta>
               )}
 
               <div className="flex flex-col gap-2">

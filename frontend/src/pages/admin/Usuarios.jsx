@@ -6,6 +6,7 @@ import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/pape
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 import { useVerComo } from "../../controllers/useVerComo";
 import { Modal } from "../../components/ui/Animacao";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Usuarios() {
   const [busca, setBusca] = useState("");
@@ -144,17 +145,17 @@ export function Usuarios() {
       </div>
 
       {erroConta && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroConta}</div>
+        <Alerta>{erroConta}</Alerta>
       )}
 
       {erroVerComo && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+        <Alerta>{erroVerComo}</Alerta>
       )}
 
       {erro && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+        <Alerta>
           {erro}
-        </div>
+        </Alerta>
       )}
 
       {carregando ? (
@@ -284,9 +285,9 @@ export function Usuarios() {
             />
 
             {erroPromocao && (
-              <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              <Alerta className="mb-4">
                 {erroPromocao}
-              </div>
+              </Alerta>
             )}
 
             <div className="flex gap-2 justify-end">

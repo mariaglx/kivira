@@ -274,6 +274,8 @@ export function Home() {
                     type="text"
                     placeholder="EX: AB12CD"
                     aria-label="Código da turma"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "erro-codigo-turma" : undefined}
                     value={sessionCode}
                     onChange={(e) => {
                       setSessionCode(e.target.value.toUpperCase());
@@ -283,12 +285,12 @@ export function Home() {
                     disabled={isLoading}
                     className={`w-full bg-bege/40 border-2 ${
                       error
-                        ? "border-red-500 focus:border-red-500"
+                        ? "border-vermelho focus:border-vermelho"
                         : "border-cinza-claro focus:border-coral"
                     } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase outline-none transition-all`}
                   />
                   {error && (
-                    <span className="flex items-center justify-center gap-2 bg-red-100 border border-red-200 text-red-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-center animate-bounce-short">
+                    <span id="erro-codigo-turma" role="alert" className="alert alert-error alert-soft rounded-xl justify-center text-center text-sm font-bold animate-bounce-short">
                       {error}
                     </span>
                   )}

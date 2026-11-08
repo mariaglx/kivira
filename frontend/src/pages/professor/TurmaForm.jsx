@@ -8,6 +8,7 @@ import { Modal } from "../../components/ui/Animacao";
 import { Input } from "../../components/ui/Input";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
+import { Alerta } from "../../components/ui/Alerta";
 
 // Modal de "revelar credenciais" — usado pra mostrar a senha nova depois de
 // um reset de senha de aluno (o cadastro em si mostra a credencial numa
@@ -259,9 +260,9 @@ export function TurmaForm() {
         </div>
 
         {erro && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl max-w-md">
+          <Alerta className="max-w-md">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
@@ -737,9 +738,9 @@ export function TurmaForm() {
                   </p>
 
                   {erroCadastroLote && (
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                    <Alerta className="flex items-center justify-between gap-3">
                       <span>{erroCadastroLote}</span>
-                    </div>
+                    </Alerta>
                   )}
 
                   <Button
@@ -774,9 +775,9 @@ export function TurmaForm() {
                 </div>
 
                 {erroMatricularExistente && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  <Alerta className="flex items-center justify-between gap-3">
                     <span>{erroMatricularExistente}</span>
-                  </div>
+                  </Alerta>
                 )}
 
                 <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">

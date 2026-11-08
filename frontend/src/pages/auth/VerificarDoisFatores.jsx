@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { apiRequest } from "../../services/api";
+import { Alerta } from "../../components/ui/Alerta";
 
 // Segunda etapa do login do admin: código do app autenticador (Google
 // Authenticator, Authy...). No primeiro acesso mostra o QR pra escanear antes.
@@ -48,9 +49,9 @@ export function VerificarDoisFatores({ token, qrCode, segredo, onEntrar, onVolta
       )}
 
       {erro && (
-        <div className="p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+        <Alerta className="text-center justify-center">
           {erro}
-        </div>
+        </Alerta>
       )}
 
       <div className="flex flex-col gap-1.5">

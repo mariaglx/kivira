@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Lista, Item, Modal } from "../../components/ui/Animacao";
 import { ehAdmin } from "../../services/sessao";
+import { Alerta } from "../../components/ui/Alerta";
 
 const TIPO_LABEL = {
   multipla_escolha: "Múltipla escolha",
@@ -256,9 +257,9 @@ export function Atividades() {
             )}
 
             {erroQuestoes && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+              <Alerta>
                 {erroQuestoes}
-              </div>
+              </Alerta>
             )}
 
             {!carregandoQuestoes && !erroQuestoes && modalQuestoes.questoes?.length === 0 && (

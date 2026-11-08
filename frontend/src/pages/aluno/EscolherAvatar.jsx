@@ -2,6 +2,7 @@ import { LogoKivira } from "../../components/LogoKivira";
 import { Button } from "../../components/ui/Button";
 import { AvatarGrid } from "../../components/aluno/AvatarGrid";
 import { useEscolherAvatar } from "../../controllers/useEscolherAvatar";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function EscolherAvatar() {
   const {
@@ -31,9 +32,9 @@ export function EscolherAvatar() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <AvatarGrid

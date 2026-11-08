@@ -10,6 +10,7 @@ import { Modal } from "../../components/ui/Animacao";
 import { Carregando } from "../../components/ui/Carregando";
 import { comemorar } from "../../utils/comemorar";
 import { Search, Trash2, X } from "lucide-react";
+import { Alerta } from "../../components/ui/Alerta";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
 // um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
@@ -81,7 +82,7 @@ function QuestaoCard({
         </div>
 
         {erro && (
-          <p className="text-xs font-bold text-red-500 -mt-1.5">
+          <p id={`erro-${questao.localId}`} className="text-xs font-bold text-vermelho -mt-1.5">
             Questão não pode estar em branco
           </p>
         )}
@@ -93,6 +94,8 @@ function QuestaoCard({
           <input
             ref={(el) => registrarInputRef(`${questao.localId}-texto`, el)}
             type="text"
+            aria-invalid={!!erro?.texto}
+            aria-describedby={erro?.texto ? `erro-${questao.localId}` : undefined}
             value={questao.texto_questao}
             onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
             placeholder="Ex: Qual o som que a vaca faz?"
@@ -111,6 +114,8 @@ function QuestaoCard({
           <input
             ref={(el) => registrarInputRef(`${questao.localId}-resposta`, el)}
             type="text"
+            aria-invalid={!!erro?.resposta}
+            aria-describedby={erro?.resposta ? `erro-${questao.localId}` : undefined}
             value={questao.resposta_certa}
             onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
             placeholder="Ex: Muuuu"
@@ -622,7 +627,7 @@ export function CriarAtividade() {
                   }))}
                 />
                 {erroTurmas && (
-                  <p className="text-[11px] text-red-500">
+                  <p role="alert" className="text-xs text-vermelho">
                     Não foi possível carregar: {erroTurmas}
                   </p>
                 )}
@@ -927,16 +932,17 @@ export function CriarAtividade() {
             </div>
 
             {erroIA && (
-              <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+              <Alerta className="flex items-center justify-between gap-3">
                 <span>{erroIA}</span>
                 <button
                   type="button"
                   onClick={() => setErroIA(null)}
-                  className="font-bold hover:text-red-800"
+                  aria-label="Fechar aviso"
+                  className="btn btn-ghost btn-sm btn-square text-base"
                 >
                   ×
                 </button>
-              </div>
+              </Alerta>
             )}
 
             <Reorder.Group
@@ -1106,16 +1112,17 @@ export function CriarAtividade() {
                 </form>
 
                 {erroBuscaImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
+                  <Alerta className="flex items-center justify-between gap-3 mb-4">
                     <span>{erroBuscaImagem}</span>
                     <button
                       type="button"
                       onClick={() => setErroBuscaImagem(null)}
-                      className="font-bold hover:text-red-800"
+                      aria-label="Fechar aviso"
+                      className="btn btn-ghost btn-sm btn-square text-base"
                     >
                       ×
                     </button>
-                  </div>
+                  </Alerta>
                 )}
 
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
@@ -1154,9 +1161,9 @@ export function CriarAtividade() {
                   </p>
                 )}
                 {erroUploadImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mt-3">
+                  <Alerta className="flex items-center justify-between gap-3 mt-3">
                     <span>{erroUploadImagem}</span>
-                  </div>
+                  </Alerta>
                 )}
 
                 {totalPaginasImagens > 1 && (
@@ -1208,16 +1215,17 @@ export function CriarAtividade() {
             {abaImagem === "enviar" && (
               <div className="flex flex-col gap-4">
                 {erroUploadImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  <Alerta className="flex items-center justify-between gap-3">
                     <span>{erroUploadImagem}</span>
                     <button
                       type="button"
                       onClick={() => setErroUploadImagem(null)}
-                      className="font-bold hover:text-red-800"
+                      aria-label="Fechar aviso"
+                      className="btn btn-ghost btn-sm btn-square text-base"
                     >
                       ×
                     </button>
-                  </div>
+                  </Alerta>
                 )}
 
                 <label

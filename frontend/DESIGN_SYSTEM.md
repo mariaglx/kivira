@@ -60,6 +60,7 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 - `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
 - `Input` — campo de texto padrão (`icone` opcional à esquerda).
 - `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
+- `Alerta` — **todo** aviso de erro: `alert alert-error alert-soft` do daisyUI com `role="alert"` (o leitor de tela anuncia). Erro de um campo específico: `aria-invalid` no campo + `aria-describedby` apontando pro `id` da mensagem. Não use `text-red-*`/`bg-red-*` do Tailwind.
 - `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
 - `Modal` (em `Animacao`) — **todo** modal do app: `<dialog>` com o `modal` do daisyUI nas cores do Kivira (prende o foco, fecha no Esc/clique fora, devolve o foco). Use `<Modal aberto onFechar={...} className="max-w-sm">`; sem `onFechar` ele não fecha (ex: durante uma exclusão). Não monte overlay `fixed inset-0` à mão.
 - `SelectCustom` — `<select>` nativo com o `select` do daisyUI (teclado, leitor de tela e roda do celular nativos). `placeholder` vira a opção vazia; sem `label`, vira o nome acessível. Não monte dropdown de `<button>` pra escolher valor.

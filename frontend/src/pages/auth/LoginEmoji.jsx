@@ -5,6 +5,7 @@ import { LogoKivira } from "../../components/LogoKivira";
 import { SeletorEmoji } from "../../components/aluno/SeletorEmoji";
 import { User } from "lucide-react";
 import { useLoginEmoji } from "../../controllers/useLoginEmoji";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function LoginEmoji() {
   const location = useLocation();
@@ -78,9 +79,9 @@ export function LoginEmoji() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <form onSubmit={entrar} className="flex flex-col gap-6">

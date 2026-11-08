@@ -54,6 +54,10 @@
   --color-accent-content: #214a5a; /* Texto escuro/azul sobre o Laranja */
 
   /* Elementos Neutros */
+  /* Erro (alert-error, toasts): o mesmo vermelho dos botões de perigo */
+  --color-error: #c0392b;
+  --color-error-content: #ffffff;
+
   --color-neutral: #ececec; /* Cinza Claro: Usado para elementos neutros */
   --color-neutral-content: #214a5a; /* Texto escuro/azul sobre o Cinza Claro */
 
