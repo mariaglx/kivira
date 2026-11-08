@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Eye } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { ehAdmin } from "../../services/sessao";
-import { useVerComoAluno } from "../../controllers/useVerComoAluno";
+import { useVerComo } from "../../controllers/useVerComo";
 import { Avatar } from "../../components/ui/Avatar";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Carregando } from "../../components/ui/Carregando";
@@ -29,7 +29,7 @@ function Metrica({ rotulo, valor }) {
 export function RelatorioAluno() {
   const { alunoId } = useParams();
   const navigate = useNavigate();
-  const { verComoAluno, abrindo, erro: erroVerComo } = useVerComoAluno();
+  const { verComo, abrindo, erro: erroVerComo } = useVerComo();
   const { dados: relatorio, erro, carregando } = useApi(`/aluno/${alunoId}/relatorio`);
 
   const voltar = (
@@ -89,11 +89,11 @@ export function RelatorioAluno() {
           <Button
             tamanho="sm"
             variante="secundario"
-            onClick={() => verComoAluno(aluno.id)}
-            disabled={abrindo === aluno.id}
+            onClick={() => verComo("aluno", aluno.id)}
+            disabled={abrindo === `aluno:${aluno.id}`}
             className="flex items-center gap-2 shrink-0"
           >
-            <Eye size={14} /> {abrindo === aluno.id ? "Abrindo..." : "Ver como aluno"}
+            <Eye size={14} /> {abrindo === `aluno:${aluno.id}` ? "Abrindo..." : "Ver como aluno"}
           </Button>
         )}
         <div className="w-full sm:w-56 shrink-0">

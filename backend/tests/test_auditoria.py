@@ -78,7 +78,7 @@ class TestAuditoria(unittest.TestCase):
         s.add(AlunoTurma(turma_id=turma.id, aluno_id=aluno.id))
         s.commit()
         cls.aluno_id, cls.turma_id = aluno.id, turma.id
-        cls.admin = {"Authorization": f"Bearer {criar_token(admin)}"}
+        cls.admin = {"Authorization": f"Bearer {criar_token(admin, extras={'mfa': True})}"}
         cls.outro_prof = {"Authorization": f"Bearer {criar_token(outro_usuario)}"}
         s.close()
 
@@ -98,7 +98,7 @@ class TestAuditoria(unittest.TestCase):
 
     def test_login_registra_quem_e_de_onde(self):
         login = self.logs(acao="LOGIN")["itens"][0]
-        self.assertEqual(login["usuario"], {"nome": "Ana Souza", "identificador": "ana.souza", "turmas": ["3º A"], "aluno_id": self.aluno_id})
+        self.assertEqual(login["usuario"], {"nome": "Ana Souza", "identificador": "ana.souza", "turmas": ["3º A"], "aluno_id": self.aluno_id, "professor_id": None})
         self.assertEqual(login["detalhes"]["ip"], "200.1.2.3")
         self.assertEqual(login["detalhes"]["navegador"], "Mozilla/5.0 (iPhone)")
         self.assertTrue(login["data_criacao"].endswith("Z"))

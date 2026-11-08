@@ -78,15 +78,15 @@ export function useConfiguracoesProfessor({ professor, setProfessor, carregandoP
     }
   };
 
-  const excluirConta = async () => {
+  const desativarConta = async () => {
     setErro("");
     try {
-      await apiRequest(`/professor/${professor.id}`, { method: "DELETE" });
+      await apiRequest(`/professor/${professor.id}/ativo`, { method: "PATCH", data: { ativo: false } });
       limparSessao();
       navigate("/");
       return true;
     } catch (err) {
-      setErro(err.message || "Não foi possível excluir sua conta.");
+      setErro(err.message || "Não foi possível desativar sua conta.");
       return false;
     }
   };
@@ -101,6 +101,6 @@ export function useConfiguracoesProfessor({ professor, setProfessor, carregandoP
     salvarPerfil,
     salvarAvatar,
     alterarSenha,
-    excluirConta,
+    desativarConta,
   };
 }

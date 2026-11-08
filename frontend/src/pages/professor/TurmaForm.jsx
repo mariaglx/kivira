@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
 import { StarIcon } from "../../components/icons/star";
-import { Trash2 } from "lucide-react";
+import { Trash2, UserCheck, UserX } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { SelectCustom } from "../../components/ui/SelectCustom";
@@ -137,6 +137,8 @@ export function TurmaForm() {
     resetandoSenhaAlunoId,
     senhaResetada,
     resetarSenhaAluno,
+    alternandoContaAlunoId,
+    alternarContaAluno,
     fecharSenhaResetada,
     erroAcaoAluno,
     fecharErroAcaoAluno,
@@ -448,7 +450,22 @@ export function TurmaForm() {
                                 {aluno.matricula}
                               </span>
                             )}
+                            {aluno.conta_ativa === false && (
+                              <span className="text-[10px] font-bold text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded shrink-0">
+                                Desativado
+                              </span>
+                            )}
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => alternarContaAluno(aluno)}
+                            disabled={alternandoContaAlunoId === aluno.aluno_id}
+                            aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
+                            title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
+                            className={`${aluno.conta_ativa === false ? "" : "opacity-0"} group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral w-6 h-6 flex items-center justify-center shrink-0`}
+                          >
+                            {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
+                          </button>
                           <button
                             type="button"
                             onClick={() => resetarSenhaAluno(aluno.aluno_id)}

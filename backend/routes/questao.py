@@ -2,13 +2,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.questao import Questao
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor
 from schemas.questao import QuestaoSchema, QuestaoUpdateSchema
 from models.usuario import Usuario
 from models.atividade import Atividade
 from services.auditoria_service import registrar_log
 
-questao_router = APIRouter(prefix="/questao", tags=["questao"], dependencies=[Depends(verificar_token_kivira)])
+questao_router = APIRouter(prefix="/questao", tags=["questao"], dependencies=[Depends(admin_ou_professor)])
 
 @questao_router.post("/criar")
 def criar_questao(questao_schema: QuestaoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
@@ -44,10 +44,12 @@ def criar_questao(questao_schema: QuestaoSchema, session = Depends(pegar_sessao_
 
 
 @questao_router.get("/{id_questao}")
-def buscar_questao(id_questao: int, session = Depends(pegar_sessao_kivira)):
+def buscar_questao(id_questao: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     questao = session.query(Questao).filter(Questao.id == id_questao).first()
     if not questao:
         raise HTTPException(status_code=404, detail="Questão não encontrada")
+    if not pode_gerenciar(session, usuario, session.query(Atividade).filter(Atividade.id == questao.atividade_id).first()):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para ver essa questão")
 
     return {
         "id": questao.id,

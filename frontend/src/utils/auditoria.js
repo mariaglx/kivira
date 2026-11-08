@@ -3,15 +3,19 @@
 
 export const CATEGORIAS = [
   { chave: "", rotulo: "Tudo", acoes: [] },
-  { chave: "acessos", rotulo: "Acessos", acoes: ["LOGIN", "LOGIN_FALHOU", "LOGOUT", "PRIMEIRO_ACESSO_ALUNO", "VER_COMO_ALUNO"] },
-  { chave: "falhas", rotulo: "Tentativas falhas", acoes: ["LOGIN_FALHOU"] },
+  {
+    chave: "acessos",
+    rotulo: "Acessos",
+    acoes: ["LOGIN", "LOGIN_FALHOU", "LOGIN_2FA_FALHOU", "LOGOUT", "PRIMEIRO_ACESSO_ALUNO", "VER_COMO_ALUNO", "VER_COMO_PROFESSOR", "ATIVAR_2FA"],
+  },
+  { chave: "falhas", rotulo: "Tentativas falhas", acoes: ["LOGIN_FALHOU", "LOGIN_2FA_FALHOU"] },
   {
     chave: "turmas",
     rotulo: "Turmas e alunos",
     acoes: [
       "CRIAR_TURMA", "ATUALIZAR_TURMA", "EXCLUIR_TURMA", "CRIAR_MATRICULA", "ATUALIZAR_MATRICULA",
       "EXCLUIR_MATRICULA", "CADASTRAR_ALUNO", "CADASTRAR_ALUNOS_LOTE", "CRIAR_ALUNO", "ATUALIZAR_ALUNO",
-      "EXCLUIR_ALUNO", "RESETAR_SENHA_ALUNO",
+      "EXCLUIR_ALUNO", "DESATIVAR_ALUNO", "REATIVAR_ALUNO", "RESETAR_SENHA_ALUNO",
     ],
   },
   {
@@ -27,20 +31,27 @@ export const CATEGORIAS = [
   {
     chave: "contas",
     rotulo: "Contas",
-    acoes: ["CRIAR_PROFESSOR", "ATUALIZAR_PROFESSOR", "EXCLUIR_PROFESSOR", "ALTERAR_SENHA_PROFESSOR", "PROMOVER_ADMIN"],
+    acoes: [
+      "CRIAR_PROFESSOR", "ATUALIZAR_PROFESSOR", "EXCLUIR_PROFESSOR", "DESATIVAR_PROFESSOR", "REATIVAR_PROFESSOR",
+      "ALTERAR_SENHA_PROFESSOR", "PROMOVER_ADMIN",
+    ],
   },
 ];
 
 const CATEGORIA_DA_ACAO = Object.fromEntries(
   CATEGORIAS.filter((c) => c.chave && c.chave !== "falhas").flatMap((c) => c.acoes.map((a) => [a, c.chave])),
 );
-export const categoriaDaAcao = (acao) => (acao === "LOGIN_FALHOU" ? "falhas" : CATEGORIA_DA_ACAO[acao] ?? "outros");
+export const categoriaDaAcao = (acao) =>
+  acao === "LOGIN_FALHOU" || acao === "LOGIN_2FA_FALHOU" ? "falhas" : CATEGORIA_DA_ACAO[acao] ?? "outros";
 
 const VERBOS = {
   LOGIN: "entrou no sistema",
   LOGOUT: "saiu do sistema",
   PRIMEIRO_ACESSO_ALUNO: "fez o primeiro acesso e criou a senha",
   VER_COMO_ALUNO: "abriu o app como o aluno",
+  VER_COMO_PROFESSOR: "abriu o painel como o professor",
+  ATIVAR_2FA: "ativou a verificação em duas etapas",
+  LOGIN_2FA_FALHOU: "errou o código da verificação em duas etapas",
   CRIAR_TURMA: "criou a turma",
   ATUALIZAR_TURMA: "editou a turma",
   EXCLUIR_TURMA: "excluiu a turma",
@@ -52,6 +63,8 @@ const VERBOS = {
   CRIAR_ALUNO: "criou a conta de aluno",
   ATUALIZAR_ALUNO: "editou um aluno",
   EXCLUIR_ALUNO: "excluiu o aluno",
+  DESATIVAR_ALUNO: "desativou a conta do aluno",
+  REATIVAR_ALUNO: "reativou a conta do aluno",
   RESETAR_SENHA_ALUNO: "gerou senha nova para um aluno",
   CRIAR_ATIVIDADE: "criou a atividade",
   ATUALIZAR_ATIVIDADE: "editou a atividade",
@@ -68,6 +81,8 @@ const VERBOS = {
   CRIAR_PROFESSOR: "criou a conta de professor",
   ATUALIZAR_PROFESSOR: "editou um perfil de professor",
   EXCLUIR_PROFESSOR: "excluiu o professor",
+  DESATIVAR_PROFESSOR: "desativou a conta do professor",
+  REATIVAR_PROFESSOR: "reativou a conta do professor",
   ALTERAR_SENHA_PROFESSOR: "trocou a própria senha",
   PROMOVER_ADMIN: "deu acesso de admin para",
 };

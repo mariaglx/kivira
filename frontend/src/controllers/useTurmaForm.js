@@ -392,6 +392,25 @@ export function useTurmaForm() {
   const fecharSenhaResetada = () => setSenhaResetada(null);
   const fecharErroAcaoAluno = () => setErroAcaoAluno(null);
 
+  // Desativar/reativar a conta do aluno (conta nunca é apagada): desativado não
+  // entra mais no Kivira, mas continua na turma com histórico e XP
+  const [alternandoContaAlunoId, setAlternandoContaAlunoId] = useState(null);
+
+  const alternarContaAluno = async (aluno) => {
+    setAlternandoContaAlunoId(aluno.aluno_id);
+    try {
+      const { ativo } = await apiRequest(`/aluno/${aluno.aluno_id}/ativo`, {
+        method: "PATCH",
+        data: { ativo: !aluno.conta_ativa },
+      });
+      setAlunos((lista) => lista.map((a) => (a.aluno_id === aluno.aluno_id ? { ...a, conta_ativa: ativo } : a)));
+    } catch (erro) {
+      setErroAcaoAluno(erro.message || "Não foi possível alterar a conta do aluno.");
+    } finally {
+      setAlternandoContaAlunoId(null);
+    }
+  };
+
   // Exclusão da turma. O banco cuida das dependências sozinho e de formas
   // diferentes: `aluno_turma` é CASCADE (as matrículas somem, os alunos não),
   // `atividade` e `sessao_jogo` são SET NULL (sobrevivem, só perdem o vínculo).
@@ -491,6 +510,8 @@ export function useTurmaForm() {
     resetandoSenhaAlunoId,
     senhaResetada,
     resetarSenhaAluno,
+    alternandoContaAlunoId,
+    alternarContaAluno,
     fecharSenhaResetada,
     erroAcaoAluno,
     fecharErroAcaoAluno,

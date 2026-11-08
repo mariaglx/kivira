@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 import { HeaderAluno } from "./HeaderAluno";
-import { AvisoVisualizacao } from "./AvisoVisualizacao";
+import { AvisoVisualizacao } from "../AvisoVisualizacao";
 import { useAlunoAtual } from "../../controllers/useAlunoAtual";
 
 // Layout compartilhado pelas rotas /aluno/* — o Header monta uma vez só e
