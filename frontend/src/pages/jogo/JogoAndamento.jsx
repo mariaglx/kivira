@@ -168,7 +168,7 @@ export function JogoAndamento() {
         <p className="text-azul font-bold">
           {erroCarregamento || "Nenhuma atividade selecionada."}
         </p>
-        <Link to={rotaVoltar} className="text-coral font-bold text-sm hover:underline">
+        <Link to={rotaVoltar} className="text-coral-texto font-bold text-sm hover:underline">
           ← Voltar pras atividades
         </Link>
       </div>
@@ -178,7 +178,7 @@ export function JogoAndamento() {
   if (carregando) {
     return (
       <div className="min-h-screen bg-bege flex items-center justify-center">
-        <p className="text-azul/60 font-medium">Carregando atividade...</p>
+        <p className="text-azul/80 font-medium">Carregando atividade...</p>
       </div>
     );
   }
@@ -209,7 +209,7 @@ export function JogoAndamento() {
             max={perguntas.length}
             className="flex-1"
           />
-          <span className="shrink-0 text-xs sm:text-sm font-bold text-azul/70">
+          <span className="shrink-0 text-xs sm:text-sm font-bold text-azul/80">
             {colocadas} de {perguntas.length} peças
           </span>
         </div>
@@ -226,10 +226,10 @@ export function JogoAndamento() {
               <li
                 key={q.id}
                 className={`flex items-start gap-3 rounded-2xl px-3 py-2.5 text-sm sm:text-base ${
-                  tabuleiro[q.id] ? "bg-azul/5 text-azul/60" : "bg-bege/60 text-azul"
+                  tabuleiro[q.id] ? "bg-azul/5 text-azul/80" : "bg-bege/60 text-azul"
                 }`}
               >
-                <span className="w-7 h-7 shrink-0 rounded-full bg-coral text-branco text-sm font-black flex items-center justify-center">
+                <span className="w-7 h-7 shrink-0 rounded-full bg-coral text-azul-escuro text-sm font-black flex items-center justify-center">
                   {q.id}
                 </span>
                 <span className="font-semibold pt-0.5">{q.texto_questao}</span>
@@ -245,12 +245,12 @@ export function JogoAndamento() {
             <h2 className="faixa-secao mb-2">Tabuleiro</h2>
 
             {fase === "jogando" && (
-              <p className="text-sm font-bold text-coral mb-2">
+              <p className="text-sm font-bold text-coral-texto mb-2">
                 {mensagemProgresso(colocadas, perguntas.length)}
               </p>
             )}
             {fase === "virado" && !acertouTudo && (
-              <p className="text-sm font-bold text-coral mb-2">
+              <p className="text-sm font-bold text-coral-texto mb-2">
                 Quase lá! Você acertou {acertos} de {perguntas.length}. Corrija as peças com a moldura coral.
               </p>
             )}
@@ -323,7 +323,7 @@ export function JogoAndamento() {
                           />
                           {!correcao && (
                             <div className="absolute rounded-xl inset-0 bg-coral/20 pointer-events-none">
-                              <span className="absolute top-1 right-1 bg-coral text-white text-xs px-1.5 rounded-md font-bold shadow-sm">
+                              <span className="absolute top-1 right-1 bg-coral text-azul-escuro text-xs px-1.5 rounded-md font-bold shadow-sm">
                                 ↻
                               </span>
                             </div>
@@ -361,7 +361,7 @@ export function JogoAndamento() {
               <h2 className="faixa-secao mb-2">Peças soltas</h2>
               <div className="w-full bg-branco border-2 border-azul/10 rounded-2xl p-2 sm:p-3 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 max-h-40 sm:max-h-52 overflow-y-auto lg:max-h-none">
                 {pecasSoltas.length === 0 ? (
-                  <span className="col-span-full text-sm font-semibold text-azul/60 text-center py-2">
+                  <span className="col-span-full text-sm font-semibold text-azul/80 text-center py-2">
                     Todas as peças foram colocadas!
                   </span>
                 ) : (
@@ -376,7 +376,7 @@ export function JogoAndamento() {
                         /* w-full garante a mesma largura do tabuleiro, h-11 deixa a peça baixinha e achatada */
                         className={`tatil w-full min-h-11 px-2 py-1.5 flex items-center justify-center text-center leading-tight rounded-xl text-sm font-bold cursor-grab active:cursor-grabbing ${
                           estaSelecionada
-                            ? "bg-coral text-white -translate-y-1 scale-105 [--sombra:var(--color-coral-escuro)]"
+                            ? "bg-coral text-azul-escuro -translate-y-1 scale-105 [--sombra:var(--color-coral-escuro)]"
                             : `bg-laranja-claro text-azul [--sombra:var(--color-laranja-escuro)] ${
                                 indice % 2 ? "rotate-1" : "-rotate-1"
                               }`
@@ -403,7 +403,7 @@ export function JogoAndamento() {
                 </button>
                 <button
                   onClick={jogarDeNovo}
-                  className="tatil bg-coral text-white px-6 py-3 rounded-full font-bold text-sm"
+                  className="tatil bg-coral text-azul-escuro px-6 py-3 rounded-full font-bold text-sm"
                 >
                   Jogar de novo
                 </button>
@@ -414,7 +414,7 @@ export function JogoAndamento() {
                 onClick={virarTabuleiro}
                 className={`tatil px-6 py-3 rounded-full font-bold text-sm disabled:cursor-not-allowed ${
                   todosSlotsPreenchidos
-                    ? "bg-coral text-white animate__animated animate__pulse animate__infinite"
+                    ? "bg-coral text-azul-escuro animate__animated animate__pulse animate__infinite"
                     : "bg-azul/30 text-white"
                 }`}
               >
@@ -431,7 +431,7 @@ export function JogoAndamento() {
 
                 <button
                   onClick={jogarDeNovo}
-                  className="tatil bg-coral text-white px-6 py-3 rounded-full font-bold text-sm"
+                  className="tatil bg-coral text-azul-escuro px-6 py-3 rounded-full font-bold text-sm"
                 >
                   🗑️ Começar do zero
                 </button>
@@ -458,7 +458,7 @@ export function JogoAndamento() {
                 </span>
               ))}
             </div>
-            <p className="text-azul/70 font-semibold mb-4">
+            <p className="text-azul/80 font-semibold mb-4">
               Você acertou todas as {perguntas.length} peças
               {tentativas > 1 ? ` (na tentativa ${tentativas})` : " de primeira"}!
             </p>
@@ -469,7 +469,7 @@ export function JogoAndamento() {
                   +{progressoXp.xp_ganho} XP
                 </span>
                 {progressoXp.subiu_nivel && (
-                  <p className="mt-2 text-coral font-black animate__animated animate__tada">
+                  <p className="mt-2 text-coral-texto font-black animate__animated animate__tada">
                     🎉 Subiu para o nível {progressoXp.nivel_atual}!
                   </p>
                 )}
@@ -479,7 +479,7 @@ export function JogoAndamento() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={jogarDeNovo}
-                className="tatil bg-coral text-white py-3 rounded-2xl font-bold"
+                className="tatil bg-coral text-azul-escuro py-3 rounded-2xl font-bold"
               >
                 Jogar de novo
               </button>
@@ -489,7 +489,7 @@ export function JogoAndamento() {
               >
                 Ver o mosaico
               </button>
-              <Link to={rotaVoltar} className="text-azul/60 hover:text-azul text-sm font-bold">
+              <Link to={rotaVoltar} className="text-azul/80 hover:text-azul text-sm font-bold">
                 {isAluno ? "← Voltar pras atividades" : "← Voltar"}
               </Link>
             </div>

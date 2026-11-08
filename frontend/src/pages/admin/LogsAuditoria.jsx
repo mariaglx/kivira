@@ -20,9 +20,9 @@ const ESTILO_CATEGORIA = {
   falhas: { Icone: ShieldAlert, cor: "bg-red-100 text-red-500" },
   turmas: { Icone: Users, cor: "bg-blue-100 text-blue-600" },
   atividades: { Icone: BookOpen, cor: "bg-amber-100 text-amber-600" },
-  jogo: { Icone: Gamepad2, cor: "bg-coral/15 text-coral" },
+  jogo: { Icone: Gamepad2, cor: "bg-coral/15 text-coral-texto" },
   contas: { Icone: UserCog, cor: "bg-azul/10 text-azul" },
-  outros: { Icone: KeyRound, cor: "bg-cinza-claro text-azul/60" },
+  outros: { Icone: KeyRound, cor: "bg-cinza-claro text-azul/80" },
 };
 
 function quandoFoi(dataIso) {
@@ -57,14 +57,14 @@ function LinhaLog({ log }) {
           <p className="text-sm text-azul break-words">
             <span className="font-bold">{quem}</span> {oque}
           </p>
-          <span className="text-xs text-azul/50 whitespace-nowrap" title={completo}>
+          <span className="text-xs text-azul/80 whitespace-nowrap" title={completo}>
             {relativo ? `${relativo} · ` : ""}{completo}
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-azul/60">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-azul/80">
           {log.usuario ? (
-            <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/60"}`}>
+            <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/80"}`}>
               {LABEL_POR_PAPEL[log.papel_usuario] || log.papel_usuario}
             </span>
           ) : (
@@ -76,7 +76,7 @@ function LinhaLog({ log }) {
         </div>
 
         {(d.ip || aparelho) && (
-          <p className="text-xs text-azul/50">
+          <p className="text-xs text-azul/80">
             {[d.ip && `IP ${d.ip}`, aparelho].filter(Boolean).join(" · ")}
           </p>
         )}
@@ -86,7 +86,7 @@ function LinhaLog({ log }) {
             <button
               type="button"
               onClick={() => setAberto((v) => !v)}
-              className="text-xs font-bold text-coral flex items-center gap-1"
+              className="text-xs font-bold text-coral-texto flex items-center gap-1"
               aria-expanded={aberto}
             >
               Detalhes <ChevronDown size={14} className={`transition-transform ${aberto ? "rotate-180" : ""}`} />
@@ -95,11 +95,11 @@ function LinhaLog({ log }) {
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs bg-bege/40 rounded-xl p-3">
                 {extras.map(([chave, valor]) => (
                   <div key={chave} className="contents">
-                    <dt className="font-bold text-azul/50">{chave.replaceAll("_", " ")}</dt>
+                    <dt className="font-bold text-azul/80">{chave.replaceAll("_", " ")}</dt>
                     <dd className="text-azul break-all">{typeof valor === "object" ? JSON.stringify(valor) : String(valor)}</dd>
                   </div>
                 ))}
-                <dt className="font-bold text-azul/50">registro</dt>
+                <dt className="font-bold text-azul/80">registro</dt>
                 <dd className="text-azul">#{log.id} · {log.entidade}{log.entidade_id != null && ` #${log.entidade_id}`}</dd>
               </dl>
             )}
@@ -124,7 +124,7 @@ export function LogsAuditoria() {
         <div>
           <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Auditoria</h1>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">Quem fez o quê</h2>
-          <p className="text-azul/70 text-sm mt-1">
+          <p className="text-azul/80 text-sm mt-1">
             Cada entrada no sistema, tentativa que falhou e alteração — com quem, quando, IP e aparelho.
           </p>
         </div>
@@ -174,8 +174,8 @@ export function LogsAuditoria() {
               aria-pressed={filtros.categoria === c.chave}
               className={`px-4 min-h-11 rounded-full text-sm font-bold whitespace-nowrap transition ${
                 filtros.categoria === c.chave
-                  ? "bg-coral text-branco shadow-sm"
-                  : "bg-branco text-azul/70 hover:text-azul border border-cinza-claro"
+                  ? "bg-coral text-azul-escuro shadow-sm"
+                  : "bg-branco text-azul/80 hover:text-azul border border-cinza-claro"
               }`}
             >
               {c.rotulo}
@@ -208,7 +208,7 @@ export function LogsAuditoria() {
           </label>
         </div>
         {temFiltro && (
-          <button type="button" onClick={limparFiltros} className="text-xs font-bold text-coral w-fit">
+          <button type="button" onClick={limparFiltros} className="text-xs font-bold text-coral-texto w-fit">
             Limpar filtros
           </button>
         )}
@@ -224,7 +224,7 @@ export function LogsAuditoria() {
         <EstadoVazio>Nenhum registro encontrado com esses filtros.</EstadoVazio>
       ) : (
         <section className="flex flex-col gap-3">
-          <p className="text-xs text-azul/50">Mostrando {logs.length} de {total} registros</p>
+          <p className="text-xs text-azul/80">Mostrando {logs.length} de {total} registros</p>
           <ul className="cartao rounded-2xl divide-y divide-cinza-claro overflow-hidden">
             {logs.map((log) => (
               <LinhaLog key={log.id} log={log} />

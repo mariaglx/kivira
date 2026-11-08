@@ -32,7 +32,7 @@ export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar 
         <h2 className="text-xl font-black text-azul text-center mb-1">
           Escolha seu bichinho! ✨
         </h2>
-        <p className="text-sm text-azul/60 text-center mb-5">
+        <p className="text-sm text-azul/80 text-center mb-5">
           {nivelAluno === Infinity
             ? "Esse vai ser o seu ícone aqui no Kivira."
             : "Os bichinhos com cadeado você libera subindo de nível!"}
@@ -58,7 +58,7 @@ export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar 
           <button
             type="button"
             onClick={onFechar}
-            className="tatil flex-1 bg-bege text-azul/70 rounded-2xl py-3 font-bold [--sombra:transparent]"
+            className="tatil flex-1 bg-bege text-azul/80 rounded-2xl py-3 font-bold [--sombra:transparent]"
           >
             Cancelar
           </button>

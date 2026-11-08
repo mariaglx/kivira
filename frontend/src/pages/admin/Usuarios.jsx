@@ -111,7 +111,7 @@ export function Usuarios() {
       <header className="flex flex-wrap justify-between items-center gap-3">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Usuários</h2>
-          <p className="text-sm text-azul/50">
+          <p className="text-sm text-azul/80">
             Todos os usuários cadastrados no sistema: alunos, professores e admins.
           </p>
         </div>
@@ -119,7 +119,7 @@ export function Usuarios() {
 
       <div className="flex flex-wrap gap-4 items-end">
         <div className="relative w-full max-w-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/40 text-sm">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-azul/80 text-sm">
             <Search size={16} />
           </span>
           <input
@@ -127,7 +127,7 @@ export function Usuarios() {
             placeholder="Buscar por nome, login ou turma..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
           />
         </div>
 
@@ -157,12 +157,12 @@ export function Usuarios() {
       )}
 
       {carregando ? (
-        <p className="text-azul/60">Carregando usuários...</p>
+        <p className="text-azul/80">Carregando usuários...</p>
       ) : (
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-azul/40 font-bold border-b border-cinza-claro/20">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-azul/80 font-bold border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>
                 <th className="px-5 py-3">Nome</th>
                 <th className="px-5 py-3">Login</th>
@@ -175,16 +175,16 @@ export function Usuarios() {
             <tbody>
               {usuariosFiltrados.map((usuario) => (
                 <tr key={usuario.id} className="border-b border-cinza-claro/10 last:border-0">
-                  <td className="px-5 py-3 text-azul/60">{usuario.id}</td>
+                  <td className="px-5 py-3 text-azul/80">{usuario.id}</td>
                   <td className="px-5 py-3 font-medium text-azul">
                     {usuario.nome || "—"}
                     {usuario.turmas.length > 0 && (
-                      <span className="block text-xs font-normal text-azul/50">{usuario.turmas.join(", ")}</span>
+                      <span className="block text-xs font-normal text-azul/80">{usuario.turmas.join(", ")}</span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-azul/70">{usuario.identificador || "—"}</td>
+                  <td className="px-5 py-3 text-azul/80">{usuario.identificador || "—"}</td>
                   <td className="px-5 py-3">
-                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/60"}`}>
+                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/80"}`}>
                       {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
                     </span>
                     {!usuario.ativo && (
@@ -193,10 +193,10 @@ export function Usuarios() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-azul/60">
+                  <td className="px-5 py-3 text-azul/80">
                     {usuario.data_criacao ? new Date(usuario.data_criacao).toLocaleDateString("pt-BR") : "—"}
                   </td>
-                  <td className="px-5 py-3 text-azul/60">
+                  <td className="px-5 py-3 text-azul/80">
                     {usuario.primeiro_acesso ? "Sim" : "Não"}
                   </td>
                   <td className="px-5 py-3">
@@ -236,7 +236,7 @@ export function Usuarios() {
                         <button
                           type="button"
                           onClick={() => abrirConfirmacaoPromover(usuario)}
-                          className="text-xs font-bold text-coral hover:underline whitespace-nowrap"
+                          className="text-xs font-bold text-coral-texto hover:underline whitespace-nowrap"
                         >
                           Tornar admin
                         </button>
@@ -248,7 +248,7 @@ export function Usuarios() {
 
               {usuariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-azul/50">
+                  <td colSpan={7} className="px-5 py-8 text-center text-azul/80">
                     Nenhum usuário encontrado.
                   </td>
                 </tr>
@@ -262,12 +262,12 @@ export function Usuarios() {
         <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
             <p className="font-extrabold text-azul text-lg mb-2">Tornar admin?</p>
-            <p className="text-sm text-azul/60 mb-1">
+            <p className="text-sm text-azul/80 mb-1">
               <span className="font-semibold text-azul">{usuarioParaPromover.nome || usuarioParaPromover.identificador}</span> passará
               a ter acesso irrestrito ao sistema: gestão de todos os usuários, turmas e logs de
               auditoria.
             </p>
-            <p className="text-sm text-azul/60 mb-4">Essa ação fica registrada no log de auditoria.</p>
+            <p className="text-sm text-azul/80 mb-4">Essa ação fica registrada no log de auditoria.</p>
 
             <label htmlFor="codigo-2fa-promover" className="block text-sm font-bold text-azul mb-1.5">
               Código do seu app autenticador
@@ -294,7 +294,7 @@ export function Usuarios() {
                 type="button"
                 onClick={fecharConfirmacaoPromover}
                 disabled={promovendo}
-                className="px-4 py-2 rounded-xl text-sm font-bold text-azul/60 hover:bg-bege/60 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-xl text-sm font-bold text-azul/80 hover:bg-bege/60 transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -302,7 +302,7 @@ export function Usuarios() {
                 type="button"
                 onClick={confirmarPromover}
                 disabled={promovendo || codigo2fa.length !== 6}
-                className="btn bg-coral hover:bg-coral/90 text-branco border-none rounded-xl px-4 py-2 h-auto min-h-0 text-sm font-bold normal-case shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                className="btn bg-coral hover:bg-coral/90 text-azul-escuro border-none rounded-xl px-4 py-2 h-auto min-h-0 text-sm font-bold normal-case shadow-sm transition-all active:scale-95 disabled:opacity-50"
               >
                 {promovendo ? "Promovendo..." : "Confirmar"}
               </button>

@@ -5,13 +5,14 @@
 @theme {
   --color-cinza-claro: #ececec;
   --color-azul: #214a5a;
-  --color-coral: #eb7561;
+  --color-coral: #eb7561; /* fundo/destaque; texto SOBRE ele é azul-escuro (4.78:1), branco reprova (2.9:1) */
+  --color-coral-texto: #a25143; /* coral pra TEXTO em branco/bege — o #eb7561 reprova como texto */
   --color-laranja: #eeb37f;
   --color-laranja-claro: #f0c6a1;
   --color-bege: #f5e6d3;
   --color-branco: #ffffff;
   --color-vermelho: #c0392b; /* ações destrutivas — excluir conta, turma, atividade */
-  --color-verde: #3fae7a; /* acerto no jogo */
+  --color-verde: #30855d; /* acerto no jogo — escurecido de #3fae7a pra passar 4.5:1 com texto branco */
   --color-coral-escuro: #c45a48; /* sombra "tátil" dos botões coral */
   --color-laranja-escuro: #c98f5a; /* sombra "tátil" das peças */
   --color-azul-escuro: #15303b; /* sombra "tátil" dos botões azuis */
@@ -23,7 +24,7 @@
   --color-mat-bg: #e3f2f6; --color-mat-fg: #1f7a94; --color-mat-fg-escuro: #175f74;
   --color-cie-bg: #e6f6e9; --color-cie-fg: #2c9d5a; --color-cie-fg-escuro: #21793f;
   --color-por-bg: #fdeceb; --color-por-fg: #eb7561; --color-por-fg-escuro: #d15d49;
-  --color-ouro-bg: #fdf1de; --color-ouro-fg: #c98a1c; --color-ouro-fg-escuro: #a6710f;
+  --color-ouro-bg: #fdf1de; --color-ouro-fg: #936515; --color-ouro-fg-escuro: #74500f;
 
   /* Faixa de cabeçalho de seção no tabuleiro do jogo (Perguntas/Tabuleiro/Peças).
      Cor chapada de propósito: o bege dessas faixas se confundia com o fundo da
@@ -42,7 +43,7 @@
 
   /* Ações Principais (Botões Primários, Destaques) */
   --color-primary: #eb7561; /* Coral: Cor vibrante e principal de ação */
-  --color-primary-content: #ffffff; /* Texto branco sobre o Coral */
+  --color-primary-content: #15303b; /* Azul-escuro sobre o Coral (branco dava 2.9:1) */
 
   /* Ações Secundárias / Elementos Complementares */
   --color-secondary: #214a5a; /* Azul: Excelente contraste para botões secundários */
@@ -132,7 +133,7 @@
 
   /* Rótulo de campo/seção em caixa alta */
   .rotulo {
-    @apply text-xs font-bold uppercase tracking-wider text-azul/50;
+    @apply text-xs font-bold uppercase tracking-wider text-azul/80;
   }
 
   /* Faixa de cabeçalho de seção do tabuleiro (Perguntas/Tabuleiro/Peças) */

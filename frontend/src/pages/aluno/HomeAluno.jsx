@@ -32,9 +32,9 @@ export function HomeAluno() {
           <h1 className="text-xl sm:text-2xl font-black truncate">
             Oi, {aluno?.apelido || aluno?.nome_completo}! 👋
           </h1>
-          <p className="text-sm font-bold text-coral mb-2">Nível {progresso.nivel}</p>
+          <p className="text-sm font-bold text-coral-texto mb-2">Nível {progresso.nivel}</p>
           <BarraProgresso valor={progresso.xpNoNivel} max={progresso.xpDoNivel} />
-          <p className="text-xs text-azul/60 font-semibold mt-1">
+          <p className="text-xs text-azul/80 font-semibold mt-1">
             {progresso.xpNoNivel}/{progresso.xpDoNivel} XP pro próximo nível
           </p>
         </div>
@@ -47,8 +47,8 @@ export function HomeAluno() {
 
       {atividades.length === 0 ? (
         <div className="cartao p-6 sm:p-10 text-center flex flex-col items-center gap-3 max-w-2xl mx-auto">
-          <ClipboardList size={32} className="text-azul/40" />
-          <p className="text-azul/70 font-semibold text-lg">
+          <ClipboardList size={32} className="text-azul/80" />
+          <p className="text-azul/80 font-semibold text-lg">
             Nenhuma atividade disponível ainda. Peça pro seu professor
             publicar uma!
           </p>

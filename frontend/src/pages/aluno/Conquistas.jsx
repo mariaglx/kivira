@@ -27,16 +27,16 @@ export function Conquistas() {
 
       <div className="cartao p-6 sm:p-10 text-center">
         <span className="text-5xl block mb-3 animate__animated animate__bounceIn">🏅</span>
-        <p className="text-azul/70 font-semibold text-lg">
+        <p className="text-azul/80 font-semibold text-lg">
           Suas primeiras conquistas aparecem aqui em breve!
         </p>
-        <p className="text-azul/55 mt-2 mb-5">
+        <p className="text-azul/80 mt-2 mb-5">
           Continue jogando e ganhando XP, os selinhos e medalhas estão a
           caminho. ✨
         </p>
         <Link
           to="/aluno/historico"
-          className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
+          className="tatil inline-flex items-center gap-2 bg-coral text-azul-escuro rounded-2xl px-6 py-3 font-bold"
         >
           Ver suas partidas jogadas
         </Link>

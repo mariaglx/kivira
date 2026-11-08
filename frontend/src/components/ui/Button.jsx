@@ -2,13 +2,13 @@
 // `tamanho` a escala. Todos os botões de ação são "táteis" (ver .tatil no
 // index.css); só `fantasma` é chapado, pra ações discretas (fechar, cancelar).
 const VARIANTES = {
-  primario: "tatil bg-coral text-white [--sombra:var(--color-coral-escuro)]",
+  primario: "tatil bg-coral text-azul-escuro [--sombra:var(--color-coral-escuro)]",
   secundario: "tatil bg-azul text-white [--sombra:var(--color-azul-escuro)]",
   contorno:
     "tatil bg-branco text-azul border border-azul/20 [--sombra:var(--color-cinza-claro)]",
   perigo:
     "tatil bg-vermelho text-white [--sombra:color-mix(in_srgb,var(--color-vermelho),black_30%)]",
-  fantasma: "bg-transparent text-azul/70 hover:bg-azul/5 active:scale-95 transition",
+  fantasma: "bg-transparent text-azul/80 hover:bg-azul/5 active:scale-95 transition",
 };
 
 const TAMANHOS = {

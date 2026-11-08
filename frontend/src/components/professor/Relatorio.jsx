@@ -4,7 +4,7 @@ const STATUS = {
   concluido: { texto: "Concluiu", estilo: "bg-green-100 text-green-600" },
   em_andamento: { texto: "Jogando", estilo: "bg-amber-100 text-amber-600" },
   abandonado: { texto: "Não terminou", estilo: "bg-red-100 text-red-500" },
-  nao_iniciado: { texto: "Não começou", estilo: "bg-cinza-claro text-azul/60" },
+  nao_iniciado: { texto: "Não começou", estilo: "bg-cinza-claro text-azul/80" },
 };
 
 export function SeloStatus({ status }) {

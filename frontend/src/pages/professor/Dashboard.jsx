@@ -59,7 +59,7 @@ export function Dashboard() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
               Bom dia, {dados.professor.nome}!
             </h2>
-            <p className="text-azul/70 text-sm mt-1">
+            <p className="text-azul/80 text-sm mt-1">
               Veja o resumo das suas turmas e atividades
             </p>
           </div>
@@ -75,7 +75,7 @@ export function Dashboard() {
             <p className="text-4xl font-extrabold text-azul">
               {carregando ? "..." : <Contador valor={dados.metricas.total_turmas} />}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-sm text-azul/80 font-medium mt-1">
               Turmas ativas
             </p>
           </Item>
@@ -85,7 +85,7 @@ export function Dashboard() {
             <p className="text-4xl font-extrabold text-azul">
               {carregando ? "..." : <Contador valor={dados.metricas.total_atividades} />}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-sm text-azul/80 font-medium mt-1">
               Atividades criadas
             </p>
           </Item>
@@ -95,7 +95,7 @@ export function Dashboard() {
             <p className="text-4xl font-extrabold text-azul">
               {carregando ? "..." : <Contador valor={dados.metricas.total_alunos} />}
             </p>
-            <p className="text-sm text-azul/70 font-medium mt-1">
+            <p className="text-sm text-azul/80 font-medium mt-1">
               Alunos participantes
             </p>
           </Item>
@@ -128,7 +128,7 @@ export function Dashboard() {
             </h3>
             <Link
               to="/professor/turmas"
-              className="text-sm font-semibold text-coral hover:underline"
+              className="text-sm font-semibold text-coral-texto hover:underline"
             >
               Ver todas &rarr;
             </Link>
@@ -149,7 +149,7 @@ export function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-cinza-claro text-xs text-azul/60 font-bold uppercase tracking-wider">
+                  <tr className="border-b border-cinza-claro text-xs text-azul/80 font-bold uppercase tracking-wider">
                     <th className="pb-3">Turma</th>
                     <th className="pb-3">Ano</th>
                     <th className="pb-3">Alunos</th>
@@ -171,7 +171,7 @@ export function Dashboard() {
                       <td className="py-4 font-semibold text-azul">
                         {turma.nome}
                       </td>
-                      <td className="py-4 text-azul/70">{turma.ano_escolar}</td>
+                      <td className="py-4 text-azul/80">{turma.ano_escolar}</td>
                       <td className="py-4 font-medium text-azul">
                         {turma.alunos_count}
                       </td>
@@ -183,7 +183,7 @@ export function Dashboard() {
                           className={`px-3 py-1 text-xs rounded-full font-bold ${
                             turma.status === "Ativa"
                               ? "bg-laranja-claro/40 text-azul border border-laranja"
-                              : "bg-cinza-claro text-azul/60"
+                              : "bg-cinza-claro text-azul/80"
                           }`}
                         >
                           {turma.status}

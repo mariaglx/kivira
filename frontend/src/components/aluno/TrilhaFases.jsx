@@ -54,7 +54,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
         />
       </div>
       <h3 className="font-extrabold text-azul leading-tight mb-1">{atividade.titulo}</h3>
-      <p className="text-xs text-azul/50 font-medium mb-2">
+      <p className="text-xs text-azul/80 font-medium mb-2">
         {iconeDisciplina(atividade.disciplina)} {atividade.disciplina}
       </p>
       <p className="text-amber-500 text-sm mb-3">
@@ -64,7 +64,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
       <button
         type="button"
         onClick={onJogar}
-        className="tatil w-full bg-coral text-branco rounded-2xl py-2.5 font-bold inline-flex items-center justify-center gap-2"
+        className="tatil w-full bg-coral text-azul-escuro rounded-2xl py-2.5 font-bold inline-flex items-center justify-center gap-2"
       >
         Jogar!
         <Blocks size={16} />
@@ -134,7 +134,7 @@ export function TrilhaFases({ atividades, onJogar }) {
               } ${estado === "atual" ? "animate__animated animate__pulse animate__infinite" : ""}`}
             >
               {estado === "concluida" && <Check size={30} className="text-branco" />}
-              {estado === "atual" && <Blocks size={34} className="text-branco" />}
+              {estado === "atual" && <Blocks size={34} className="text-azul-escuro" />}
               {estado === "bloqueada" && <Lock size={26} className="text-gray-400" />}
 
               <span className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-branco text-azul text-[11px] font-black flex items-center justify-center shadow border border-cinza-claro/30">

@@ -43,7 +43,7 @@ export function Feedback() {
         <Entrada className="cartao text-center py-12 px-8 max-w-md">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-black text-azul">Valeu!</h2>
-          <p className="text-azul/70 font-semibold mt-2">
+          <p className="text-azul/80 font-semibold mt-2">
             A sua resposta vai ajudar o Kivira a ficar melhor.
           </p>
         </Entrada>
@@ -66,7 +66,7 @@ export function Feedback() {
           segmentos
           className="flex-1"
         />
-        <span className="text-xs font-bold text-azul/50 shrink-0 tabular-nums">
+        <span className="text-xs font-bold text-azul/80 shrink-0 tabular-nums">
           {respondidas} de {PERGUNTAS.length}
         </span>
       </div>
@@ -119,7 +119,7 @@ export function Feedback() {
                     </span>
                     <span
                       className={`text-[11px] sm:text-sm font-bold text-center leading-tight ${
-                        marcado ? "text-coral" : "text-azul/50"
+                        marcado ? "text-coral-texto" : "text-azul/80"
                       }`}
                     >
                       {rotulo}
@@ -140,13 +140,13 @@ export function Feedback() {
         type="button"
         onClick={enviar}
         disabled={!completo || enviando}
-        className="tatil w-full bg-coral text-branco [--sombra:var(--color-coral-escuro)] rounded-2xl py-4 text-lg font-black disabled:opacity-50 disabled:cursor-not-allowed"
+        className="tatil w-full bg-coral text-azul-escuro [--sombra:var(--color-coral-escuro)] rounded-2xl py-4 text-lg font-black disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {enviando ? "Enviando..." : "Pronto!"}
       </button>
 
       {!completo && (
-        <p className="text-center text-sm font-semibold text-azul/50 -mt-4">
+        <p className="text-center text-sm font-semibold text-azul/80 -mt-4">
           Responde as três pra enviar.
         </p>
       )}
