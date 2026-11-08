@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "../ui/Button";
+import { Modal } from "../ui/Animacao";
 import { AvatarGrid } from "./AvatarGrid";
 import { useAvatares } from "../../controllers/useAvatares";
 
 // Modal de troca de bichinho usado em Configurações — mesma grade de
-// EscolherAvatar.jsx (tela cheia do primeiro acesso), só que num overlay,
-// seguindo o mesmo padrão de modal já usado no app (fixed inset-0 + backdrop).
+// EscolherAvatar.jsx (tela cheia do primeiro acesso), só que no <Modal>
+// padrão do app.
 export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar }) {
   const { categorias, categoriaAtiva, setCategoriaAtiva, avataresDaCategoria, erro: erroAvatares } = useAvatares();
   const [selecionado, setSelecionado] = useState(avatarAtual || null);
@@ -27,8 +28,7 @@ export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar 
   };
 
   return (
-    <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-branco rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-xl animate__animated animate__zoomIn">
+    <Modal aberto onFechar={salvando ? undefined : onFechar} className="sm:p-8 max-w-2xl">
         <h2 className="text-xl font-black text-azul text-center mb-1">
           Escolha seu bichinho! ✨
         </h2>
@@ -71,7 +71,6 @@ export function AvatarPickerModal({ avatarAtual, nivelAluno, onFechar, onSalvar 
             {salvando ? "Salvando..." : "Confirmar"}
           </Button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

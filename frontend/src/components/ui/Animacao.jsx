@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { animate, motion, useReducedMotion } from "motion/react";
 
 // Helpers de animação compartilhados (professor, admin).
 // O <MotionConfig reducedMotion="user"> no layout já corta os movimentos de quem prefere menos
@@ -63,38 +63,51 @@ export function Contador({ valor }) {
   return <>{reduzir ? valor : n}</>;
 }
 
-// Modal com fundo e caixa animados. `aberto` controla a saída (AnimatePresence).
+// Modal padrão do app: <dialog> nativo com as classes `modal` do daisyUI, nas
+// cores do Kivira. O navegador já prende o Tab dentro dele, fecha no Esc e
+// devolve o foco pro botão que abriu. Serve montado sempre (`aberto` controla)
+// ou montado só quando aberto (`{x && <Modal aberto ...>}`). Sem `onFechar`,
+// Esc e clique fora não fecham (ex: enquanto uma exclusão está em andamento).
 export function Modal({ aberto, onFechar, children, className = "max-w-sm" }) {
+  const ref = useRef(null);
+  // Mantém o último conteúdo durante a animação de saída, senão a caixa
+  // esvazia antes de sumir quando o pai faz `{item && ...}`
+  const [ultimoConteudo, setUltimoConteudo] = useState(children);
+  if (aberto && ultimoConteudo !== children) setUltimoConteudo(children);
+
+  // Abre/fecha DEPOIS do commit: se fechar durante o commit, o React devolve o
+  // foco pro botão de dentro do modal logo depois do navegador ter devolvido
+  // pro botão que abriu
   useEffect(() => {
-    if (!aberto) return;
-    const aoTeclar = (e) => e.key === "Escape" && onFechar();
-    document.addEventListener("keydown", aoTeclar);
-    return () => document.removeEventListener("keydown", aoTeclar);
-  }, [aberto, onFechar]);
+    const dialogo = ref.current;
+    if (aberto && !dialogo.open) dialogo.showModal();
+    if (!aberto && dialogo.open) dialogo.close();
+  }, [aberto]);
+
+  // Desmontou aberto (`{x && <Modal aberto>}`): fecha antes do <dialog> sair
+  // da página, senão o navegador não devolve o foco
+  useLayoutEffect(() => {
+    const dialogo = ref.current;
+    return () => dialogo.open && dialogo.close();
+  }, []);
 
   return (
-    <AnimatePresence>
-      {aberto && (
-        <motion.div
-          className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onMouseDown={(e) => e.target === e.currentTarget && onFechar()}
-        >
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            className={`bg-branco rounded-3xl shadow-xl w-full p-6 ${className}`}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          >
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <dialog
+      ref={ref}
+      className="modal bg-azul/40 backdrop-blur-sm"
+      onCancel={(e) => {
+        e.preventDefault();
+        onFechar?.();
+      }}
+    >
+      {/* outline-none: quando o conteúdo rola, o Chrome foca a própria caixa ao
+          abrir e desenhava um contorno preto nela. Os campos de dentro mantêm o anel */}
+      <div className={`modal-box bg-branco text-azul rounded-3xl shadow-xl p-6 outline-none ${className}`}>
+        {aberto ? children : ultimoConteudo}
+      </div>
+      <div className="modal-backdrop">
+        <button type="button" tabIndex={-1} aria-label="Fechar" onClick={() => onFechar?.()} />
+      </div>
+    </dialog>
   );
 }

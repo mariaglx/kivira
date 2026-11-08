@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/papeis";
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 import { useVerComo } from "../../controllers/useVerComo";
+import { Modal } from "../../components/ui/Animacao";
 
 export function Usuarios() {
   const [busca, setBusca] = useState("");
@@ -259,8 +260,7 @@ export function Usuarios() {
       )}
 
       {usuarioParaPromover && (
-        <div className="fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6">
+        <Modal aberto onFechar={promovendo ? undefined : fecharConfirmacaoPromover} className="max-w-sm">
             <p className="font-extrabold text-azul text-lg mb-2">Tornar admin?</p>
             <p className="text-sm text-azul/80 mb-1">
               <span className="font-semibold text-azul">{usuarioParaPromover.nome || usuarioParaPromover.identificador}</span> passará
@@ -307,8 +307,7 @@ export function Usuarios() {
                 {promovendo ? "Promovendo..." : "Confirmar"}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </main>
   );

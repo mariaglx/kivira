@@ -6,6 +6,7 @@ import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
 import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Animacao";
 import { Carregando } from "../../components/ui/Carregando";
 import { comemorar } from "../../utils/comemorar";
 import { Search, Trash2, X } from "lucide-react";
@@ -978,8 +979,7 @@ export function CriarAtividade() {
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setMostrarSucesso(false)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
             <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
               ✅
             </div>
@@ -1029,14 +1029,12 @@ export function CriarAtividade() {
             <Button onClick={() => setMostrarSucesso(false)} className="px-6 py-2.5 text-sm mt-2">
               Continuar editando
             </Button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setMensagemErro(null)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
@@ -1047,14 +1045,12 @@ export function CriarAtividade() {
             <Button variante="contorno" onClick={() => setMensagemErro(null)} className="px-6 py-2.5 text-sm mt-2">
               Entendi
             </Button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
       {modalImagemAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6 animate__animated animate__zoomIn animate__faster">
+        <Modal aberto onFechar={fecharBuscaImagem} className="max-w-lg">
             <div className="flex items-start justify-between mb-4">
               <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
                 <button
@@ -1260,16 +1256,14 @@ export function CriarAtividade() {
                 </label>
               </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Exclusão da atividade. O texto diz o que o banco realmente faz com
           cada dependência, em vez de um aviso genérico de "essa ação é
           permanente" (mesmo padrão do modal de excluir turma) */}
       {modalExclusaoAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={excluindo ? undefined : fecharExclusao} className="max-w-sm flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
@@ -1299,8 +1293,7 @@ export function CriarAtividade() {
                 {excluindo ? "Excluindo..." : "Excluir"}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

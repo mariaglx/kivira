@@ -130,6 +130,7 @@ def resumo_dashboard_professor(
         },
         "metricas": {
             "total_turmas": len(turmas),
+            "total_turmas_ativas": sum(1 for turma in turmas if turma.ativo),
             "total_atividades": total_atividades,
             "total_alunos": total_alunos,
         },
