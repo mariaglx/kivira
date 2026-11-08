@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
 import { StarIcon } from "../../components/icons/star";
-import { Trash2, UserCheck, UserX } from "lucide-react";
+import { Power, Trash2, UserCheck, UserX } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Animacao";
 import { Input } from "../../components/ui/Input";
@@ -146,6 +146,8 @@ export function TurmaForm() {
     adicionarNaFilaImpressao,
     limparFilaImpressao,
     houveAlteracao,
+    alternarAtivoTurma,
+    alternandoAtivo,
     desfazerAlteracoes,
     rankingAlunos,
     totalAtividadesPublicadas,
@@ -218,6 +220,19 @@ export function TurmaForm() {
           </h2>
 
           <div className="flex items-center gap-2 shrink-0">
+            {modoEdicao && (
+              <Button
+                variante="fantasma"
+                tamanho="sm"
+                onClick={alternarAtivoTurma}
+                disabled={alternandoAtivo}
+                className={`gap-2 ${formData.ativo ? "text-vermelho hover:bg-vermelho/10" : ""}`}
+              >
+                <Power size={16} />
+                {formData.ativo ? "Desativar turma" : "Reativar turma"}
+              </Button>
+            )}
+
             {/* Só aparecem quando há alteração pendente nos campos da turma.
                 Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
             {houveAlteracao && (
@@ -352,19 +367,6 @@ export function TurmaForm() {
                   </p>
                 </div>
               </>
-            )}
-
-            {modoEdicao && (
-              <label className="flex items-center gap-2 text-sm font-semibold text-azul cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="ativo"
-                  checked={formData.ativo}
-                  onChange={handleChange}
-                  className="checkbox checkbox-sm"
-                />
-                Turma ativa
-              </label>
             )}
 
           </form>

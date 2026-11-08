@@ -10,7 +10,7 @@ export function Dashboard() {
   const [carregando, setCarregando] = useState(true);
   const [dados, setDados] = useState({
     professor: { nome: "Professor(a)" },
-    metricas: { total_turmas: 0, total_atividades: 0, total_alunos: 0 },
+    metricas: { total_turmas_ativas: 0, total_atividades: 0, total_alunos: 0 },
     turmas_recentes: [],
   });
 
@@ -73,7 +73,7 @@ export function Dashboard() {
           <Item elevar className="cartao rounded-2xl p-6">
             <div className="w-10 h-1.5 bg-coral rounded-full mb-3"></div>
             <p className="text-4xl font-extrabold text-azul">
-              {carregando ? "..." : <Contador valor={dados.metricas.total_turmas} />}
+              {carregando ? "..." : <Contador valor={dados.metricas.total_turmas_ativas} />}
             </p>
             <p className="text-sm text-azul/80 font-medium mt-1">
               Turmas ativas
@@ -161,15 +161,16 @@ export function Dashboard() {
                   {dados.turmas_recentes.map((turma) => (
                     <tr
                       key={turma.id}
-                      // Atalho: duplo clique abre a turma. `select-none` evita
-                      // que o segundo clique selecione o texto da célula, que
-                      // é o comportamento padrão do navegador e fica feio.
-                      onDoubleClick={() => navigate(`/professor/turmas/${turma.id}/editar`)}
-                      title="Clique duas vezes para abrir a turma"
-                      className="hover:bg-bege/20 transition cursor-pointer select-none"
+                      // Atalho: clicar em qualquer ponto da linha abre a turma.
+                      // O nome é um Link de verdade pra quem navega por teclado.
+                      onClick={() => navigate(`/professor/turmas/${turma.id}`)}
+                      title="Abrir a turma"
+                      className="hover:bg-bege/20 transition cursor-pointer"
                     >
                       <td className="py-4 font-semibold text-azul">
-                        {turma.nome}
+                        <Link to={`/professor/turmas/${turma.id}`} className="hover:underline">
+                          {turma.nome}
+                        </Link>
                       </td>
                       <td className="py-4 text-azul/80">{turma.ano_escolar}</td>
                       <td className="py-4 font-medium text-azul">

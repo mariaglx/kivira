@@ -411,6 +411,25 @@ export function useTurmaForm() {
     }
   };
 
+  // Turma nunca é excluída, só desativada/reativada. Vai pro banco na hora (como
+  // os alunos), sem passar pelo Salvar do formulário.
+  const [alternandoAtivo, setAlternandoAtivo] = useState(false);
+
+  const alternarAtivoTurma = async () => {
+    setAlternandoAtivo(true);
+    setErro(null);
+    try {
+      const ativo = !formData.ativo;
+      await apiRequest(`/turma/${id}`, { method: "PATCH", data: { ativo } });
+      setFormData((atual) => ({ ...atual, ativo }));
+      setDadosOriginais((atual) => (atual ? { ...atual, ativo } : atual));
+    } catch (err) {
+      setErro(err.message || "Não foi possível alterar a turma");
+    } finally {
+      setAlternandoAtivo(false);
+    }
+  };
+
   // Fila de impressão de credenciais — só existe no navegador (sessionStorage),
   // nunca no banco. É a única forma de "guardar" a senha em texto puro, já que
   // depois de gerada ela só existe como hash. Sobrevive a um F5 na mesma aba,
@@ -496,5 +515,7 @@ export function useTurmaForm() {
     limparFilaImpressao,
     houveAlteracao,
     desfazerAlteracoes,
+    alternarAtivoTurma,
+    alternandoAtivo,
   };
 }
