@@ -540,7 +540,9 @@ def editar_atividade(id_atividade: int, atividade_schema: AtividadeUpdateSchema,
         atividade.quantidade_blocos = atividade_schema.quantidade_blocos
     if atividade_schema.tempo_limite_seg is not None:
         atividade.tempo_limite_seg = atividade_schema.tempo_limite_seg
-    if atividade_schema.turma_id is not None:
+    # Turma é opcional: `null` explícito tira a atividade da turma ("Nenhuma"
+    # no select); campo ausente não mexe
+    if "turma_id" in atividade_schema.model_fields_set:
         atividade.turma_id = atividade_schema.turma_id
     if atividade_schema.publicado is not None:
         atividade.publicado = atividade_schema.publicado
