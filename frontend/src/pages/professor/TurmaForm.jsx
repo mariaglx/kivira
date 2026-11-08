@@ -4,6 +4,7 @@ import { useTurmaForm } from "../../controllers/useTurmaForm";
 import { StarIcon } from "../../components/icons/star";
 import { Trash2, UserCheck, UserX } from "lucide-react";
 import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Animacao";
 import { Input } from "../../components/ui/Input";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
@@ -23,8 +24,7 @@ function CredenciaisModal({
   onToggleImpressao,
 }) {
   return (
-    <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 animate__animated animate__zoomIn animate__faster">
+    <Modal aberto onFechar={onFechar} className="max-w-sm">
         <div className="flex items-start justify-between mb-4">
           <p className="font-extrabold text-azul">{titulo}</p>
           <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={onFechar}>
@@ -85,8 +85,7 @@ function CredenciaisModal({
         <Button onClick={onFechar} className="px-6 py-2.5 text-sm mt-3 w-full">
           Concluir
         </Button>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -148,11 +147,6 @@ export function TurmaForm() {
     limparFilaImpressao,
     houveAlteracao,
     desfazerAlteracoes,
-    modalExclusaoAberto,
-    abrirExclusao,
-    fecharExclusao,
-    excluirTurma,
-    excluindo,
     rankingAlunos,
     totalAtividadesPublicadas,
   } = useTurmaForm();
@@ -216,7 +210,7 @@ export function TurmaForm() {
         </header>
 
         {/* Todas as ações sobre a turma inteira moram no cabeçalho, longe dos
-            campos: o excluir não encosta em nenhum campo específico, e o
+            campos: o
             salvar/cancelar ficam sempre no mesmo canto, fácil de achar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight min-w-0 break-words">
@@ -224,18 +218,6 @@ export function TurmaForm() {
           </h2>
 
           <div className="flex items-center gap-2 shrink-0">
-            {modoEdicao && (
-              <Button
-                variante="fantasma"
-                tamanho="sm"
-                onClick={abrirExclusao}
-                className="gap-2 text-vermelho hover:bg-vermelho/10"
-              >
-                <Trash2 size={16} />
-                Excluir turma
-              </Button>
-            )}
-
             {/* Só aparecem quando há alteração pendente nos campos da turma.
                 Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
             {houveAlteracao && (
@@ -468,11 +450,13 @@ export function TurmaForm() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => resetarSenhaAluno(aluno.aluno_id)}
-                            disabled={resetandoSenhaAlunoId === aluno.aluno_id}
+                            // aria-disabled em vez de disabled: botão desabilitado perde o
+                            // foco, e aí o modal da senha não tem pra onde devolver ao fechar
+                            onClick={() => resetandoSenhaAlunoId !== aluno.aluno_id && resetarSenhaAluno(aluno.aluno_id)}
+                            aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="opacity-0 group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
+                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -587,8 +571,7 @@ export function TurmaForm() {
       </div>
 
       {modalAlunoAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-start justify-center z-50 px-4 py-12 overflow-y-auto">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-xl w-full p-6 animate__animated animate__zoomIn animate__faster">
+        <Modal aberto onFechar={fecharModalAluno} className="max-w-xl">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Adicionar aluno</p>
               <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={fecharModalAluno}>
@@ -869,8 +852,7 @@ export function TurmaForm() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {senhaResetada && (
@@ -896,8 +878,7 @@ export function TurmaForm() {
           num card fixo porque é consulta eventual: no dia a dia o professor está
           aqui pra gerenciar alunos/atividades, não pra acompanhar pontuação */}
       {rankingAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-md w-full p-6 animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setRankingAberto(false)} className="max-w-md">
             <div className="flex items-start justify-between mb-1">
               <div className="flex items-center gap-2">
                 <StarIcon size={18} isAnimated={false} className="text-ouro-fg-escuro" />
@@ -976,56 +957,13 @@ export function TurmaForm() {
                 </ul>
               </>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Exclusão da turma. O texto diz o que o banco realmente faz com cada
-          dependência, em vez de um aviso genérico de "essa ação é permanente" */}
-      {modalExclusaoAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
-              <Trash2 size={28} />
-            </div>
-
-            <h3 className="text-xl font-extrabold text-azul mt-3">
-              Excluir a turma?
-            </h3>
-            <p className="text-sm text-azul/80 mt-2">
-              <strong className="text-azul">{formData.nome}</strong> será
-              removida e não tem como desfazer.
-            </p>
-
-            <div className="text-xs text-azul/80 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
-              <span>
-                Os <strong className="text-azul">{alunos.length} aluno(s)</strong> saem
-                da turma, mas as contas deles continuam existindo.
-              </span>
-              <span>
-                As <strong className="text-azul">{atividades.length} atividade(s)</strong> não
-                são apagadas, ficam sem turma, pra você reaproveitar.
-              </span>
-              <span>O histórico de partidas dos alunos é preservado.</span>
-            </div>
-
-            <div className="flex gap-3 w-full mt-5">
-              <Button variante="contorno" onClick={fecharExclusao} disabled={excluindo} className="flex-1">
-                Cancelar
-              </Button>
-              <Button variante="perigo" onClick={excluirTurma} disabled={excluindo} className="flex-1">
-                {excluindo ? "Excluindo..." : "Excluir"}
-              </Button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Confirmação de remoção — substitui o window.confirm() nativo, que não
           tinha espaço pra explicar que a conta do aluno não é apagada */}
       {alunoParaRemover && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={cancelarRemocaoAluno} className="max-w-sm flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
               <Trash2 size={28} />
             </div>
@@ -1059,14 +997,12 @@ export function TurmaForm() {
                   : "Remover"}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={fecharErroAcaoAluno} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
@@ -1077,8 +1013,7 @@ export function TurmaForm() {
             <Button variante="contorno" onClick={fecharErroAcaoAluno} className="px-6 py-2.5 text-sm mt-2">
               Entendi
             </Button>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

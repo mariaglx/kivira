@@ -411,30 +411,6 @@ export function useTurmaForm() {
     }
   };
 
-  // Exclusão da turma. O banco cuida das dependências sozinho e de formas
-  // diferentes: `aluno_turma` é CASCADE (as matrículas somem, os alunos não),
-  // `atividade` e `sessao_jogo` são SET NULL (sobrevivem, só perdem o vínculo).
-  // Por isso a confirmação na tela pode dizer exatamente o que se perde.
-  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
-  const [excluindo, setExcluindo] = useState(false);
-
-  const abrirExclusao = () => setModalExclusaoAberto(true);
-  const fecharExclusao = () => setModalExclusaoAberto(false);
-
-  const excluirTurma = async () => {
-    setExcluindo(true);
-    setErro(null);
-    try {
-      await apiRequest(`/turma/${id}`, { method: "DELETE" });
-      navigate("/professor/turmas");
-    } catch (err) {
-      setModalExclusaoAberto(false);
-      setErro(err.message || "Não foi possível excluir a turma");
-    } finally {
-      setExcluindo(false);
-    }
-  };
-
   // Fila de impressão de credenciais — só existe no navegador (sessionStorage),
   // nunca no banco. É a única forma de "guardar" a senha em texto puro, já que
   // depois de gerada ela só existe como hash. Sobrevive a um F5 na mesma aba,
@@ -520,10 +496,5 @@ export function useTurmaForm() {
     limparFilaImpressao,
     houveAlteracao,
     desfazerAlteracoes,
-    modalExclusaoAberto,
-    abrirExclusao,
-    fecharExclusao,
-    excluirTurma,
-    excluindo,
   };
 }

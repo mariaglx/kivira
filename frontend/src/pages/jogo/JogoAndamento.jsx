@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useJogo } from "../../controllers/useJogo";
+import { Modal } from "../../components/ui/Animacao";
 import confetti from "canvas-confetti";
 import { LogoKivira } from "../../components/LogoKivira";
 import { calcularGradeMosaico, calcularFatiaMosaico } from "../../utils/mosaico";
@@ -442,8 +443,7 @@ export function JogoAndamento() {
       </div>
 
       {mostrarResultado && (
-        <div className="fixed inset-0 z-50 bg-azul/60 flex items-center justify-center p-4">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-xl animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setResultadoFechado(true)} className="sm:p-8 max-w-sm text-center">
             <h2 className="text-3xl font-black text-azul">Parabéns! 🎉</h2>
             <div className="flex justify-center gap-2 my-5 text-5xl">
               {[1, 2, 3].map((n) => (
@@ -493,8 +493,7 @@ export function JogoAndamento() {
                 {isAluno ? "← Voltar pras atividades" : "← Voltar"}
               </Link>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

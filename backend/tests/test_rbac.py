@@ -218,6 +218,9 @@ class TestRbac(unittest.TestCase):
         self.assertEqual(self.client.delete(f"/aluno/{self.aluno3_id}", headers=self.admin).status_code, 405)
         self.assertEqual(self.client.delete(f"/professor/{self.prof3_id}", headers=self.admin).status_code, 405)
 
+    def test_turma_nao_e_apagada(self):
+        self.assertEqual(self.client.delete(f"/turma/{self.turma_id}", headers=self.admin).status_code, 405)
+
     def test_professor_desativa_e_reativa_aluno_da_turma(self):
         url = f"/aluno/{self.aluno3_id}/ativo"
         login = {"username": "cia", "senha": "senha123"}

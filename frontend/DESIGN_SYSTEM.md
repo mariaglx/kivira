@@ -60,7 +60,8 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 - `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
 - `Input` — campo de texto padrão (`icone` opcional à esquerda).
 - `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
-- `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`, `Modal`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
+- `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
+- `Modal` (em `Animacao`) — **todo** modal do app: `<dialog>` com o `modal` do daisyUI nas cores do Kivira (prende o foco, fecha no Esc/clique fora, devolve o foco). Use `<Modal aberto onFechar={...} className="max-w-sm">`; sem `onFechar` ele não fecha (ex: durante uma exclusão). Não monte overlay `fixed inset-0` à mão.
 - `SelectCustom` — select estilizado.
 - `BarraProgresso` — contínua (XP) ou em segmentos (peças).
 - `Avatar` — imagem de `/avatares` ou inicial sobre coral; tamanho/raio/anel via `className`.
