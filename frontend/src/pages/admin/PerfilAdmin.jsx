@@ -28,7 +28,7 @@ export function PerfilAdmin() {
         <div className="flex flex-col items-center sm:items-start gap-3 text-center sm:text-left">
           <div>
             <p className="font-bold text-azul">{perfilAdmin?.email}</p>
-            <p className="text-sm text-azul/60">Como admin, todos os bichinhos estão liberados pra você.</p>
+            <p className="text-sm text-azul/80">Como admin, todos os bichinhos estão liberados pra você.</p>
           </div>
           <Button tamanho="sm" onClick={() => setEscolhendo(true)}>
             {avatarAdmin ? "Trocar bichinho" : "Escolher bichinho"}

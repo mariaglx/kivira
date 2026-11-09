@@ -38,8 +38,9 @@ export async function apiRequest(endpoint, { method = 'GET', data = null, header
     config.signal = signal;
   }
 
-  // Anexa o token JWT automaticamente se o usuário estiver logado
-  if (token) {
+  // Anexa o token JWT automaticamente se o usuário estiver logado (a não ser
+  // que quem chama mande o próprio — ex: o token de meio de login do 2FA)
+  if (token && !config.headers.Authorization) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 

@@ -14,4 +14,8 @@ class Usuario(Base):
     data_criacao = Column("data_criacao", DateTime, server_default=func.now())
     data_ultima_atualizacao = Column("data_ultima_atualizacao", DateTime, server_default=func.now(), onupdate=func.now())
     primeiro_acesso = Column("primeiro_acesso", Boolean, nullable=False, default=True)
+    # Conta nunca é apagada, só desativada (não entra mais; dados e histórico ficam).
+    # Coluna nova numa tabela existente — em produção rodar uma vez:
+    #   ALTER TABLE usuario ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT TRUE;
+    ativo = Column("ativo", Boolean, nullable=False, default=True, server_default="1")
     

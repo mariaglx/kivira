@@ -26,7 +26,7 @@ export function RelatorioAtividade() {
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-2">
-        <Link to="/professor/atividades" className="text-sm text-azul/60 font-semibold flex items-center gap-1 w-fit">
+        <Link to="/professor/atividades" className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
           <ArrowLeft size={14} /> Atividades
         </Link>
         <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Relatório</h1>
@@ -42,7 +42,7 @@ export function RelatorioAtividade() {
         <Indicador rotulo="Tempo médio" valor={formatarTempo(resumo.media_tempo_seg)} />
         <Indicador rotulo="Reinícios (média)" valor={resumo.media_reinicios ?? "—"} />
       </section>
-      <p className="text-xs text-azul/50 -mt-3">
+      <p className="text-xs text-azul/80 -mt-3">
         Médias da primeira vez que cada aluno concluiu a atividade.
       </p>
 
@@ -55,11 +55,11 @@ export function RelatorioAtividade() {
             {questoes.map((q) => (
               <div key={q.questao_id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold text-azul/40">Questão {q.ordem}</span>
+                  <span className="text-xs font-bold text-azul/80">Questão {q.ordem}</span>
                   <p className="text-sm font-semibold text-azul break-words">{q.texto_questao}</p>
                 </div>
                 {q.respostas === 0 ? (
-                  <span className="text-xs text-azul/40">Sem respostas ainda</span>
+                  <span className="text-xs text-azul/80">Sem respostas ainda</span>
                 ) : (
                   <div className="flex items-center gap-3 sm:w-64 shrink-0">
                     <div className="flex-1 h-2 rounded-full bg-cinza-claro overflow-hidden">
@@ -67,7 +67,7 @@ export function RelatorioAtividade() {
                     </div>
                     <span className="text-xs font-bold text-azul whitespace-nowrap">
                       {q.taxa_acerto_primeira}% de primeira
-                      <span className="text-azul/40 font-medium"> ({q.acertos_primeira}/{q.respostas})</span>
+                      <span className="text-azul/80 font-medium"> ({q.acertos_primeira}/{q.respostas})</span>
                     </span>
                   </div>
                 )}
@@ -85,7 +85,7 @@ export function RelatorioAtividade() {
           <div className="cartao rounded-2xl overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead>
-                <tr className="text-azul/40 text-xs uppercase tracking-wider">
+                <tr className="text-azul/80 text-xs uppercase tracking-wider">
                   <th className="p-3 font-bold">Aluno</th>
                   <th className="p-3 font-bold">Situação</th>
                   <th className="p-3 font-bold">Acertos de primeira</th>
@@ -98,7 +98,7 @@ export function RelatorioAtividade() {
                 {alunos.map((a) => (
                   <tr key={a.aluno_id}>
                     <td className="p-3 font-semibold">
-                      <Link to={`/professor/turmas/${relatorio.turma_id}/alunos/${a.aluno_id}`} className="hover:text-coral underline-offset-2 hover:underline">
+                      <Link to={`/professor/turmas/${relatorio.turma_id}/alunos/${a.aluno_id}`} className="hover:text-coral-texto underline-offset-2 hover:underline">
                         {a.nome}
                       </Link>
                     </td>

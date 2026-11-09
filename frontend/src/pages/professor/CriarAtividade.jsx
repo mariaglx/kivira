@@ -6,6 +6,7 @@ import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
 import { apiRequest } from "../../services/api";
 import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Animacao";
 import { Carregando } from "../../components/ui/Carregando";
 import { comemorar } from "../../utils/comemorar";
 import { Search, Trash2, X } from "lucide-react";
@@ -46,14 +47,14 @@ function QuestaoCard({
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-azul/40">
+          <span className="text-xs font-bold text-azul/80">
             Questão {questao.ordem}
           </span>
           <div className="flex items-center gap-1">
             <span
               onPointerDown={(e) => dragControls.start(e)}
               title="Arraste para reordenar"
-              className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/60 transition-colors select-none touch-none"
+              className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/80 transition-colors select-none touch-none"
             >
               <svg
                 viewBox="0 0 16 16"
@@ -86,7 +87,7 @@ function QuestaoCard({
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+          <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
             Texto da pergunta
           </label>
           <input
@@ -95,7 +96,7 @@ function QuestaoCard({
             value={questao.texto_questao}
             onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
             placeholder="Ex: Qual o som que a vaca faz?"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
               erro?.texto
                 ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                 : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
@@ -104,7 +105,7 @@ function QuestaoCard({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+          <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
             Resposta certa
           </label>
           <input
@@ -113,7 +114,7 @@ function QuestaoCard({
             value={questao.resposta_certa}
             onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
             placeholder="Ex: Muuuu"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
               erro?.resposta
                 ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                 : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
@@ -550,7 +551,7 @@ export function CriarAtividade() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
-            className="text-azul/50 hover:text-azul text-sm font-bold"
+            className="text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Atividades
           </Link>
@@ -580,7 +581,7 @@ export function CriarAtividade() {
           {/* COLUNA ESQUERDA — dados da atividade */}
           <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Título
               </label>
               <input
@@ -589,13 +590,13 @@ export function CriarAtividade() {
                 value={formData.titulo}
                 onChange={handleChange}
                 placeholder="Ex: Sons dos Animais"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Disciplina
                 </label>
                 <input
@@ -604,7 +605,7 @@ export function CriarAtividade() {
                   value={formData.disciplina}
                   onChange={handleChange}
                   placeholder="Ex: Ciências"
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
                 />
               </div>
 
@@ -659,7 +660,7 @@ export function CriarAtividade() {
             <hr className="m-0 border-t border-cinza-claro/60" />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Imagem da atividade
               </label>
               <div className="flex gap-2 items-center">
@@ -686,7 +687,7 @@ export function CriarAtividade() {
                     type="button"
                     onClick={() => abrirBuscaImagem("enviar")}
                     aria-label="Enviar imagem do computador"
-                    className="group relative w-11 h-11 rounded-xl border border-dashed border-cinza-claro/50 hover:border-coral/50 shrink-0 flex items-center justify-center text-azul/25 hover:text-coral transition-colors"
+                    className="group relative w-11 h-11 rounded-xl border border-dashed border-cinza-claro/50 hover:border-coral/50 shrink-0 flex items-center justify-center text-azul/25 hover:text-coral-texto transition-colors"
                   >
                     <svg
                       width="20"
@@ -716,7 +717,7 @@ export function CriarAtividade() {
                 <button
                   type="button"
                   onClick={() => abrirBuscaImagem("buscar")}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/60 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/80 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
                 >
                   <Search size={14} />
                   {formData.imagem_atividade_url ? "Trocar imagem" : "Escolher imagem"}
@@ -725,7 +726,7 @@ export function CriarAtividade() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Código da atividade
               </label>
               {codigoAtividade ? (
@@ -737,7 +738,7 @@ export function CriarAtividade() {
                   <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
                     {codigoAtividade}
                   </span>
-                  <span className="text-xs font-bold text-coral">
+                  <span className="text-xs font-bold text-coral-texto">
                     {codigoCopiado ? "Copiado!" : "Copiar"}
                   </span>
                 </button>
@@ -762,7 +763,7 @@ export function CriarAtividade() {
             <button
               type="button"
               onClick={() => setMostrarDetalhes((atual) => !atual)}
-              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/55 hover:text-azul/80 transition-colors"
+              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/80 hover:text-azul/80 transition-colors"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -781,7 +782,7 @@ export function CriarAtividade() {
             {mostrarDetalhes && (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                     Descrição
                   </label>
                   <textarea
@@ -790,7 +791,7 @@ export function CriarAtividade() {
                     onChange={handleChange}
                     placeholder="Uma breve descrição da atividade (opcional)"
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
                   />
                 </div>
               </>
@@ -798,7 +799,7 @@ export function CriarAtividade() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Blocos
                 </label>
                 <input
@@ -812,7 +813,7 @@ export function CriarAtividade() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Tempo (seg)
                 </label>
                 <input
@@ -822,7 +823,7 @@ export function CriarAtividade() {
                   onChange={handleChange}
                   placeholder="Sem limite"
                   min={0}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -831,7 +832,7 @@ export function CriarAtividade() {
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Questões ({questoes.length}{" "}
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
@@ -841,7 +842,7 @@ export function CriarAtividade() {
                   type="button"
                   onClick={gerarQuestoesComIA}
                   disabled={gerandoIA}
-                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center gap-2"
+                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral-texto bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center gap-2"
                 >
                   {gerandoIA ? (
                     <>
@@ -967,7 +968,7 @@ export function CriarAtividade() {
             <button
               type="button"
               onClick={() => adicionarQuestao()}
-              className="w-full border-2 border-dashed border-coral/40 rounded-2xl py-4 flex items-center justify-center gap-2 text-coral font-bold text-sm hover:bg-branco/40 transition-all hover:scale-[1.01] active:scale-95"
+              className="w-full border-2 border-dashed border-coral/40 rounded-2xl py-4 flex items-center justify-center gap-2 text-coral-texto font-bold text-sm hover:bg-branco/40 transition-all hover:scale-[1.01] active:scale-95"
             >
               + Adicionar questão
             </button>
@@ -978,8 +979,7 @@ export function CriarAtividade() {
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setMostrarSucesso(false)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
             <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
               ✅
             </div>
@@ -988,14 +988,14 @@ export function CriarAtividade() {
                 ? "Atividade criada com sucesso!"
                 : "Atividade atualizada com sucesso!"}
             </h3>
-            <p className="text-sm text-azul/60">
+            <p className="text-sm text-azul/80">
               "{formData.titulo}" já está salva e pronta pra ser ajustada quando
               você quiser.
             </p>
 
             {codigoAtividade && (
               <div className="w-full flex flex-col gap-1.5 mt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Código da atividade
                 </span>
                 <button
@@ -1006,7 +1006,7 @@ export function CriarAtividade() {
                   <span className="font-mono font-extrabold text-lg tracking-widest text-azul">
                     {codigoAtividade}
                   </span>
-                  <span className="text-xs font-bold text-coral flex items-center gap-1">
+                  <span className="text-xs font-bold text-coral-texto flex items-center gap-1">
                     {codigoCopiado ? (
                       "Copiado!"
                     ) : (
@@ -1029,39 +1029,35 @@ export function CriarAtividade() {
             <Button onClick={() => setMostrarSucesso(false)} className="px-6 py-2.5 text-sm mt-2">
               Continuar editando
             </Button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-branco rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center gap-3 max-w-sm text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={() => setMensagemErro(null)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
               ⚠️
             </div>
             <h3 className="text-xl font-extrabold text-azul">
               Ops, algo deu errado
             </h3>
-            <p className="text-sm text-azul/60">{mensagemErro}</p>
+            <p className="text-sm text-azul/80">{mensagemErro}</p>
             <Button variante="contorno" onClick={() => setMensagemErro(null)} className="px-6 py-2.5 text-sm mt-2">
               Entendi
             </Button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de escolha de imagem: buscar no Pixabay ou enviar do computador */}
       {modalImagemAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-lg w-full p-6 animate__animated animate__zoomIn animate__faster">
+        <Modal aberto onFechar={fecharBuscaImagem} className="max-w-lg">
             <div className="flex items-start justify-between mb-4">
               <div role="tablist" className="tabs tabs-box bg-bege/60 rounded-2xl w-fit flex-nowrap p-0">
                 <button
                   type="button"
                   role="tab"
                   onClick={() => setAbaImagem("buscar")}
-                  className={`tab gap-2 rounded-2xl ${abaImagem === "buscar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "buscar" ? "tab-active bg-coral text-azul-escuro font-bold" : ""}`}
                 >
                   Buscar imagem
                 </button>
@@ -1069,7 +1065,7 @@ export function CriarAtividade() {
                   type="button"
                   role="tab"
                   onClick={() => setAbaImagem("enviar")}
-                  className={`tab gap-2 rounded-2xl ${abaImagem === "enviar" ? "tab-active bg-coral text-branco font-bold" : ""}`}
+                  className={`tab gap-2 rounded-2xl ${abaImagem === "enviar" ? "tab-active bg-coral text-azul-escuro font-bold" : ""}`}
                 >
                   Enviar arquivo
                 </button>
@@ -1094,12 +1090,12 @@ export function CriarAtividade() {
                     onChange={(e) => setTermoBuscaImagem(e.target.value)}
                     placeholder="Ex: gato, escola, números..."
                     autoFocus
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder-azul/40 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
                   />
                   <button
                     type="submit"
                     disabled={buscandoImagens || !termoBuscaImagem.trim()}
-                    className="shrink-0 rounded-xl px-4 py-2.5 font-bold text-sm text-branco bg-coral hover:bg-coral/90 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center"
+                    className="shrink-0 rounded-xl px-4 py-2.5 font-bold text-sm text-azul-escuro bg-coral hover:bg-coral/90 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center"
                   >
                     {buscandoImagens ? (
                       <span className="w-3.5 h-3.5 border-2 border-branco/40 border-t-branco rounded-full animate-spin" />
@@ -1124,7 +1120,7 @@ export function CriarAtividade() {
 
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
                   {imagensPixabay.length === 0 && !buscandoImagens && !erroBuscaImagem && (
-                    <p className="col-span-3 text-sm text-azul/40 text-center py-8">
+                    <p className="col-span-3 text-sm text-azul/80 text-center py-8">
                       Busque um termo pra ver as imagens.
                     </p>
                   )}
@@ -1153,7 +1149,7 @@ export function CriarAtividade() {
                 {/* A imagem escolhida é baixada e guardada no Cloudinary antes de
                     entrar na atividade — leva um instante, então avisa */}
                 {enviandoImagem && (
-                  <p className="text-sm text-azul/60 mt-3 text-center">
+                  <p className="text-sm text-azul/80 mt-3 text-center">
                     Salvando imagem escolhida...
                   </p>
                 )}
@@ -1179,7 +1175,7 @@ export function CriarAtividade() {
                         pagina === "..." ? (
                           <span
                             key={`reticencias-${indice}`}
-                            className="px-1 text-azul/40 text-sm select-none"
+                            className="px-1 text-azul/80 text-sm select-none"
                           >
                             …
                           </span>
@@ -1245,31 +1241,29 @@ export function CriarAtividade() {
                   {enviandoImagem ? (
                     <>
                       <span className="w-6 h-6 border-2 border-coral/30 border-t-coral rounded-full animate-spin" />
-                      <span className="text-sm font-bold text-azul/50">Enviando...</span>
+                      <span className="text-sm font-bold text-azul/80">Enviando...</span>
                     </>
                   ) : (
                     <>
-                      <svg viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6 text-coral">
+                      <svg viewBox="0 0 16 16" fill="currentColor" className="w-6 h-6 text-coral-texto">
                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
                         <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
                       </svg>
                       <span className="text-sm font-bold text-azul">Clique pra escolher um arquivo</span>
-                      <span className="text-xs text-azul/40">JPEG, PNG, WEBP ou GIF, até 5MB</span>
+                      <span className="text-xs text-azul/80">JPEG, PNG, WEBP ou GIF, até 5MB</span>
                     </>
                   )}
                 </label>
               </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Exclusão da atividade. O texto diz o que o banco realmente faz com
           cada dependência, em vez de um aviso genérico de "essa ação é
           permanente" (mesmo padrão do modal de excluir turma) */}
       {modalExclusaoAberto && (
-        <div className="animate__animated animate__fadeIn animate__faster fixed inset-0 bg-azul/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-branco rounded-3xl shadow-xl max-w-sm w-full p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+        <Modal aberto onFechar={excluindo ? undefined : fecharExclusao} className="max-w-sm flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
@@ -1277,12 +1271,12 @@ export function CriarAtividade() {
             <h3 className="text-xl font-extrabold text-azul mt-3">
               Excluir a atividade?
             </h3>
-            <p className="text-sm text-azul/60 mt-2">
+            <p className="text-sm text-azul/80 mt-2">
               <strong className="text-azul">{formData.titulo}</strong> será
               removida e não tem como desfazer.
             </p>
 
-            <div className="text-xs text-azul/60 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
+            <div className="text-xs text-azul/80 leading-relaxed bg-bege/60 rounded-xl px-4 py-3 mt-4 text-left flex flex-col gap-1.5">
               <span>
                 As <strong className="text-azul">{questoes.length} questão(ões)</strong> dessa
                 atividade são apagadas junto.
@@ -1299,8 +1293,7 @@ export function CriarAtividade() {
                 {excluindo ? "Excluindo..." : "Excluir"}
               </Button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

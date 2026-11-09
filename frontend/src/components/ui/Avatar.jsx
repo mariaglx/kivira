@@ -3,7 +3,7 @@
 export function Avatar({ arquivo, nome, className = "w-10 h-10 text-sm rounded-xl" }) {
   return (
     <div
-      className={`${className} bg-coral overflow-hidden flex items-center justify-center font-bold text-branco uppercase shrink-0`}
+      className={`${className} bg-coral overflow-hidden flex items-center justify-center font-bold text-azul-escuro uppercase shrink-0`}
     >
       {arquivo ? (
         <img src={`/avatares/${arquivo}`} alt="" className="w-full h-full object-cover" />

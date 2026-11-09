@@ -49,7 +49,7 @@ export function SeletorEmoji({ selecionados, onAlternar, onApagar, max = 3 }) {
             onClick={onApagar}
             disabled={selecionados.length === 0}
             aria-label="Apagar último emoji"
-            className="w-14 h-14 rounded-2xl border-2 border-dashed border-cinza-claro text-azul/50 hover:text-coral hover:border-coral flex items-center justify-center text-xl disabled:opacity-30 disabled:hover:text-azul/50 disabled:hover:border-cinza-claro transition-colors"
+            className="w-14 h-14 rounded-2xl border-2 border-dashed border-cinza-claro text-azul/80 hover:text-coral-texto hover:border-coral flex items-center justify-center text-xl disabled:opacity-30 disabled:hover:text-azul/80 disabled:hover:border-cinza-claro transition-colors"
           >
             ⌫
           </button>

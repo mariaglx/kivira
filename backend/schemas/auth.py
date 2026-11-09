@@ -11,3 +11,7 @@ class LoginSchema(BaseModel):
 class LoginAlunoSchema(BaseModel):
     username: str
     senha: str
+
+# Código de 6 dígitos do app autenticador (2FA do admin)
+class CodigoDoisFatoresSchema(BaseModel):
+    codigo: str

@@ -15,8 +15,8 @@ export function AvatarGrid({ categorias, categoriaAtiva, onCategoriaChange, avat
             onClick={() => onCategoriaChange(cat)}
             className={`tatil px-4 py-2 rounded-full text-sm font-bold capitalize ${
               categoriaAtiva === cat
-                ? "bg-coral text-branco"
-                : "bg-bege/60 text-azul/60 [--sombra:transparent]"
+                ? "bg-coral text-azul-escuro"
+                : "bg-bege/60 text-azul/80 [--sombra:transparent]"
             }`}
           >
             {cat}

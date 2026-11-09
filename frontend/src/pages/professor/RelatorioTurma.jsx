@@ -40,7 +40,7 @@ function VisaoGeral({ relatorio }) {
         <section className="flex flex-col gap-3">
           <div>
             <h3 className="text-lg font-bold text-azul">Pontos de atenção</h3>
-            <p className="text-xs text-azul/50">As questões que a turma mais errou de primeira — bom ponto de partida pra próxima aula.</p>
+            <p className="text-xs text-azul/80">As questões que a turma mais errou de primeira — bom ponto de partida pra próxima aula.</p>
           </div>
           <div className="cartao rounded-2xl divide-y divide-cinza-claro">
             {questoesDificeis.map((q) => (
@@ -50,7 +50,7 @@ function VisaoGeral({ relatorio }) {
                 className="p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:bg-bege/30 transition-colors"
               >
                 <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold text-azul/40">
+                  <span className="text-xs font-bold text-azul/80">
                     {q.atividade_titulo} · Questão {q.ordem}
                   </span>
                   <p className="text-sm font-semibold text-azul break-words">{q.texto_questao}</p>
@@ -81,7 +81,7 @@ function VisaoGeral({ relatorio }) {
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-azul break-words">{a.titulo}</p>
-                  <p className="text-xs text-azul/50">{a.disciplina}</p>
+                  <p className="text-xs text-azul/80">{a.disciplina}</p>
                 </div>
                 <div className="flex items-center gap-3 sm:w-56 shrink-0">
                   <BarraPorcentagem valor={resumo.alunos ? (100 * a.alunos_concluiram) / resumo.alunos : 0} />
@@ -89,10 +89,10 @@ function VisaoGeral({ relatorio }) {
                     {a.alunos_concluiram}/{resumo.alunos} concluíram
                   </span>
                 </div>
-                <span className="text-xs font-bold text-azul/70 sm:w-28 shrink-0">
-                  {porcento(a.taxa_acerto_primeira)} <span className="font-medium text-azul/40">de primeira</span>
+                <span className="text-xs font-bold text-azul/80 sm:w-28 shrink-0">
+                  {porcento(a.taxa_acerto_primeira)} <span className="font-medium text-azul/80">de primeira</span>
                 </span>
-                <ChevronRight size={18} className="hidden sm:block text-coral shrink-0" />
+                <ChevronRight size={18} className="hidden sm:block text-coral-texto shrink-0" />
               </Link>
             ))}
           </div>
@@ -156,7 +156,7 @@ function AbaAlunos({ relatorio }) {
               aria-pressed={soPendentes === valor}
               onClick={() => setSoPendentes(valor)}
               className={`px-4 min-h-11 flex items-center rounded-full text-sm font-bold whitespace-nowrap transition ${
-                soPendentes === valor ? "bg-coral text-branco shadow-sm" : "bg-branco text-azul/70 hover:text-azul border border-cinza-claro"
+                soPendentes === valor ? "bg-coral text-azul-escuro shadow-sm" : "bg-branco text-azul/80 hover:text-azul border border-cinza-claro"
               }`}
             >
               {rotulo}
@@ -185,28 +185,28 @@ function AbaAlunos({ relatorio }) {
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-azul truncate">{a.apelido || a.nome_completo}</p>
                     {a.apelido && a.apelido !== a.nome_completo && (
-                      <p className="text-xs text-azul/50 truncate">{a.nome_completo}</p>
+                      <p className="text-xs text-azul/80 truncate">{a.nome_completo}</p>
                     )}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <p className="text-xs font-bold text-coral">Nível {a.nivel_atual}</p>
+                      <p className="text-xs font-bold text-coral-texto">Nível {a.nivel_atual}</p>
                       <span
                         className={`rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${
-                          a.respondeu_feedback ? "bg-verde/15 text-verde" : "bg-coral/10 text-coral"
+                          a.respondeu_feedback ? "bg-verde/15 text-verde" : "bg-coral/10 text-coral-texto"
                         }`}
                       >
                         {a.respondeu_feedback ? "Feedback enviado" : "Feedback pendente"}
                       </span>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-coral shrink-0" />
+                  <ChevronRight size={18} className="text-coral-texto shrink-0" />
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-cinza-claro">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/40">Concluídas</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/80">Concluídas</span>
                     <span className="text-sm font-semibold text-azul">{a.atividades_concluidas}/{resumo.atividades}</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/40">Acerto de primeira</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/80">Acerto de primeira</span>
                     <span className="text-sm font-semibold text-azul">{porcento(a.taxa_acerto_primeira)}</span>
                   </div>
                 </div>
@@ -258,25 +258,25 @@ export function RelatorioTurma() {
   const { turma } = relatorio;
   const classeAba = ({ isActive }) =>
     `px-4 min-h-11 flex items-center rounded-full text-sm font-bold whitespace-nowrap transition ${
-      isActive ? "bg-coral text-branco shadow-sm" : "bg-branco text-azul/70 hover:text-azul border border-cinza-claro"
+      isActive ? "bg-coral text-azul-escuro shadow-sm" : "bg-branco text-azul/80 hover:text-azul border border-cinza-claro"
     }`;
 
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-2">
-        <Link to="/professor/turmas" className="text-sm text-azul/60 font-semibold flex items-center gap-1 w-fit">
+        <Link to="/professor/turmas" className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
           <ArrowLeft size={14} /> Turmas
         </Link>
         <div className="flex flex-wrap justify-between items-start gap-3">
           <div>
             <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Turma</h1>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul">{turma.nome}</h2>
-            <p className="text-xs text-azul/50 mt-1">
+            <p className="text-xs text-azul/80 mt-1">
               {[subtituloTurma(turma), "Código de acesso: "].filter(Boolean).join(" · ")}
-              <span className="font-bold text-azul/70 tracking-wider">{turma.codigo_acesso}</span>
+              <span className="font-bold text-azul/80 tracking-wider">{turma.codigo_acesso}</span>
             </p>
             {ehAdmin() && turma.professor_nome && (
-              <p className="text-xs font-bold text-coral mt-0.5">Prof. {turma.professor_nome}</p>
+              <p className="text-xs font-bold text-coral-texto mt-0.5">Prof. {turma.professor_nome}</p>
             )}
           </div>
           <Button as={Link} to={`/professor/turmas/${turma.id}/editar`} tamanho="sm" variante="contorno">

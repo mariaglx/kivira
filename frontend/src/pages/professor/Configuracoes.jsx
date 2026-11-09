@@ -4,7 +4,7 @@ import { buscarAvatares } from "../../services/avatarService";
 import { useConfiguracoesProfessor } from "../../controllers/useConfiguracoesProfessor";
 import {
   Pencil,
-  Trash2,
+  UserX,
   X,
   User,
   Sparkles,
@@ -22,7 +22,7 @@ import { Carregando } from "../../components/ui/Carregando";
 import { Entrada, Modal } from "../../components/ui/Animacao";
 
 export function Configuracoes() {
-  const FRASE_CONFIRMACAO_EXCLUSAO = "apagar meus dados";
+  const FRASE_CONFIRMACAO_DESATIVACAO = "desativar minha conta";
 
   const { professor, setProfessor, carregandoProfessor } = useOutletContext();
   const {
@@ -33,32 +33,32 @@ export function Configuracoes() {
     salvarPerfil,
     salvarAvatar,
     alterarSenha,
-    excluirConta,
+    desativarConta,
   } = useConfiguracoesProfessor({ professor, setProfessor, carregandoProfessor });
 
   const [modalAvatarAberto, setModalAvatarAberto] = useState(false);
   const [modalPerfilAberto, setModalPerfilAberto] = useState(false);
   const [modalSegurancaAberto, setModalSegurancaAberto] = useState(false);
-  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
-  const [textoConfirmacaoExclusao, setTextoConfirmacaoExclusao] = useState("");
+  const [modalDesativacaoAberto, setModalDesativacaoAberto] = useState(false);
+  const [textoConfirmacaoDesativacao, setTextoConfirmacaoDesativacao] = useState("");
   const [erroSenha, setErroSenha] = useState("");
 
-  const exclusaoConfirmada =
-    textoConfirmacaoExclusao.trim().toLowerCase() ===
-    FRASE_CONFIRMACAO_EXCLUSAO;
+  const desativacaoConfirmada =
+    textoConfirmacaoDesativacao.trim().toLowerCase() ===
+    FRASE_CONFIRMACAO_DESATIVACAO;
 
-  function abrirExclusao() {
-    setTextoConfirmacaoExclusao("");
-    setModalExclusaoAberto(true);
+  function abrirDesativacao() {
+    setTextoConfirmacaoDesativacao("");
+    setModalDesativacaoAberto(true);
   }
 
-  function fecharExclusao() {
-    setModalExclusaoAberto(false);
-    setTextoConfirmacaoExclusao("");
+  function fecharDesativacao() {
+    setModalDesativacaoAberto(false);
+    setTextoConfirmacaoDesativacao("");
   }
 
-  async function confirmarExclusao() {
-    if (await excluirConta()) fecharExclusao();
+  async function confirmarDesativacao() {
+    if (await desativarConta()) fecharDesativacao();
   }
 
   const dataHoje = new Date().toLocaleDateString("pt-BR", {
@@ -161,7 +161,7 @@ export function Configuracoes() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
               Configurações, {professor.apelido || professor.nome_completo}
             </h2>
-            <p className="text-azul/70 text-sm mt-1">
+            <p className="text-azul/80 text-sm mt-1">
               Atualize suas informações
             </p>
           </div>
@@ -208,14 +208,14 @@ export function Configuracoes() {
               <p className="mt-4 font-extrabold text-azul text-center">
                 {professor.nome_completo}
               </p>
-              <p className="text-xs text-azul/60 text-center mt-0.5">
+              <p className="text-xs text-azul/80 text-center mt-0.5">
                 {professor.escola}
               </p>
             </div>
 
             {/* Estatísticas */}
             <div className="px-6 mt-8">
-              <p className="text-xs font-bold uppercase tracking-wider text-azul/50 mb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-azul/80 mb-3">
                 Estatísticas:
               </p>
 
@@ -225,10 +225,10 @@ export function Configuracoes() {
                     key={item.rotulo}
                     className="bg-branco rounded-xl py-3 text-center shadow-sm"
                   >
-                    <span className="block text-2xl font-black text-coral leading-none tabular-nums">
+                    <span className="block text-2xl font-black text-coral-texto leading-none tabular-nums">
                       {item.valor}
                     </span>
-                    <span className="block text-[11px] font-bold uppercase text-azul/50 mt-1.5">
+                    <span className="block text-[11px] font-bold uppercase text-azul/80 mt-1.5">
                       {item.rotulo}
                     </span>
                   </div>
@@ -236,17 +236,17 @@ export function Configuracoes() {
               </div>
             </div>
 
-            {/* Excluir conta */}
+            {/* Desativar conta (não apaga nada; só um admin reativa) */}
             <div className="mt-auto p-6 pt-5">
               <hr className="border-cinza-claro mb-4" />
               <Button
                 variante="fantasma"
                 tamanho="sm"
-                onClick={abrirExclusao}
+                onClick={abrirDesativacao}
                 className="w-full gap-2 text-vermelho hover:bg-vermelho/10"
               >
-                <Trash2 size={16} />
-                Excluir minha conta
+                <UserX size={16} />
+                Desativar minha conta
               </Button>
             </div>
           </Entrada>
@@ -254,7 +254,7 @@ export function Configuracoes() {
           {/* Lado Direito */}
           <Entrada delay={0.1} className="lg:col-span-2 cartao p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <p className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Seus dados
               </p>
               <Button tamanho="sm" onClick={() => setModalPerfilAberto(true)} className="gap-2">
@@ -266,8 +266,8 @@ export function Configuracoes() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {dadosPerfil.map((item) => (
                 <div key={item.rotulo} className="flex flex-col gap-1">
-                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <item.Icone size={14} className="text-coral" />
+                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                    <item.Icone size={14} className="text-coral-texto" />
                     {item.rotulo}
                   </span>
                   <span className="text-sm font-semibold text-azul">
@@ -279,8 +279,8 @@ export function Configuracoes() {
 
             {/* Biografia */}
             <div className="flex flex-col gap-1">
-              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                <MessageSquare size={14} className="text-coral" />
+              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <MessageSquare size={14} className="text-coral-texto" />
                 Conte um pouco de você
               </span>
               <p className="text-sm text-azul/80">
@@ -292,7 +292,7 @@ export function Configuracoes() {
             <div className="pt-4 border-t border-cinza-claro flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-azul">Senha</p>
-                <p className="text-xs text-azul/50 tracking-widest">••••••••</p>
+                <p className="text-xs text-azul/80 tracking-widest">••••••••</p>
               </div>
               <Button
                 variante="contorno"
@@ -327,8 +327,8 @@ export function Configuracoes() {
                   onClick={() => setCategoriaAtiva(cat)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold capitalize transition ${
                     categoriaAtiva === cat
-                      ? "bg-coral text-branco"
-                      : "bg-bege/60 text-azul/60 hover:bg-coral/15"
+                      ? "bg-coral text-azul-escuro"
+                      : "bg-bege/60 text-azul/80 hover:bg-coral/15"
                   }`}
                 >
                   {cat}
@@ -370,8 +370,8 @@ export function Configuracoes() {
 
             <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <User size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <User size={14} className="text-coral-texto" />
                   Nome completo
                 </label>
                 <Input
@@ -383,8 +383,8 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <Sparkles size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <Sparkles size={14} className="text-coral-texto" />
                   Apelido
                 </label>
                 <Input
@@ -393,14 +393,14 @@ export function Configuracoes() {
                   className="w-full"
                   defaultValue={professor.apelido}
                 />
-                <span className="text-xs text-azul/45">
+                <span className="text-xs text-azul/80">
                   É esse nome que aparece pros seus alunos
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <MapPin size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <MapPin size={14} className="text-coral-texto" />
                   Onde você dá aula
                 </label>
                 <Input
@@ -412,8 +412,8 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <MessageSquare size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <MessageSquare size={14} className="text-coral-texto" />
                   Conte um pouco de você
                 </label>
                 <textarea
@@ -448,8 +448,8 @@ export function Configuracoes() {
               )}
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <Mail size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <Mail size={14} className="text-coral-texto" />
                   E-mail da conta
                 </label>
                 <Input
@@ -458,14 +458,14 @@ export function Configuracoes() {
                   defaultValue={professor.email}
                   disabled
                 />
-                <span className="text-xs text-azul/45">
+                <span className="text-xs text-azul/80">
                   Pra alterar o e-mail, fale com o suporte
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                  <Lock size={14} className="text-coral" />
+                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <Lock size={14} className="text-coral-texto" />
                   Senha atual
                 </label>
                 <Input
@@ -479,8 +479,8 @@ export function Configuracoes() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <Key size={14} className="text-coral" />
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                    <Key size={14} className="text-coral-texto" />
                     Senha nova
                   </label>
                   <Input
@@ -494,8 +494,8 @@ export function Configuracoes() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/50">
-                    <Check size={14} className="text-coral" />
+                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                    <Check size={14} className="text-coral-texto" />
                     Repita a senha nova
                   </label>
                   <Input
@@ -516,47 +516,47 @@ export function Configuracoes() {
             </form>
       </Modal>
 
-      <Modal aberto={modalExclusaoAberto} onFechar={fecharExclusao} className="max-w-sm p-6">
+      <Modal aberto={modalDesativacaoAberto} onFechar={fecharDesativacao} className="max-w-sm p-6">
             <div className="w-12 h-12 rounded-2xl bg-vermelho/10 text-vermelho flex items-center justify-center text-xl mb-4">
               <TriangleAlert size={20} />
             </div>
             <h3 className="text-lg font-extrabold text-azul">
-              Excluir sua conta?
+              Desativar sua conta?
             </h3>
-            <p className="text-sm text-azul/70 mt-2">
-              Essa ação não pode ser desfeita. Suas turmas, atividades e dados
-              de acesso serão apagados permanentemente.
+            <p className="text-sm text-azul/80 mt-2">
+              Você sai agora e não consegue mais entrar. Nada é apagado: suas turmas,
+              atividades e relatórios ficam guardados até um administrador reativar a conta.
             </p>
 
             <div className="flex flex-col gap-2 mt-5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/50">
+              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Digite{" "}
                 <span className="text-vermelho">
-                  "{FRASE_CONFIRMACAO_EXCLUSAO}"
+                  "{FRASE_CONFIRMACAO_DESATIVACAO}"
                 </span>{" "}
                 para confirmar
               </label>
               <Input
                 type="text"
                 autoFocus
-                value={textoConfirmacaoExclusao}
-                onChange={(e) => setTextoConfirmacaoExclusao(e.target.value)}
-                placeholder={FRASE_CONFIRMACAO_EXCLUSAO}
+                value={textoConfirmacaoDesativacao}
+                onChange={(e) => setTextoConfirmacaoDesativacao(e.target.value)}
+                placeholder={FRASE_CONFIRMACAO_DESATIVACAO}
                 className="w-full"
               />
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variante="fantasma" onClick={fecharExclusao} className="flex-1">
+              <Button variante="fantasma" onClick={fecharDesativacao} className="flex-1">
                 Cancelar
               </Button>
               <Button
                 variante="perigo"
-                disabled={!exclusaoConfirmada}
-                onClick={confirmarExclusao}
+                disabled={!desativacaoConfirmada}
+                onClick={confirmarDesativacao}
                 className="flex-1"
               >
-                Excluir conta
+                Desativar conta
               </Button>
             </div>
       </Modal>

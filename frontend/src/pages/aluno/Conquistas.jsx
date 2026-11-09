@@ -116,7 +116,7 @@ export function Conquistas() {
       <div className="text-center">
         <Link
           to="/aluno/historico"
-          className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
+          className="tatil inline-flex items-center gap-2 bg-coral text-azul-escuro rounded-2xl px-6 py-3 font-bold"
         >
           Ver suas partidas jogadas
         </Link>

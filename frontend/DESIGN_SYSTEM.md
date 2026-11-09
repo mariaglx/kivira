@@ -11,18 +11,24 @@ Tokens e classes ficam em `src/index.css`; componentes em `src/components/ui/`.
 | Token | Hex | Uso |
 |---|---|---|
 | `azul` | `#214a5a` | texto padrão, menu do professor, botão secundário |
-| `coral` | `#eb7561` | ação principal, aba ativa, fase liberada |
+| `coral` | `#eb7561` | fundo da ação principal, aba ativa, fase liberada — texto/ícone **sobre** ele é `text-azul-escuro` |
+| `coral-texto` | `#a25143` | coral usado **como texto** (links, "Sair", destaques) sobre branco/bege |
 | `laranja` / `laranja-claro` | `#eeb37f` / `#f0c6a1` | anéis de avatar, peças do jogo, item ativo do menu |
 | `bege` | `#f5e6d3` | fundo de todas as telas |
 | `branco` | `#ffffff` | superfícies (cards, header) |
 | `cinza-claro` | `#ececec` | bordas, fase bloqueada |
-| `verde` | `#3fae7a` | acerto, fase concluída |
+| `verde` | `#30855d` | acerto, fase concluída |
 | `vermelho` | `#c0392b` | só ações destrutivas |
 | `*-escuro` | — | sombra do botão `tatil` da mesma cor |
 | `pessego-bg/fg` | — | faixas de seção do jogo (`.faixa-secao`) |
 | `mat/cie/por/ouro-bg/fg` | — | cor por disciplina nos cards do aluno |
 
-Texto secundário: `text-azul/60`; terciário/placeholder: `text-azul/40`.
+Contraste mínimo WCAG AA: 4.5:1 pra texto (inclusive placeholder), 3:1 pra ícones.
+Por isso o azul translúcido tem piso: texto secundário `text-azul/80` (5.5:1 no
+branco, 4.8:1 no bege), placeholder `placeholder:text-azul/75`. Abaixo disso
+(`/25`–`/35`) só pra elemento desabilitado ou decorativo. Hierarquia vem de
+tamanho/peso, não de transparência. Branco sobre `coral` (2.9:1) reprova.
+Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 
 ## Tipografia
@@ -54,7 +60,8 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 - `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
 - `Input` — campo de texto padrão (`icone` opcional à esquerda).
 - `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
-- `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`, `Modal`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
+- `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
+- `Modal` (em `Animacao`) — **todo** modal do app: `<dialog>` com o `modal` do daisyUI nas cores do Kivira (prende o foco, fecha no Esc/clique fora, devolve o foco). Use `<Modal aberto onFechar={...} className="max-w-sm">`; sem `onFechar` ele não fecha (ex: durante uma exclusão). Não monte overlay `fixed inset-0` à mão.
 - `SelectCustom` — select estilizado.
 - `BarraProgresso` — contínua (XP) ou em segmentos (peças).
 - `Avatar` — imagem de `/avatares` ou inicial sobre coral; tamanho/raio/anel via `className`.

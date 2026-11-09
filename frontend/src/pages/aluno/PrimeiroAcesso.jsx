@@ -37,7 +37,7 @@ export function PrimeiroAcesso() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-700 text-center">
             Vamos criar sua senha especial! 🎉
           </h2>
-          <p className="text-sm text-azul/60 text-center">
+          <p className="text-sm text-azul/80 text-center">
             Olá, <strong>{username}</strong>! Primeiro, digite a senha que seu
             professor te deu. Depois, escolha 3 emojis pra ser sua nova senha.
           </p>

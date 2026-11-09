@@ -1,6 +1,6 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao aluno.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy import or_
 from models.usuario import Usuario
 from models.aluno import Aluno
@@ -13,13 +13,14 @@ from models.questao import Questao
 from routes.atividade import calcular_estrelas, calcular_xp_ganho
 from models.feedback_aluno import FeedbackAluno
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor, somente_admin
 import bcrypt, secrets, unicodedata
 from schemas.aluno import AlunoSchema, AlunoUpdateSchema, CadastrarAlunoSchema, CadastrarAlunosLoteSchema, PrimeiroAcessoSchema, TrocarSenhaAlunoSchema
 from services.auditoria_service import registrar_log
 from services.sessao_jogo_service import nivel_por_xp
 from services.conquista_service import conquistas_do_aluno
 from routes.avatar import nivel_minimo_do_avatar
+from routes.auth import exigir_conta_ativa
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 
 aluno_router = APIRouter(prefix="/aluno", tags=["aluno"])
@@ -133,7 +134,8 @@ def gerar_senha_temporaria():
 # Cria um aluno
 
 # Possivelmente vamos abandonar esse método por que criamos o de usuário
-@aluno_router.post("/criar_conta")
+# Conta de aluno com e-mail, fora do fluxo normal (professor usa /cadastrar): só admin
+@aluno_router.post("/criar_conta", dependencies=[Depends(somente_admin)])
 def criar_conta(aluno_schema: AlunoSchema, session = Depends(pegar_sessao_kivira)):
 
     usuario = session.query(Usuario).filter(Usuario.email == aluno_schema.email).first()
@@ -173,7 +175,10 @@ def buscar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario:
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
-    
+    # Aluno só vê os próprios dados
+    if usuario.tipo == "estudante" and usuario.id != aluno.usuario_id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para ver esse aluno")
+
     usuario_vinculado = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
 
     return {
@@ -230,43 +235,45 @@ usuario: Usuario = Depends(verificar_token_kivira)):
 
     return {"mensagem": f"Aluno '{aluno.nome_completo}' atualizado com sucesso"}
 
-# Faz a exclusão de um aluno a partir do ID
+# Admin, ou professor de alguma turma em que o aluno está matriculado
+def _gerencia_aluno(session, usuario, aluno):
+    turmas_do_aluno = session.query(Turma).join(AlunoTurma, AlunoTurma.turma_id == Turma.id).filter(
+        AlunoTurma.aluno_id == aluno.id,
+    ).all()
+    return usuario.tipo == "admin" or any(pode_gerenciar(session, usuario, turma) for turma in turmas_do_aluno)
 
-@aluno_router.delete("/{id_aluno}")
-def deletar_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+
+# Conta de aluno nunca é apagada: desativa (não entra mais, histórico e XP ficam)
+# ou reativa. Admin ou professor de uma turma do aluno.
+
+@aluno_router.patch("/{id_aluno}/ativo", dependencies=[Depends(admin_ou_professor)])
+def alterar_ativo_aluno(id_aluno: int, ativo: bool = Body(embed=True), session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
-    if usuario.tipo != "admin" and usuario.id != aluno.usuario_id:
-        raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
+    if not _gerencia_aluno(session, usuario, aluno):
+        raise HTTPException(status_code=403, detail="Esse aluno não está em nenhuma turma sua")
 
-    nome_aluno = aluno.nome_completo
-    id_aluno_excluido = aluno.id
+    conta = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
+    conta.ativo = ativo
+    session.commit()
 
-    # Loga antes de excluir o usuário vinculado, mesmo motivo do professor:
-    # a FK usuario_id do log precisa existir no momento do insert (o
-    # ondelete="SET NULL" do model cuida do resto depois).
     registrar_log(
         session,
         usuario,
-        acao="EXCLUIR_ALUNO",
+        acao="REATIVAR_ALUNO" if ativo else "DESATIVAR_ALUNO",
         entidade="aluno",
-        entidade_id=id_aluno_excluido,
-        detalhes={"nome_completo": nome_aluno},
+        entidade_id=aluno.id,
+        detalhes={"nome_completo": aluno.nome_completo},
     )
-
-    usuario_vinculado = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
-    session.delete(usuario_vinculado)
-    session.commit()
-
-    return{"mensagem": f"Aluno '{nome_aluno}' excluído com sucesso"}
+    return {"mensagem": f"Conta de '{aluno.nome_completo}' {'reativada' if ativo else 'desativada'}", "ativo": ativo}
 
 
 # Cadastra um aluno a partir do nome.sobrenome - Criado pelo professor
 # Quem cadastra é o professor. A senha de primeiro acesso é gerada pelo próprio
 # sistema (não é o professor quem escolhe) e só aparece nessa resposta — o
 # professor precisa anotar/repassar pro aluno nesse momento, não dá pra recuperar depois.
-@aluno_router.post("/cadastrar")
+@aluno_router.post("/cadastrar", dependencies=[Depends(admin_ou_professor)])
 def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
 
     username = gerar_username_unico(aluno_schema.nome_completo, session)
@@ -316,7 +323,7 @@ def cadastrar_aluno(aluno_schema: CadastrarAlunoSchema, session = Depends(pegar_
 # Cadastra vários alunos de uma vez numa turma (professor cola a lista de
 # chamada, uma criança por linha). Mesma regra de senha/username do cadastro
 # individual, só que em lote — devolve a credencial de cada um pra impressão.
-@aluno_router.post("/cadastrar_lote")
+@aluno_router.post("/cadastrar_lote", dependencies=[Depends(admin_ou_professor)])
 def cadastrar_alunos_lote(dados: CadastrarAlunosLoteSchema, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     turma = session.query(Turma).filter(Turma.id == dados.turma_id).first()
     if not turma:
@@ -379,7 +386,7 @@ def cadastrar_alunos_lote(dados: CadastrarAlunosLoteSchema, session = Depends(pe
 # já existente numa segunda turma sem depender de adivinhar o username certo
 # entre homônimos. Nunca devolve aluno que não tenha nenhuma turma em comum
 # com esse professor.
-@aluno_router.get("/professor/meus")
+@aluno_router.get("/professor/meus", dependencies=[Depends(admin_ou_professor)])
 def buscar_meus_alunos(busca: str = "", session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     termo = busca.strip()
     if not termo:
@@ -447,6 +454,7 @@ def primeiro_acesso(dados: PrimeiroAcessoSchema, session = Depends(pegar_sessao_
 
     if not bcrypt.checkpw(dados.senha_temporaria.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Senha temporária incorreta")
+    exigir_conta_ativa(usuario)
 
     if len(dados.emojis) != 3:
         raise HTTPException(status_code=400, detail="Escolha 3 emojis")
@@ -479,10 +487,7 @@ def resetar_senha_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), u
 
     # Antes qualquer professor gerava senha nova pra QUALQUER aluno (e com ela
     # podia entrar na conta da criança). Agora precisa ser aluno de turma sua.
-    turmas_do_aluno = session.query(Turma).join(AlunoTurma, AlunoTurma.turma_id == Turma.id).filter(
-        AlunoTurma.aluno_id == aluno.id,
-    ).all()
-    if not any(pode_gerenciar(session, usuario, turma) for turma in turmas_do_aluno):
+    if not _gerencia_aluno(session, usuario, aluno):
         raise HTTPException(status_code=401, detail="Esse aluno não está em nenhuma turma sua")
 
     usuario_aluno = session.query(Usuario).filter(Usuario.id == aluno.usuario_id).first()
@@ -696,7 +701,7 @@ def listar_minhas_sessoes(session = Depends(pegar_sessao_kivira), usuario: Usuar
 # e, por atividade, a situação, a primeira conclusão e as questões que ele errou
 # na primeira tentativa. O professor só enxerga o aluno se ele estiver
 # matriculado numa turma sua, e só as atividades dessas turmas.
-@aluno_router.get("/{id_aluno}/relatorio")
+@aluno_router.get("/{id_aluno}/relatorio", dependencies=[Depends(admin_ou_professor)])
 def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     aluno = session.query(Aluno).filter(Aluno.id == id_aluno).first()
     if not aluno:

@@ -16,7 +16,7 @@ function TrilhaPreview() {
       <div className="relative bg-branco p-6 rounded-3xl shadow-2xl border border-cinza-claro">
         <div className="flex items-center gap-2 mb-6 pb-3 border-b border-cinza-claro/60">
           <span className="w-2 h-2 rounded-full bg-coral"></span>
-          <span className="text-xs font-extrabold text-azul/60 uppercase tracking-wider">
+          <span className="text-xs font-extrabold text-azul/80 uppercase tracking-wider">
             Sua trilha
           </span>
         </div>
@@ -45,7 +45,7 @@ function TrilhaPreview() {
           {/* Fase atual, liberada */}
           <div className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: 140, left: "78%" }}>
             <div className="w-20 h-20 rounded-full bg-coral border-4 border-branco shadow-lg flex items-center justify-center animate__animated animate__pulse animate__infinite">
-              <Blocks size={30} className="text-branco" />
+              <Blocks size={30} className="text-azul-escuro" />
             </div>
           </div>
 
@@ -79,7 +79,7 @@ function TrilhaPreview() {
               <img src="/img/resultado.png" alt="" className="w-full h-full object-cover" />
             </div>
             <p className="text-[11px] font-extrabold text-azul leading-tight">Sons dos Animais</p>
-            <p className="text-[10px] text-azul/50 font-medium">🌿 Ciências</p>
+            <p className="text-[10px] text-azul/80 font-medium">🌿 Ciências</p>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@ const PASSOS = [
   },
   {
     Icone: Map,
-    cor: "bg-coral/10 text-coral",
+    cor: "bg-coral/10 text-coral-texto",
     titulo: "Avance na Trilha de Jogos",
     texto: "O aluno escolhe seu avatar e cumpre as missões encaixando as pecinhas no tabuleiro lúdico.",
   },
@@ -117,7 +117,7 @@ const RECURSOS_PROFESSOR = [
   },
   {
     Icone: BarChart3,
-    cor: "bg-coral/10 text-coral",
+    cor: "bg-coral/10 text-coral-texto",
     titulo: "Acompanhamento em Tempo Real",
     texto: "Veja o progresso da turma e a evolução na trilha.",
   },
@@ -184,7 +184,7 @@ export function Home() {
         <nav className="hidden sm:flex gap-3 items-center">
           <Link
             to="/login_aluno"
-            className="tatil bg-coral text-branco rounded-full px-6 py-2.5 text-sm font-bold"
+            className="tatil bg-coral text-azul-escuro rounded-full px-6 py-2.5 text-sm font-bold"
           >
             Sou aluno
           </Link>
@@ -203,7 +203,7 @@ export function Home() {
             type="button"
             onClick={() => setMenuEntrarAberto((v) => !v)}
             aria-expanded={menuEntrarAberto}
-            className="tatil bg-coral text-branco rounded-full pl-5 pr-4 py-2.5 text-sm font-bold inline-flex items-center gap-2"
+            className="tatil bg-coral text-azul-escuro rounded-full pl-5 pr-4 py-2.5 text-sm font-bold inline-flex items-center gap-2"
           >
             Entrar
             <LogIn size={18} />
@@ -217,12 +217,12 @@ export function Home() {
                   to="/login_aluno"
                   className="flex items-center gap-3 rounded-xl p-3 hover:bg-bege/60"
                 >
-                  <span className="w-10 h-10 rounded-xl bg-coral/15 text-coral flex items-center justify-center shrink-0">
+                  <span className="w-10 h-10 rounded-xl bg-coral/15 text-coral-texto flex items-center justify-center shrink-0">
                     <Smile size={22} />
                   </span>
                   <span>
                     <span className="block font-bold text-azul">Sou aluno</span>
-                    <span className="block text-xs text-azul/60">Entrar com meu usuário</span>
+                    <span className="block text-xs text-azul/80">Entrar com meu usuário</span>
                   </span>
                 </Link>
                 <Link
@@ -234,7 +234,7 @@ export function Home() {
                   </span>
                   <span>
                     <span className="block font-bold text-azul">Sou professor</span>
-                    <span className="block text-xs text-azul/60">E-mail e senha</span>
+                    <span className="block text-xs text-azul/80">E-mail e senha</span>
                   </span>
                 </Link>
               </div>
@@ -250,7 +250,7 @@ export function Home() {
           <div className="md:col-span-6 lg:col-span-7 flex flex-col items-start text-left">
             <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-azul mb-3">
               Aprender vira <br />
-              <span className="text-coral text-5xl sm:text-6xl lg:text-7xl underline decoration-laranja-claro decoration-dashed decoration-3">
+              <span className="text-coral [text-shadow:0_3px_0_var(--color-azul-escuro)] text-5xl sm:text-6xl lg:text-7xl">
                 diversão
               </span>
             </h1>
@@ -263,7 +263,7 @@ export function Home() {
             {/* CARD DE LOGIN DO ALUNO */}
             <div className="w-full max-w-md bg-branco p-5 sm:p-6 rounded-3xl shadow-xl border border-cinza-claro text-center">
               <h2 className="text-xl font-black text-azul">Entre na sua sala</h2>
-              <p className="text-sm text-azul/60 font-medium mt-1 mb-4">
+              <p className="text-sm text-azul/80 font-medium mt-1 mb-4">
                 Digite o código que seu professor passou
               </p>
 
@@ -285,7 +285,7 @@ export function Home() {
                       error
                         ? "border-red-500 focus:border-red-500"
                         : "border-cinza-claro focus:border-coral"
-                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/30 font-black tracking-widest text-center text-lg uppercase outline-none transition-all`}
+                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase outline-none transition-all`}
                   />
                   {error && (
                     <span className="flex items-center justify-center gap-2 bg-red-100 border border-red-200 text-red-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-center animate-bounce-short">
@@ -297,7 +297,7 @@ export function Home() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="tatil w-full bg-coral text-branco rounded-2xl py-3 font-bold text-base disabled:opacity-50"
+                  className="tatil w-full bg-coral text-azul-escuro rounded-2xl py-3 font-bold text-base disabled:opacity-50"
                 >
                   {isLoading ? "Validando código..." : "Entrar na Sala 🚀"}
                 </button>
@@ -306,10 +306,10 @@ export function Home() {
               {/* Pergunta e link em linhas próprias no celular: antes a seta
                   quebrava sozinha pra linha de baixo */}
               <div className="mt-4 pt-4 border-t border-cinza-claro flex flex-col sm:flex-row items-center justify-center gap-x-1.5 gap-y-1 text-sm font-semibold">
-                <span className="text-azul/60">Já entrou antes?</span>
+                <span className="text-azul/80">Já entrou antes?</span>
                 <Link
                   to="/login_aluno"
-                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral font-bold hover:underline"
+                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral-texto font-bold hover:underline"
                 >
                   Entrar com meu usuário
                   <ArrowRight size={16} />
@@ -328,7 +328,7 @@ export function Home() {
       {/* 3. SEÇÃO PASSO A PASSO */}
       <section className="bg-branco/50 py-16 border-t border-branco/30 backdrop-blur-sm z-10">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <span className="text-xs uppercase tracking-widest font-extrabold text-coral mb-2 block">
+          <span className="text-xs uppercase tracking-widest font-extrabold text-coral-texto mb-2 block">
             Passo a Passo
           </span>
           <h2 className="text-3xl font-black text-azul mb-12">
@@ -345,7 +345,7 @@ export function Home() {
                   <Icone size={26} strokeWidth={2.25} />
                 </div>
                 <h3 className="font-extrabold text-lg text-azul mb-2">{titulo}</h3>
-                <p className="text-sm text-azul/70 leading-relaxed font-medium">{texto}</p>
+                <p className="text-sm text-azul/80 leading-relaxed font-medium">{texto}</p>
               </div>
             ))}
           </div>
@@ -355,7 +355,7 @@ export function Home() {
       {/* 4. RECURSOS PARA O PROFESSOR */}
       <section className="py-16 z-10">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <span className="text-xs uppercase tracking-widest font-extrabold text-coral mb-2 block">
+          <span className="text-xs uppercase tracking-widest font-extrabold text-coral-texto mb-2 block">
             Pra quem ensina
           </span>
           <h2 className="text-3xl font-black text-azul mb-12">
@@ -372,7 +372,7 @@ export function Home() {
                   <Icone size={26} strokeWidth={2.25} />
                 </div>
                 <h3 className="font-extrabold text-lg text-azul mb-2">{titulo}</h3>
-                <p className="text-sm text-azul/70 leading-relaxed font-medium">{texto}</p>
+                <p className="text-sm text-azul/80 leading-relaxed font-medium">{texto}</p>
               </div>
             ))}
           </div>
@@ -380,7 +380,7 @@ export function Home() {
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
             <Link
               to="/cadastro"
-              className="tatil bg-coral text-branco rounded-full px-6 py-3 font-bold"
+              className="tatil bg-coral text-azul-escuro rounded-full px-6 py-3 font-bold"
             >
               Criar conta de professor
             </Link>
@@ -418,7 +418,7 @@ export function Home() {
       </section>
 
       {/* 6. FOOTER */}
-      <footer className="w-full py-8 text-center text-xs text-azul/60 font-semibold border-t border-cinza-claro/40 z-10">
+      <footer className="w-full py-8 text-center text-xs text-azul/80 font-semibold border-t border-cinza-claro/40 z-10">
         <div className="flex justify-center gap-4 mb-3">
           <span className="hover:text-azul cursor-default">Termos de Uso</span>
           <span>|</span>

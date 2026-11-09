@@ -13,7 +13,7 @@ const TOTAL_PERGUNTAS = PERGUNTAS.length + 1;
 // Número da pergunta: a mesma marca em todos os cartões dá ritmo à coluna.
 function Numero({ children }) {
   return (
-    <span className="shrink-0 w-7 h-7 mt-0.5 rounded-full bg-bege text-azul/70 text-xs font-black flex items-center justify-center">
+    <span className="shrink-0 w-7 h-7 mt-0.5 rounded-full bg-bege text-azul/80 text-xs font-black flex items-center justify-center">
       {children}
     </span>
   );
@@ -69,7 +69,7 @@ export function Feedback() {
             <Check size={28} />
           </div>
           <h2 className="text-xl font-extrabold text-azul">Feedback enviado</h2>
-          <p className="text-azul/70 text-sm mt-2">
+          <p className="text-azul/80 text-sm mt-2">
             Obrigado por contribuir com o Kivira.
           </p>
         </Entrada>
@@ -131,7 +131,7 @@ export function Feedback() {
                       quando a pessoa seleciona */}
                   <div className="h-7 flex items-center ml-10 mt-1">
                     {escolhida && (
-                      <span className="rounded-full bg-coral/10 text-coral text-xs font-bold px-3 py-1">
+                      <span className="rounded-full bg-coral/10 text-coral-texto text-xs font-bold px-3 py-1">
                         {pergunta.opcoes[escolhida - 1]}
                       </span>
                     )}
@@ -148,8 +148,8 @@ export function Feedback() {
                         key={valor}
                         className={`flex-1 min-h-11 rounded-xl flex items-center justify-center text-sm font-black cursor-pointer border transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-coral has-[:focus-visible]:ring-offset-2 ${
                           marcado
-                            ? "bg-coral text-branco border-coral shadow-sm"
-                            : "bg-bege/50 text-azul/45 border-transparent hover:bg-bege hover:text-azul/70"
+                            ? "bg-coral text-azul-escuro border-coral shadow-sm"
+                            : "bg-bege/50 text-azul/80 border-transparent hover:bg-bege hover:text-azul/80"
                         }`}
                       >
                         <input
@@ -171,7 +171,7 @@ export function Feedback() {
 
                 {/* Rótulos das pontas: é o que devolve a direção da escala, que
                     some quando as 5 opções ficam empilhadas na vertical */}
-                <div className="flex justify-between mt-2 text-[11px] font-semibold text-azul/40">
+                <div className="flex justify-between mt-2 text-[11px] font-semibold text-azul/80">
                   <span>{pergunta.opcoes[0]}</span>
                   <span>{pergunta.opcoes[pergunta.opcoes.length - 1]}</span>
                 </div>
@@ -196,7 +196,7 @@ export function Feedback() {
               maxLength={5000}
               rows={5}
               placeholder="Escreva aqui"
-              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/40 focus:outline-none focus:ring-2 focus:ring-coral resize-y"
+              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral resize-y"
             />
             </div>
           </Entrada>
@@ -208,10 +208,10 @@ export function Feedback() {
           <div className="cartao p-5 flex flex-col gap-4">
             <div>
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/50">
+                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Progresso
                 </span>
-                <span className="text-xs font-bold text-azul/50 tabular-nums">
+                <span className="text-xs font-bold text-azul/80 tabular-nums">
                   {respondidas} de {TOTAL_PERGUNTAS}
                 </span>
               </div>
@@ -230,7 +230,7 @@ export function Feedback() {
             </Button>
 
             {!completo && (
-              <p className="text-xs text-azul/50 font-medium text-center">
+              <p className="text-xs text-azul/80 font-medium text-center">
                 Responda todas para enviar.
               </p>
             )}

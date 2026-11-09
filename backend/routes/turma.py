@@ -10,7 +10,7 @@ from models.sessao_jogo import SessaoJogo
 from models.questao import Questao
 from models.feedback_aluno import FeedbackAluno
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
-from core.rbac import pode_gerenciar
+from core.rbac import pode_gerenciar, admin_ou_professor
 from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
@@ -18,7 +18,7 @@ from services.auditoria_service import registrar_log
 from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
 from services.sessao_jogo_service import nivel_por_xp
 
-turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(verificar_token_kivira)])
+turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(admin_ou_professor)])
 
 # Router separado e sem autenticação: o aluno ainda não tem token nesse ponto do fluxo
 # (ele está na Home informando o código da turma pela primeira vez).
@@ -264,32 +264,7 @@ def editar_turma(id_turma: int, turma_schema: TurmaUpdateSchema, session = Depen
 
     return {"mensagem": f"Turma '{turma.nome}' atualizada com sucesso"}
 
-# Faz a exclusão de uma turma a partir de um ID
-
-@turma_router.delete("/{id_turma}")
-def deletar_turma(id_turma: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
-    turma = session.query(Turma).filter(Turma.id == id_turma).first()
-    if not turma:
-        raise HTTPException(status_code=404, detail="Turma não encontrada")
-
-    if not pode_gerenciar(session, usuario, turma):
-        raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
-
-    nome_turma = turma.nome
-    id_turma_excluida = turma.id
-    session.delete(turma)
-    session.commit()
-
-    registrar_log(
-        session,
-        usuario,
-        acao="EXCLUIR_TURMA",
-        entidade="turma",
-        entidade_id=id_turma_excluida,
-        detalhes={"nome": nome_turma},
-    )
-
-    return {"mensagem": f"Turma '{nome_turma}' excluída com sucesso"}
+# Turma nunca é excluída, só desativada: PATCH /turma/{id} com {"ativo": false}
 
 # Relatório da turma como um todo: quanto da turma concluiu cada atividade, a
 # taxa de acerto de primeira, os alunos (com o desempenho de cada um) e as

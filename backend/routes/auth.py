@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from models.usuario import Usuario
 from models.aluno import Aluno
-from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from dependecies import pegar_sessao_kivira, verificar_token_kivira, verificar_token_2fa
 import bcrypt
 from sqlalchemy.orm import Session
-from schemas.auth import LoginSchema, LoginAlunoSchema
+from schemas.auth import LoginSchema, LoginAlunoSchema, CodigoDoisFatoresSchema
+from models.dois_fatores import DoisFatores
+from services.dois_fatores_service import novo_segredo, conferir_codigo
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from core.config import SECRET_KEY, ALGORITHM, PROFESSOR_TOKEN_EXPIRE_MINUTES, ALUNO_TOKEN_EXPIRE_MINUTES
@@ -37,7 +39,15 @@ def autenticar_usuario_kivira(email, senha, session):
         return False
     elif not bcrypt.checkpw(senha.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
         return False
+    exigir_conta_ativa(usuario)
     return usuario
+
+
+# Só avisa que a conta está desativada depois da senha certa: quem está chutando
+# senha não descobre o estado da conta.
+def exigir_conta_ativa(usuario):
+    if not usuario.ativo:
+        raise HTTPException(status_code=403, detail="Conta desativada. Fale com o professor ou com a administração da escola")
 
 
 # Tentativa de login que falhou também vira log: é o que mostra alguém tentando
@@ -60,6 +70,45 @@ def _registrar_falha_login(session, identificador, via, usuario=None, papel="pro
     )
 
 
+# 2FA do admin (TOTP, app autenticador)
+
+MINUTOS_TOKEN_2FA = 5
+
+
+def _conferir_e_auditar(session, usuario, registro, codigo):
+    try:
+        conferir_codigo(session, registro, codigo)
+    except HTTPException:
+        registrar_log(session, usuario, acao="LOGIN_2FA_FALHOU", entidade="usuario", entidade_id=usuario.id)
+        raise
+
+
+# Primeiro login do admin: gera o segredo e o QR pra escanear no app.
+# Depois de ativado não troca mais por aqui (senão a senha sozinha trocaria o 2FA).
+@kivira_auth_router.post("/2fa/configurar")
+def configurar_dois_fatores(session: Session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_2fa)):
+    registro = session.get(DoisFatores, usuario.id)
+    if registro and registro.ativo:
+        raise HTTPException(status_code=400, detail="O 2FA já está configurado")
+    return novo_segredo(session, usuario)
+
+
+@kivira_auth_router.post("/2fa/verificar")
+def verificar_dois_fatores(dados: CodigoDoisFatoresSchema, session: Session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_2fa)):
+    registro = session.get(DoisFatores, usuario.id)
+    ativando = bool(registro and not registro.ativo)
+    _conferir_e_auditar(session, usuario, registro, dados.codigo)
+    if ativando:
+        registrar_log(session, usuario, acao="ATIVAR_2FA", entidade="usuario", entidade_id=usuario.id)
+
+    registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"identificador": usuario.email, "via": "login"})
+    return {
+        "access_token": criar_token(usuario, extras={"mfa": True}),
+        "token_type": "Bearer",
+        "tipo_usuario": usuario.tipo,
+    }
+
+
 # Login
 
 
@@ -75,6 +124,14 @@ def login(
         raise HTTPException(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
+    elif usuario.tipo == "admin":
+        # Admin: a senha certa só dá um token de 5 min que serve pra configurar/confirmar o 2FA
+        registro = session.get(DoisFatores, usuario.id)
+        return {
+            "requer_2fa": True,
+            "configurado": bool(registro and registro.ativo),
+            "token_2fa": criar_token(usuario, minutos=MINUTOS_TOKEN_2FA, extras={"escopo": "2fa"}),
+        }
     else:
         access_token = criar_token(usuario)
 
@@ -104,7 +161,16 @@ def login_form(
             status_code=400, detail="Usuário não encontrado ou credenciais inválidas"
         )
     else:
-        access_token = criar_token(usuario)
+        extras = None
+        # Admin no Swagger: o código do app autenticador vai no campo client_secret
+        if usuario.tipo == "admin":
+            registro = session.get(DoisFatores, usuario.id)
+            if not registro or not registro.ativo:
+                raise HTTPException(status_code=403, detail="Configure o 2FA entrando pelo site antes de usar o Swagger")
+            _conferir_e_auditar(session, usuario, registro, dados_formulario.client_secret or "")
+            extras = {"mfa": True}
+
+        access_token = criar_token(usuario, extras=extras)
 
         registrar_log(session, usuario, acao="LOGIN", entidade="usuario", entidade_id=usuario.id, detalhes={"identificador": dados_formulario.username, "via": "login_form"})
 
@@ -124,6 +190,7 @@ def autenticar_aluno_kivira(username, senha, session):
         return False
     elif not bcrypt.checkpw(senha.encode("utf-8"), usuario.senha_hash.encode("utf-8")):
         return False
+    exigir_conta_ativa(usuario)
     return usuario
 
 

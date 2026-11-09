@@ -392,27 +392,41 @@ export function useTurmaForm() {
   const fecharSenhaResetada = () => setSenhaResetada(null);
   const fecharErroAcaoAluno = () => setErroAcaoAluno(null);
 
-  // Exclusão da turma. O banco cuida das dependências sozinho e de formas
-  // diferentes: `aluno_turma` é CASCADE (as matrículas somem, os alunos não),
-  // `atividade` e `sessao_jogo` são SET NULL (sobrevivem, só perdem o vínculo).
-  // Por isso a confirmação na tela pode dizer exatamente o que se perde.
-  const [modalExclusaoAberto, setModalExclusaoAberto] = useState(false);
-  const [excluindo, setExcluindo] = useState(false);
+  // Desativar/reativar a conta do aluno (conta nunca é apagada): desativado não
+  // entra mais no Kivira, mas continua na turma com histórico e XP
+  const [alternandoContaAlunoId, setAlternandoContaAlunoId] = useState(null);
 
-  const abrirExclusao = () => setModalExclusaoAberto(true);
-  const fecharExclusao = () => setModalExclusaoAberto(false);
+  const alternarContaAluno = async (aluno) => {
+    setAlternandoContaAlunoId(aluno.aluno_id);
+    try {
+      const { ativo } = await apiRequest(`/aluno/${aluno.aluno_id}/ativo`, {
+        method: "PATCH",
+        data: { ativo: !aluno.conta_ativa },
+      });
+      setAlunos((lista) => lista.map((a) => (a.aluno_id === aluno.aluno_id ? { ...a, conta_ativa: ativo } : a)));
+    } catch (erro) {
+      setErroAcaoAluno(erro.message || "Não foi possível alterar a conta do aluno.");
+    } finally {
+      setAlternandoContaAlunoId(null);
+    }
+  };
 
-  const excluirTurma = async () => {
-    setExcluindo(true);
+  // Turma nunca é excluída, só desativada/reativada. Vai pro banco na hora (como
+  // os alunos), sem passar pelo Salvar do formulário.
+  const [alternandoAtivo, setAlternandoAtivo] = useState(false);
+
+  const alternarAtivoTurma = async () => {
+    setAlternandoAtivo(true);
     setErro(null);
     try {
-      await apiRequest(`/turma/${id}`, { method: "DELETE" });
-      navigate("/professor/turmas");
+      const ativo = !formData.ativo;
+      await apiRequest(`/turma/${id}`, { method: "PATCH", data: { ativo } });
+      setFormData((atual) => ({ ...atual, ativo }));
+      setDadosOriginais((atual) => (atual ? { ...atual, ativo } : atual));
     } catch (err) {
-      setModalExclusaoAberto(false);
-      setErro(err.message || "Não foi possível excluir a turma");
+      setErro(err.message || "Não foi possível alterar a turma");
     } finally {
-      setExcluindo(false);
+      setAlternandoAtivo(false);
     }
   };
 
@@ -491,6 +505,8 @@ export function useTurmaForm() {
     resetandoSenhaAlunoId,
     senhaResetada,
     resetarSenhaAluno,
+    alternandoContaAlunoId,
+    alternarContaAluno,
     fecharSenhaResetada,
     erroAcaoAluno,
     fecharErroAcaoAluno,
@@ -499,10 +515,7 @@ export function useTurmaForm() {
     limparFilaImpressao,
     houveAlteracao,
     desfazerAlteracoes,
-    modalExclusaoAberto,
-    abrirExclusao,
-    fecharExclusao,
-    excluirTurma,
-    excluindo,
+    alternarAtivoTurma,
+    alternandoAtivo,
   };
 }

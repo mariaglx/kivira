@@ -1,6 +1,6 @@
 # Rota/End-point que o Front-end vai chamar necessitar de algo relacionado ao professor.
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from models.usuario import Usuario
 from models.professor import Professor
 from models.turma import Turma
@@ -8,6 +8,7 @@ from models.atividade import Atividade
 from models.aluno_turma import AlunoTurma
 from models.feedback import Feedback
 from dependecies import pegar_sessao_kivira, verificar_token_kivira
+from core.rbac import admin_ou_professor
 import bcrypt
 from sqlalchemy import func
 from schemas.professor import ProfessorSchema, ProfessorUpdateSchema, AlterarSenhaProfessorSchema
@@ -129,6 +130,7 @@ def resumo_dashboard_professor(
         },
         "metricas": {
             "total_turmas": len(turmas),
+            "total_turmas_ativas": sum(1 for turma in turmas if turma.ativo),
             "total_atividades": total_atividades,
             "total_alunos": total_alunos,
         },
@@ -172,7 +174,7 @@ def criar_conta(professor_schema: ProfessorSchema, session = Depends(pegar_sessa
 
 # Retorna os dados do professor. Selecionado pelo ID do professor
 
-@professor_router.get("/{id_professor}")
+@professor_router.get("/{id_professor}", dependencies=[Depends(admin_ou_professor)])
 def buscar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.id == id_professor).first()
     if not professor:
@@ -230,34 +232,30 @@ usuario: Usuario = Depends(verificar_token_kivira)):
     return {"mensagem": f"Professor '{professor.nome_completo}' atualizado com sucesso"}
 
 
-# Deleta o cadastro de um professor selecionado pelo ID
+# Conta de professor nunca é apagada (turmas, atividades e relatórios dependem
+# dela): só desativa ou reativa. Admin faz as duas coisas com qualquer professor;
+# o próprio professor só pode desativar a si mesmo — reativar é com o admin.
+# Admin não é desativado por aqui (professor promovido tem tipo "admin").
 
-@professor_router.delete("/{id_professor}")
-def deletar_professor(id_professor: int, session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
+@professor_router.patch("/{id_professor}/ativo", dependencies=[Depends(admin_ou_professor)])
+def alterar_ativo_professor(id_professor: int, ativo: bool = Body(embed=True), session = Depends(pegar_sessao_kivira), usuario: Usuario = Depends(verificar_token_kivira)):
     professor = session.query(Professor).filter(Professor.id == id_professor).first()
-    if not professor:
+    conta = session.query(Usuario).filter(Usuario.id == professor.usuario_id).first() if professor else None
+    if not conta or conta.tipo != "professor":
         raise HTTPException(status_code=404, detail="Professor não encontrado")
-    if usuario.tipo != "admin" and usuario.id != professor.usuario_id:
-        raise HTTPException(status_code=401, detail="Você não tem autorização para fazer essa operação!")
+    proprio = usuario.id == conta.id
+    if usuario.tipo != "admin" and not (proprio and not ativo):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para alterar essa conta")
 
-    nome_professor = professor.nome_completo
-    id_professor_excluido = professor.id
+    conta.ativo = ativo
+    session.commit()
 
-    # Loga ANTES de excluir o usuário: usuario_id do log referencia usuario.id,
-    # que some logo em seguida — se o próprio professor se excluir, o log
-    # precisa existir enquanto a FK ainda é válida (o ondelete="SET NULL" do
-    # model cuida de zerar essa referência depois, sem apagar o registro).
     registrar_log(
         session,
         usuario,
-        acao="EXCLUIR_PROFESSOR",
+        acao="REATIVAR_PROFESSOR" if ativo else "DESATIVAR_PROFESSOR",
         entidade="professor",
-        entidade_id=id_professor_excluido,
-        detalhes={"nome_completo": nome_professor},
+        entidade_id=professor.id,
+        detalhes={"nome_completo": professor.nome_completo},
     )
-
-    usuario_vinculado = session.query(Usuario).filter(Usuario.id == professor.usuario_id).first()
-    session.delete(usuario_vinculado)
-    session.commit()
-
-    return{"mensagem": f"Professor '{nome_professor}' excluído com sucesso"}
+    return {"mensagem": f"Conta de '{professor.nome_completo}' {'reativada' if ativo else 'desativada'}", "ativo": ativo}

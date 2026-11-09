@@ -32,17 +32,17 @@ export function Historico() {
 
         {sessoes.length === 0 ? (
           <div className="cartao p-6 sm:p-10 text-center">
-            <BookOpen size={40} className="mx-auto mb-3 text-azul/40" />
-            <p className="text-azul/70 font-semibold text-lg">
+            <BookOpen size={40} className="mx-auto mb-3 text-azul/80" />
+            <p className="text-azul/80 font-semibold text-lg">
               Ainda não dá pra ver as partidas antigas.
             </p>
-            <p className="text-azul/55 mt-2 mb-5">
+            <p className="text-azul/80 mt-2 mb-5">
               Quando você jogar, o Kivira vai guardar aqui os seus acertos, suas
               estrelas e o seu XP.
             </p>
             <Link
               to="/aluno/home"
-              className="tatil inline-flex items-center gap-2 bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
+              className="tatil inline-flex items-center gap-2 bg-coral text-azul-escuro rounded-2xl px-6 py-3 font-bold"
             >
               Jogar agora
               <Blocks size={18} />
@@ -60,10 +60,10 @@ export function Historico() {
                     {sessao.atividade_titulo || "Atividade removida"}
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[11px] font-bold text-azul/60 bg-bege px-2.5 py-1 rounded-md">
+                    <span className="text-[11px] font-bold text-azul/80 bg-bege px-2.5 py-1 rounded-md">
                       {DIFICULDADE_EMOJI[sessao.dificuldade]} {DIFICULDADE_LABEL[sessao.dificuldade] || sessao.dificuldade}
                     </span>
-                    <span className="text-xs text-azul/50 font-medium">
+                    <span className="text-xs text-azul/80 font-medium">
                       {formatarData(sessao.data_criacao)}
                     </span>
                   </div>

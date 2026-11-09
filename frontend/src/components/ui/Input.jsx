@@ -21,7 +21,7 @@ export function Input({
     <div className="relative w-full">
       <Icone
         size={16}
-        className="absolute inset-y-0 left-3 my-auto text-azul/40 pointer-events-none"
+        className="absolute inset-y-0 left-3 my-auto text-azul/80 pointer-events-none"
       />
       {campo}
     </div>

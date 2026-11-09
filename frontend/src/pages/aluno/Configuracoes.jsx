@@ -69,14 +69,14 @@ export function Configuracoes() {
               className="w-28 h-28 rounded-3xl text-4xl ring-4 ring-laranja"
             />
 
-            <p className="text-sm text-azul/60">
+            <p className="text-sm text-azul/80">
               É ele que aparece do seu lado e pros seus colegas.
             </p>
 
             <button
               type="button"
               onClick={() => setModalAvatarAberto(true)}
-              className="tatil bg-coral text-branco rounded-2xl px-6 py-3 font-bold"
+              className="tatil bg-coral text-azul-escuro rounded-2xl px-6 py-3 font-bold"
             >
               Trocar meu Bichinho ✨
             </button>
@@ -85,7 +85,7 @@ export function Configuracoes() {
           {/* ───────── B. Apelido ───────── */}
           <section className="bg-branco rounded-3xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10">
             <h2 className="text-lg font-extrabold">Como você quer ser chamado</h2>
-            <p className="text-sm text-azul/60">
+            <p className="text-sm text-azul/80">
               Esse é o nome que aparece no Kivira. Seu nome completo continua o
               mesmo.
             </p>
@@ -97,7 +97,7 @@ export function Configuracoes() {
               <div className="relative grow min-w-48">
                 <Pencil
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-azul/40 pointer-events-none"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-azul/80 pointer-events-none"
                 />
                 <input
                   type="text"
@@ -111,7 +111,7 @@ export function Configuracoes() {
               <button
                 type="submit"
                 disabled={salvandoApelido}
-                className="tatil bg-coral text-branco rounded-2xl px-6 py-3 font-bold disabled:cursor-not-allowed"
+                className="tatil bg-coral text-azul-escuro rounded-2xl px-6 py-3 font-bold disabled:cursor-not-allowed"
               >
                 {salvandoApelido ? "Salvando..." : "Salvar Nome"}
               </button>
@@ -131,7 +131,7 @@ export function Configuracoes() {
 
             {etapaSenha === 1 ? (
               <>
-                <p className="text-sm text-azul/60 mb-4 text-center font-semibold">
+                <p className="text-sm text-azul/80 mb-4 text-center font-semibold">
                   Etapa 1 de 2: Digite sua senha atual
                 </p>
                 <SeletorEmoji
@@ -142,7 +142,7 @@ export function Configuracoes() {
               </>
             ) : (
               <>
-                <p className="text-sm text-azul/60 mb-4 text-center font-semibold">
+                <p className="text-sm text-azul/80 mb-4 text-center font-semibold">
                   Etapa 2 de 2: Agora escolha sua NOVA senha de 3 emojis!
                 </p>
                 <SeletorEmoji
@@ -155,7 +155,7 @@ export function Configuracoes() {
                   <button
                     type="button"
                     onClick={voltarParaSenhaAtual}
-                    className="text-sm font-bold text-azul/50 hover:text-azul px-2"
+                    className="text-sm font-bold text-azul/80 hover:text-azul px-2"
                   >
                     ← Trocar senha de agora
                   </button>
@@ -163,7 +163,7 @@ export function Configuracoes() {
                     type="button"
                     disabled={senhaNova.length !== 3 || salvandoSenha}
                     onClick={salvarSenha}
-                    className="tatil flex-1 bg-coral text-branco rounded-2xl py-3 font-bold disabled:cursor-not-allowed"
+                    className="tatil flex-1 bg-coral text-azul-escuro rounded-2xl py-3 font-bold disabled:cursor-not-allowed"
                   >
                     {salvandoSenha ? "Trocando..." : "Trocar minha senha"}
                   </button>
@@ -173,7 +173,7 @@ export function Configuracoes() {
 
             <Aviso aviso={avisoSenha} />
 
-            <p className="text-sm text-azul/50 mt-4 text-center">
+            <p className="text-sm text-azul/80 mt-4 text-center">
               Esqueceu sua senha de emojis? Peça ajuda ao seu professor! 💡
             </p>
           </section>

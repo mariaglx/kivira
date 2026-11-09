@@ -52,25 +52,25 @@ export function LoginEmoji() {
             />
           ) : (
             // Quem acabou de fazer o primeiro acesso ainda não escolheu avatar
-            <div className="w-14 h-14 rounded-2xl bg-branco border-2 border-dashed border-cinza-claro flex items-center justify-center text-xl font-black text-azul/40 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-branco border-2 border-dashed border-cinza-claro flex items-center justify-center text-xl font-black text-azul/80 shrink-0">
               {username.charAt(0).toUpperCase()}
             </div>
           )}
 
           <div className="flex flex-col gap-0.5 min-w-0 grow">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/55">
+            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
               Entrando como
             </span>
             {/* Só o nome é truncado: o número precisa aparecer sempre */}
             <span className="flex min-w-0 text-xl font-extrabold text-azul leading-tight">
               <span className="truncate">{nomeBase}</span>
-              {sufixo && <span className="text-coral shrink-0">{sufixo}</span>}
+              {sufixo && <span className="text-coral-texto shrink-0">{sufixo}</span>}
             </span>
           </div>
 
           <Link
             to="/login_aluno"
-            className="flex items-center gap-1.5 bg-branco border border-cinza-claro rounded-xl px-3 min-h-11 shrink-0 text-sm font-bold text-azul hover:border-coral hover:text-coral transition"
+            className="flex items-center gap-1.5 bg-branco border border-cinza-claro rounded-xl px-3 min-h-11 shrink-0 text-sm font-bold text-azul hover:border-coral hover:text-coral-texto transition"
           >
             <User size={16} />
             Trocar

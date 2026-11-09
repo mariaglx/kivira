@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Eye } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { ehAdmin } from "../../services/sessao";
-import { useVerComoAluno } from "../../controllers/useVerComoAluno";
+import { useVerComo } from "../../controllers/useVerComo";
 import { Avatar } from "../../components/ui/Avatar";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Carregando } from "../../components/ui/Carregando";
@@ -20,7 +20,7 @@ function formatarData(valor) {
 function Metrica({ rotulo, valor }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-azul/40">{rotulo}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-azul/80">{rotulo}</span>
       <span className="text-sm font-semibold text-azul">{valor}</span>
     </div>
   );
@@ -29,14 +29,14 @@ function Metrica({ rotulo, valor }) {
 export function RelatorioAluno() {
   const { alunoId } = useParams();
   const navigate = useNavigate();
-  const { verComoAluno, abrindo, erro: erroVerComo } = useVerComoAluno();
+  const { verComo, abrindo, erro: erroVerComo } = useVerComo();
   const { dados: relatorio, erro, carregando } = useApi(`/aluno/${alunoId}/relatorio`);
 
   const voltar = (
     <button
       type="button"
       onClick={() => navigate(-1)}
-      className="text-sm text-azul/60 font-semibold flex items-center gap-1 w-fit"
+      className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit"
     >
       <ArrowLeft size={14} /> Voltar
     </button>
@@ -70,16 +70,16 @@ export function RelatorioAluno() {
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-azul truncate">{nome}</h1>
           {aluno.apelido && aluno.apelido !== aluno.nome_completo && (
-            <p className="text-sm text-azul/60 truncate">{aluno.nome_completo}</p>
+            <p className="text-sm text-azul/80 truncate">{aluno.nome_completo}</p>
           )}
           <div className="flex flex-wrap gap-1.5 mt-1">
             {aluno.matricula && (
-              <span className="text-[10px] font-bold text-azul/50 bg-cinza-claro px-2 py-0.5 rounded-md">
+              <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-2 py-0.5 rounded-md">
                 {aluno.matricula}
               </span>
             )}
             {aluno.turmas.map((turma) => (
-              <span key={turma} className="text-[10px] font-bold text-coral bg-coral/10 px-2 py-0.5 rounded-md">
+              <span key={turma} className="text-[10px] font-bold text-coral-texto bg-coral/10 px-2 py-0.5 rounded-md">
                 {turma}
               </span>
             ))}
@@ -89,17 +89,17 @@ export function RelatorioAluno() {
           <Button
             tamanho="sm"
             variante="secundario"
-            onClick={() => verComoAluno(aluno.id)}
-            disabled={abrindo === aluno.id}
+            onClick={() => verComo("aluno", aluno.id)}
+            disabled={abrindo === `aluno:${aluno.id}`}
             className="flex items-center gap-2 shrink-0"
           >
-            <Eye size={14} /> {abrindo === aluno.id ? "Abrindo..." : "Ver como aluno"}
+            <Eye size={14} /> {abrindo === `aluno:${aluno.id}` ? "Abrindo..." : "Ver como aluno"}
           </Button>
         )}
         <div className="w-full sm:w-56 shrink-0">
-          <p className="text-sm font-bold text-coral mb-1.5">Nível {progresso.nivel}</p>
+          <p className="text-sm font-bold text-coral-texto mb-1.5">Nível {progresso.nivel}</p>
           <BarraProgresso valor={progresso.xpNoNivel} max={progresso.xpDoNivel} />
-          <p className="text-xs text-azul/60 font-semibold mt-1">{aluno.xp_total} XP no total</p>
+          <p className="text-xs text-azul/80 font-semibold mt-1">{aluno.xp_total} XP no total</p>
         </div>
       </header>
 
@@ -127,7 +127,7 @@ export function RelatorioAluno() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-bold text-azul break-words">{a.titulo}</h3>
-                    <p className="text-xs text-azul/50 font-medium">
+                    <p className="text-xs text-azul/80 font-medium">
                       {[a.disciplina, a.turma_nome, formatarData(a.ultima_vez)].filter(Boolean).join(" · ")}
                     </p>
                   </div>
@@ -151,7 +151,7 @@ export function RelatorioAluno() {
                     <span className="text-xs font-bold text-red-500">Errou de primeira</span>
                     {a.questoes_erradas.map((q) => (
                       <p key={q.ordem} className="text-sm text-azul break-words">
-                        <span className="font-bold text-azul/40 mr-1.5">{q.ordem}.</span>
+                        <span className="font-bold text-azul/80 mr-1.5">{q.ordem}.</span>
                         {q.texto_questao}
                       </p>
                     ))}

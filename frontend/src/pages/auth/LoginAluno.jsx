@@ -65,7 +65,7 @@ export function LoginAluno() {
             {turmaNome ? "Entrar na turma" : "Entrar no Kivira"}
           </h2>
           {turmaNome && (
-            <p className="text-sm text-azul/60 font-semibold">{turmaNome}</p>
+            <p className="text-sm text-azul/80 font-semibold">{turmaNome}</p>
           )}
         </div>
 
