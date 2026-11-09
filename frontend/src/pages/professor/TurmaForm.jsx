@@ -379,11 +379,11 @@ export function TurmaForm() {
                   ela não aparece como borda — só abre 1px do bg-branco do card
                   entre a sombra e o cabeçalho pêssego, virando um fio branco */}
               <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-laranja/20 px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Alunos ({alunos.length})
                   </h3>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {filaImpressao.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Button variante="fantasma" tamanho="sm" onClick={limparFilaImpressao}>
@@ -450,7 +450,7 @@ export function TurmaForm() {
                             disabled={alternandoContaAlunoId === aluno.aluno_id}
                             aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
                             title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
-                            className={`${aluno.conta_ativa === false ? "" : "opacity-0"} group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0`}
+                            className={`${aluno.conta_ativa === false ? "" : "[@media(hover:hover)]:opacity-0"} group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0`}
                           >
                             {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
                           </button>
@@ -462,7 +462,7 @@ export function TurmaForm() {
                             aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -475,7 +475,7 @@ export function TurmaForm() {
                             disabled={removendoMatriculaId === aluno.matricula_id}
                             aria-label="Remover aluno da turma"
                             title="Remover da turma"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-azul/30 hover:text-red-500 w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-azul/60 hover:text-vermelho w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
                           >
                             ×
                           </button>

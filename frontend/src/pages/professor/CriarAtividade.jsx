@@ -682,7 +682,7 @@ export function CriarAtividade() {
                       onClick={() =>
                         setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
                       }
-                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                     >
                       <X size={16} />
                     </button>
@@ -748,17 +748,12 @@ export function CriarAtividade() {
                   </span>
                 </button>
               ) : (
-                <div className="relative group">
-                  <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
-                    <span className="font-mono font-extrabold tracking-widest text-sm">
-                      ••••••••
-                    </span>
-                    <span className="text-xs font-bold">Copiar</span>
-                  </div>
-                  <div className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover:block whitespace-nowrap rounded-lg bg-azul text-branco text-xs font-medium px-3 py-2 shadow-lg z-10">
-                    Salve a atividade pra gerar o código
-                    <div className="absolute top-full left-4 w-0 h-0 border-4 border-transparent border-t-azul"></div>
-                  </div>
+                <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
+                  <span className="font-mono font-extrabold tracking-widest text-sm">
+                    ••••••••
+                  </span>
+                  {/* Texto fixo em vez de tooltip: tooltip não aparece no toque */}
+                  <span className="text-xs font-bold text-azul/75">Gerado ao salvar</span>
                 </div>
               )}
             </div>
@@ -891,7 +886,7 @@ export function CriarAtividade() {
                   </Button>
                 </>
               ) : (
-              <div className="relative group">
+              <div>
                 {idAtividadeCriada ? (
                   <Button
                     as={Link}
@@ -922,15 +917,8 @@ export function CriarAtividade() {
                     >
                       <path d="M4 2.5v11l10-5.5-10-5.5z" />
                     </svg>
-                    Pré-visualizar atividade
+                    Salve para pré-visualizar
                   </button>
-                )}
-
-                {!idAtividadeCriada && (
-                  <div className="pointer-events-none absolute top-full right-0 mt-2 hidden group-hover:block whitespace-nowrap rounded-lg bg-azul text-branco text-xs font-medium px-3 py-2 shadow-lg z-10">
-                    Para pré-visualizar é necessário salvar a atividade primeiro
-                    <div className="absolute bottom-full right-4 w-0 h-0 border-4 border-transparent border-b-azul"></div>
-                  </div>
                 )}
               </div>
               )}
