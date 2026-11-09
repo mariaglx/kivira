@@ -101,6 +101,24 @@
   h1, h2, h3 {
     font-family: var(--font-display);
   }
+
+  /* Foco do teclado (Tab), igual no app todo: borda azul de 2px colada no
+     elemento (botão, link, campo), seguindo o arredondamento dele, mais um
+     halo coral suave em volta (o mesmo que os campos tinham). Só aparece no
+     teclado: clique de mouse em botão não mostra. O halo vai em --anel pra
+     somar com a sombra do .tatil e dos shadow-* do Tailwind em vez de sumir. */
+  :focus-visible {
+    outline: 2px solid var(--color-azul);
+    outline-offset: 0;
+    --anel: 0 0 0 3px color-mix(in srgb, var(--color-coral) 45%, transparent),
+      0 0 12px 3px color-mix(in srgb, var(--color-coral) 40%, transparent);
+    --tw-ring-shadow: var(--anel);
+    box-shadow: var(--anel);
+  }
+  /* Em fundo azul (menu do professor/admin) o azul sumiria */
+  .bg-azul :focus-visible {
+    outline-color: var(--color-laranja-claro);
+  }
 }
 
 /* Botão "tátil": sombra sólida embaixo que afunda ao clicar. A cor da sombra
@@ -108,21 +126,20 @@
    `components` pra os utilitários do Tailwind (disabled:, hover:) poderem vencer. */
 @layer components {
   .tatil {
-    box-shadow: 0 4px 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 4px 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
     transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
   }
   .tatil:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 6px 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
   }
   .tatil:active:not(:disabled) {
     transform: translateY(4px);
-    box-shadow: 0 0 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 0 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
   }
   .tatil:disabled {
     box-shadow: none;
   }
-
   /* Área de conteúdo de toda página com menu (aluno, professor, admin): o
      respiro lateral cresce com a tela em vez de um p-8 fixo que espremia o
      conteúdo no celular. Ver DESIGN_SYSTEM.md. */

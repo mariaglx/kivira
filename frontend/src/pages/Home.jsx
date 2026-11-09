@@ -286,8 +286,8 @@ export function Home() {
                     className={`w-full bg-bege/40 border-2 ${
                       error
                         ? "border-vermelho focus:border-vermelho"
-                        : "border-cinza-claro focus:border-coral"
-                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase outline-none transition-all`}
+                        : "border-cinza-claro"
+                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase transition-all`}
                   />
                   {error && (
                     <span id="erro-codigo-turma" role="alert" className="alert alert-error alert-soft rounded-xl justify-center text-center text-sm font-bold animate-bounce-short">

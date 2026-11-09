@@ -78,10 +78,10 @@ export function LoginAluno() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="campo-insira-seu-nome-de-usuario" className="text-start text-gray-600 text-base font-medium">
               Insira seu nome de usuário
             </label>
-            <Input
+            <Input id="campo-insira-seu-nome-de-usuario"
               type="text"
               placeholder="Ex: joao.silva"
               value={username}

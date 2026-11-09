@@ -100,7 +100,7 @@ export function Modal({ aberto, onFechar, children, className = "max-w-sm" }) {
         onFechar?.();
       }}
     >
-      {/* outline-none: quando o conteúdo rola, o Chrome foca a própria caixa ao
+      {/*: quando o conteúdo rola, o Chrome foca a própria caixa ao
           abrir e desenhava um contorno preto nela. Os campos de dentro mantêm o anel */}
       <div className={`modal-box bg-branco text-azul rounded-3xl shadow-xl p-6 outline-none ${className}`}>
         {aberto ? children : ultimoConteudo}

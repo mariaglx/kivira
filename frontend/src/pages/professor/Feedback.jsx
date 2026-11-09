@@ -197,7 +197,7 @@ export function Feedback() {
               maxLength={5000}
               rows={5}
               placeholder="Escreva aqui"
-              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral resize-y"
+              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 resize-y"
             />
             </div>
           </Entrada>

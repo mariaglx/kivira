@@ -42,6 +42,7 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 
 - Raios: campos/botões `rounded-xl`, cards `rounded-2xl`/`rounded-3xl`, abas e badges `rounded-full`.
 - Sombra: `shadow-sm` em cards; `shadow-xl` só em modais/popovers.
+- **Foco do teclado**: regra única no `index.css` (`:focus-visible`), borda azul de 2px colada no elemento (laranja-claro dentro de `.bg-azul`) + brilho coral suave em volta (`--anel`, que soma com a sombra do `.tatil`). Não use `outline-none` nem `focus:ring-*`/`focus:border-*` pra substituir — só a borda vermelha de campo com erro.
 - **Botão tátil** (`.tatil`): sombra sólida embaixo que afunda ao clicar. Cor da sombra via `[--sombra:var(--color-azul-escuro)]`. Padrão de todo botão de ação no aluno e no jogo.
 
 ## Classes de componente (`@layer components`)
@@ -58,7 +59,7 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 ## Componentes (`src/components/ui/`)
 
 - `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
-- `Input` — campo de texto padrão (`icone` opcional à esquerda).
+- `Input` — campo de texto padrão (`icone` opcional à esquerda). Todo campo tem rótulo ligado: `<label htmlFor="x">` + `id="x"` no campo (em lista, inclua o id do item), ou o `<label>` envolvendo o campo. Texto que não rotula campo nenhum é `<span className="rotulo">`, não `<label>`.
 - `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
 - `Alerta` — **todo** aviso de erro: `alert alert-error alert-soft` do daisyUI com `role="alert"` (o leitor de tela anuncia). Erro de um campo específico: `aria-invalid` no campo + `aria-describedby` apontando pro `id` da mensagem. Não use `text-red-*`/`bg-red-*` do Tailwind.
 - `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.

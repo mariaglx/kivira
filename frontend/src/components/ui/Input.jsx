@@ -10,7 +10,7 @@ export function Input({
     <input
       type={type}
       placeholder={placeholder}
-      className={`border border-cinza-claro rounded-xl p-3 outline-none focus:border-azul focus:ring-2 focus:ring-coral/20 transition ${
+      className={`border border-cinza-claro rounded-xl p-3 transition ${
         Icone ? "w-full pl-9" : ""
       } ${className}`}
       {...props}

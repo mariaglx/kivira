@@ -52,10 +52,10 @@ export function PrimeiroAcesso() {
 
         <form onSubmit={confirmar} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
-            <label className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="campo-senha-temporaria-dada-pelo-professor" className="text-start text-gray-600 text-base font-medium">
               Senha temporária (dada pelo professor)
             </label>
-            <Input
+            <Input id="campo-senha-temporaria-dada-pelo-professor"
               type="password"
               placeholder="Senha temporária"
               value={senhaTemporaria}
@@ -66,9 +66,9 @@ export function PrimeiroAcesso() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-start text-gray-600 text-base font-medium">
+            <span className="text-start text-gray-600 text-base font-medium">
               Escolha 3 emojis pra sua nova senha
-            </label>
+            </span>
             <SeletorEmoji selecionados={emojis} onAlternar={alternarEmoji} />
           </div>
 

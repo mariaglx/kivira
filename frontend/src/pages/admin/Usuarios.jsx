@@ -129,7 +129,7 @@ export function Usuarios() {
             placeholder="Buscar por nome, login ou turma..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
           />
         </div>
 
@@ -281,7 +281,7 @@ export function Usuarios() {
               placeholder="000000"
               value={codigo2fa}
               onChange={(e) => setCodigo2fa(e.target.value.replace(/\D/g, ""))}
-              className="w-full mb-5 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50"
+              className="w-full mb-5 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-center tracking-[0.4em]"
             />
 
             {erroPromocao && (

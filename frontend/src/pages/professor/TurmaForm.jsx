@@ -284,10 +284,10 @@ export function TurmaForm() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-nome-da-turma" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Nome da turma
               </label>
-              <Input
+              <Input id="campo-nome-da-turma"
                 type="text"
                 name="nome"
                 value={formData.nome}
@@ -300,10 +300,10 @@ export function TurmaForm() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-escolar" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Ano escolar
                 </label>
-                <Input
+                <Input id="campo-ano-escolar"
                   type="text"
                   name="ano_escolar"
                   value={formData.ano_escolar}
@@ -315,10 +315,10 @@ export function TurmaForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-letivo" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                   Ano letivo
                 </label>
-                <Input
+                <Input id="campo-ano-letivo"
                   type="number"
                   name="ano_letivo"
                   value={formData.ano_letivo}
@@ -330,16 +330,16 @@ export function TurmaForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-descricao" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Descrição
               </label>
-              <textarea
+              <textarea id="campo-descricao"
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Uma breve descrição da turma (opcional)"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm resize-none"
               />
             </div>
 
@@ -348,9 +348,9 @@ export function TurmaForm() {
                 <hr className="m-0 border-t border-cinza-claro/60" />
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
                     Código de acesso
-                  </label>
+                  </span>
                   <button
                     type="button"
                     onClick={() => copiar(codigoAcesso, "codigoAcesso")}
@@ -394,12 +394,15 @@ export function TurmaForm() {
                         </Button>
                       </div>
                     )}
+                    {/* Contorno (fundo branco) como o "Imprimir Turma": o ouro-bg
+                        se confundia com o bege da faixa no desktop */}
                     <Button
+                      variante="contorno"
                       tamanho="sm"
                       onClick={() => setRankingAberto(true)}
-                      className="gap-1 bg-ouro-bg text-ouro-fg-escuro [--sombra:var(--color-ouro-fg)]"
+                      className="gap-1"
                     >
-                      <StarIcon size={13} isAnimated={false} />
+                      <StarIcon size={13} isAnimated={false} className="text-ouro-fg" />
                       Ver ranking
                     </Button>
                     <Button tamanho="sm" onClick={abrirModalAluno}>
@@ -761,10 +764,10 @@ export function TurmaForm() {
             {abaModalAluno === "existente" && (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-buscar-por-nome-ou-matricula" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                     Buscar por nome ou matrícula
                   </label>
-                  <Input
+                  <Input id="campo-buscar-por-nome-ou-matricula"
                     type="text"
                     value={buscaAlunoExistente}
                     onChange={(e) => setBuscaAlunoExistente(e.target.value)}

@@ -371,11 +371,11 @@ export function Configuracoes() {
 
             <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-nome-completo" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <User size={14} className="text-coral-texto" />
                   Nome completo
                 </label>
-                <Input
+                <Input id="campo-nome-completo"
                   type="text"
                   name="nome_completo"
                   className="w-full"
@@ -384,11 +384,11 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-apelido" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <Sparkles size={14} className="text-coral-texto" />
                   Apelido
                 </label>
-                <Input
+                <Input id="campo-apelido"
                   type="text"
                   name="apelido"
                   className="w-full"
@@ -400,11 +400,11 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-onde-voce-da-aula" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <MapPin size={14} className="text-coral-texto" />
                   Onde você dá aula
                 </label>
-                <Input
+                <Input id="campo-onde-voce-da-aula"
                   type="text"
                   name="escola"
                   className="w-full"
@@ -413,14 +413,14 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-conte-um-pouco-de-voce" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <MessageSquare size={14} className="text-coral-texto" />
                   Conte um pouco de você
                 </label>
-                <textarea
+                <textarea id="campo-conte-um-pouco-de-voce"
                   name="biografia"
                   rows={4}
-                  className="textarea w-full rounded-xl border-cinza-claro focus:border-azul"
+                  className="textarea w-full rounded-xl border-cinza-claro"
                   defaultValue={professor.biografia}
                 />
               </div>
@@ -449,11 +449,11 @@ export function Configuracoes() {
               )}
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-e-mail-da-conta" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <Mail size={14} className="text-coral-texto" />
                   E-mail da conta
                 </label>
-                <Input
+                <Input id="campo-e-mail-da-conta"
                   type="text"
                   className="w-full"
                   defaultValue={professor.email}
@@ -465,11 +465,11 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-senha-atual" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                   <Lock size={14} className="text-coral-texto" />
                   Senha atual
                 </label>
-                <Input
+                <Input id="campo-senha-atual"
                   type="password"
                   name="senha_atual"
                   required
@@ -480,11 +480,11 @@ export function Configuracoes() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-senha-nova" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                     <Key size={14} className="text-coral-texto" />
                     Senha nova
                   </label>
-                  <Input
+                  <Input id="campo-senha-nova"
                     type="password"
                     name="senha_nova"
                     required
@@ -495,11 +495,11 @@ export function Configuracoes() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-repita-a-senha-nova" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
                     <Check size={14} className="text-coral-texto" />
                     Repita a senha nova
                   </label>
-                  <Input
+                  <Input id="campo-repita-a-senha-nova"
                     type="password"
                     name="confirmar_senha"
                     required
@@ -530,14 +530,14 @@ export function Configuracoes() {
             </p>
 
             <div className="flex flex-col gap-2 mt-5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-digite-para-confirmar" className="text-xs font-bold uppercase tracking-wider text-azul/80">
                 Digite{" "}
                 <span className="text-vermelho">
                   "{FRASE_CONFIRMACAO_DESATIVACAO}"
                 </span>{" "}
                 para confirmar
               </label>
-              <Input
+              <Input id="campo-digite-para-confirmar"
                 type="text"
                 autoFocus
                 value={textoConfirmacaoDesativacao}
