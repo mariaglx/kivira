@@ -121,7 +121,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
                       title={sub.rotulo}
                       onClick={fechar}
                       className={({ isActive }) =>
-                        `px-3 py-2 rounded-lg text-sm truncate transition ${
+                        `px-3 py-3 rounded-lg text-sm truncate transition ${
                           isActive ? "bg-branco/10 text-laranja font-bold" : "text-cinza-claro/80 hover:text-branco hover:bg-branco/5"
                         }`
                       }
@@ -137,15 +137,15 @@ export function SidebarPainel({ titulo, itens, usuario }) {
         </div>
 
         <div className="pt-4 border-t border-branco/15 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar arquivo={usuario.avatar} nome={usuario.nome} className="w-10 h-10 rounded-xl shadow-sm" />
-            <div className="overflow-hidden">
+            <div className="min-w-0">
               <p className="text-sm font-semibold truncate text-branco">{usuario.nome}</p>
               {usuario.perfilUrl && (
                 <Link
                   to={usuario.perfilUrl}
                   onClick={fechar}
-                  className="text-xs text-laranja hover:underline"
+                  className="alvo-toque text-xs text-laranja hover:underline"
                 >
                   Ver perfil &rarr;
                 </Link>
@@ -155,7 +155,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
           <button
             type="button"
             onClick={sair}
-            className="text-xs text-laranja hover:underline shrink-0"
+            className="alvo-toque text-xs text-laranja hover:underline shrink-0"
           >
             Sair
           </button>

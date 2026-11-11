@@ -311,7 +311,7 @@ export function Home() {
                 <span className="text-azul/80">Já entrou antes?</span>
                 <Link
                   to="/login_aluno"
-                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral-texto font-bold hover:underline"
+                  className="alvo-toque inline-flex items-center gap-1 whitespace-nowrap text-coral-texto font-bold hover:underline"
                 >
                   Entrar com meu usuário
                   <ArrowRight size={16} />

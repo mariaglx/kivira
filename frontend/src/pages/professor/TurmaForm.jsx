@@ -206,7 +206,7 @@ export function TurmaForm() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/turmas"
-            className="text-azul/80 hover:text-azul text-sm font-bold"
+            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Turmas
           </Link>
@@ -430,7 +430,7 @@ export function TurmaForm() {
                             />
                           )}
                           <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral-texto hover:underline underline-offset-2">
+                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate py-3 -my-3 hover:text-coral-texto hover:underline underline-offset-2">
                               {aluno.apelido || aluno.nome_completo}
                             </Link>
                             {aluno.matricula && (
@@ -450,7 +450,7 @@ export function TurmaForm() {
                             disabled={alternandoContaAlunoId === aluno.aluno_id}
                             aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
                             title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
-                            className={`${aluno.conta_ativa === false ? "" : "[@media(hover:hover)]:opacity-0"} group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0`}
+                            className={`${aluno.conta_ativa === false ? "" : "[@media(hover:hover)]:opacity-0"} group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0`}
                           >
                             {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
                           </button>
@@ -462,7 +462,7 @@ export function TurmaForm() {
                             aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -475,7 +475,7 @@ export function TurmaForm() {
                             disabled={removendoMatriculaId === aluno.matricula_id}
                             aria-label="Remover aluno da turma"
                             title="Remover da turma"
-                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-azul/60 hover:text-vermelho w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-azul/60 hover:text-vermelho alvo-toque w-8 h-8 flex items-center justify-center text-lg leading-none shrink-0"
                           >
                             ×
                           </button>

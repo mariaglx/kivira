@@ -87,7 +87,7 @@ function LinhaLog({ log }) {
             <button
               type="button"
               onClick={() => setAberto((v) => !v)}
-              className="text-xs font-bold text-coral-texto flex items-center gap-1"
+              className="alvo-toque text-xs font-bold text-coral-texto flex items-center gap-1"
               aria-expanded={aberto}
             >
               Detalhes <ChevronDown size={14} className={`transition-transform ${aberto ? "rotate-180" : ""}`} />
@@ -209,7 +209,7 @@ export function LogsAuditoria() {
           </label>
         </div>
         {temFiltro && (
-          <button type="button" onClick={limparFiltros} className="text-xs font-bold text-coral-texto w-fit">
+          <button type="button" onClick={limparFiltros} className="alvo-toque text-xs font-bold text-coral-texto w-fit">
             Limpar filtros
           </button>
         )}

@@ -556,7 +556,7 @@ export function CriarAtividade() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
-            className="text-azul/80 hover:text-azul text-sm font-bold"
+            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Atividades
           </Link>

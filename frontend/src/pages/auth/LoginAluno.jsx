@@ -100,7 +100,7 @@ export function LoginAluno() {
                 primeira entrada é pelo código da turma (card da Home) */}
             <p className="text-center text-gray-600 text-base">
               Primeira vez?{" "}
-              <Link to="/" className="text-azul font-bold hover:underline">
+              <Link to="/" className="alvo-toque text-azul font-bold hover:underline">
                 Entre com o código da turma
               </Link>
             </p>

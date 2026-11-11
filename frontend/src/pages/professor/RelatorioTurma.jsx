@@ -242,7 +242,7 @@ export function RelatorioTurma() {
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-2">
-        <Link to="/professor/turmas" className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
+        <Link to="/professor/turmas" className="alvo-toque text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
           <ArrowLeft size={14} /> Turmas
         </Link>
         <div className="flex flex-wrap justify-between items-start gap-3">

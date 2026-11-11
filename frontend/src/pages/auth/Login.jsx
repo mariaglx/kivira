@@ -130,13 +130,13 @@ export function Login() {
             </p>
             <p className="text-gray-600">
               Não tem conta?{" "}
-              <Link to="/cadastro" className="text-azul font-bold hover:underline">
+              <Link to="/cadastro" className="alvo-toque text-azul font-bold hover:underline">
                 Criar conta
               </Link>
             </p>
             <p className="text-gray-600">
               É aluno?{" "}
-              <Link to="/login_aluno" className="text-coral-texto font-bold hover:underline">
+              <Link to="/login_aluno" className="alvo-toque text-coral-texto font-bold hover:underline">
                 Entrar por aqui
               </Link>
             </p>

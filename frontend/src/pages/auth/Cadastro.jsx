@@ -119,7 +119,7 @@ export function Cadastro() {
 
         <p className="text-center text-gray-600 text-sm mt-4">
           Já tem conta?{" "}
-          <Link to="/login" className="text-azul font-semibold">
+          <Link to="/login" className="alvo-toque text-azul font-semibold">
             Entrar
           </Link>
         </p>

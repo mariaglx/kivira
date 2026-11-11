@@ -128,7 +128,7 @@ export function Dashboard() {
             </h3>
             <Link
               to="/professor/turmas"
-              className="text-sm font-semibold text-coral-texto hover:underline"
+              className="alvo-toque text-sm font-semibold text-coral-texto hover:underline"
             >
               Ver todas &rarr;
             </Link>

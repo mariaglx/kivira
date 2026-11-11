@@ -13,8 +13,8 @@ const VARIANTES = {
 
 const TAMANHOS = {
   md: "rounded-xl p-3 font-semibold",
-  sm: "rounded-xl px-3 py-1.5 min-h-9 text-xs font-bold",
-  icone: "rounded-full w-9 h-9 p-0 font-bold",
+  sm: "alvo-toque rounded-xl px-3 py-1.5 min-h-9 text-xs font-bold",
+  icone: "alvo-toque rounded-full w-9 h-9 p-0 font-bold",
 };
 
 // `as` troca a tag (ex: as={Link} to="...") pra links com cara de botão.

@@ -155,7 +155,7 @@ export function Configuracoes() {
                   <button
                     type="button"
                     onClick={voltarParaSenhaAtual}
-                    className="text-sm font-bold text-azul/80 hover:text-azul px-2"
+                    className="alvo-toque text-sm font-bold text-azul/80 hover:text-azul px-2"
                   >
                     ← Trocar senha de agora
                   </button>

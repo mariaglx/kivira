@@ -40,7 +40,7 @@ export function TurmaDetalhe() {
           <header className="flex items-center gap-3">
             <Link
               to="/aluno/turmas"
-              className="text-azul/80 hover:text-azul text-sm font-bold"
+              className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
             >
               ← Turmas
             </Link>

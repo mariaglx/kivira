@@ -51,7 +51,7 @@ export function HeaderAluno({ aluno }) {
             to={to}
             aria-label={rotulo}
             className={({ isActive }) =>
-              `shrink-0 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] sm:text-sm font-bold transition-colors ${
+              `shrink-0 min-h-11 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] sm:text-sm font-bold transition-colors ${
                 isActive
                   ? "bg-coral text-azul-escuro"
                   : "text-azul/80 hover:bg-bege sm:bg-bege/70"
@@ -91,6 +91,7 @@ export function HeaderAluno({ aluno }) {
             type="button"
             onClick={() => setMenuAberto((v) => !v)}
             aria-label="Abrir menu do perfil"
+            className="alvo-toque rounded-xl"
           >
             <Avatar
               arquivo={aluno?.avatar_url}

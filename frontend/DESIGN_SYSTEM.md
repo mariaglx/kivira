@@ -44,6 +44,7 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 - Sombra: `shadow-sm` em cards; `shadow-xl` só em modais/popovers.
 - **Foco do teclado**: regra única no `index.css` (`:focus-visible`), borda azul de 2px colada no elemento (laranja-claro dentro de `.bg-azul`) + brilho coral suave em volta (`--anel`, que soma com a sombra do `.tatil`). Não use `outline-none` nem `focus:ring-*`/`focus:border-*` pra substituir — só a borda vermelha de campo com erro.
 - **Botão tátil** (`.tatil`): sombra sólida embaixo que afunda ao clicar. Cor da sombra via `[--sombra:var(--color-azul-escuro)]`. Padrão de todo botão de ação no aluno e no jogo.
+- **Área de toque** (`.alvo-toque`): todo botão ou link menor que 44×44 (ícone, `Button` sm/icone, link de texto como "← Voltar") ganha essa classe — um `::after` invisível amplia a área clicável sem mudar o visual. O `Button` sm/icone já inclui.
 
 ## Classes de componente (`@layer components`)
 

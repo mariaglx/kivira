@@ -52,7 +52,7 @@ export function Turmas() {
       <main className="pagina flex flex-col gap-6 lg:gap-8">
         <header className="flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
-          <Button onClick={() => navigate("/professor/turmas/nova")} className="px-5 py-2 text-sm">
+          <Button onClick={() => navigate("/professor/turmas/nova")} className="px-5 py-2 min-h-11 text-sm">
             + Nova Turma
           </Button>
         </header>

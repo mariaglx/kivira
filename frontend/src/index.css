@@ -140,6 +140,22 @@
   .tatil:disabled {
     box-shadow: none;
   }
+  /* Área de toque mínima de 44x44 sem mudar o tamanho visível: um ::after
+     invisível centralizado no elemento recebe o clique/toque. Pra botões e
+     links pequenos (ícones, botões sm, "Sair"). Ver DESIGN_SYSTEM.md. */
+  .alvo-toque {
+    position: relative;
+  }
+  .alvo-toque::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
   /* Área de conteúdo de toda página com menu (aluno, professor, admin): o
      respiro lateral cresce com a tela em vez de um p-8 fixo que espremia o
      conteúdo no celular. Ver DESIGN_SYSTEM.md. */

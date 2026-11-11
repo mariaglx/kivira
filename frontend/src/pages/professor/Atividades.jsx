@@ -101,7 +101,7 @@ export function Atividades() {
             <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
               {dataHoje}
             </div>
-            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 text-sm">
+            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 min-h-11 text-sm">
               + Nova Atividade
             </Button>
           </div>

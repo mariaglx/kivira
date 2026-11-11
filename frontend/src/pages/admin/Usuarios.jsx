@@ -208,7 +208,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => verComo("aluno", usuario.aluno_id)}
                           disabled={abrindo === `aluno:${usuario.aluno_id}`}
-                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-azul hover:underline whitespace-nowrap"
                         >
                           {abrindo === `aluno:${usuario.aluno_id}` ? "Abrindo..." : "Ver como aluno"}
                         </button>
@@ -218,7 +218,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => verComo("professor", usuario.professor_id)}
                           disabled={abrindo === `professor:${usuario.professor_id}`}
-                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-azul hover:underline whitespace-nowrap"
                         >
                           {abrindo === `professor:${usuario.professor_id}` ? "Abrindo..." : "Ver como professor"}
                         </button>
@@ -228,7 +228,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => alternarConta(usuario)}
                           disabled={alternandoId === usuario.id}
-                          className={`text-xs font-bold hover:underline whitespace-nowrap ${usuario.ativo ? "text-vermelho" : "text-azul"}`}
+                          className={`alvo-toque text-xs font-bold hover:underline whitespace-nowrap ${usuario.ativo ? "text-vermelho" : "text-azul"}`}
                         >
                           {alternandoId === usuario.id ? "Salvando..." : usuario.ativo ? "Desativar" : "Reativar"}
                         </button>
@@ -238,7 +238,7 @@ export function Usuarios() {
                         <button
                           type="button"
                           onClick={() => abrirConfirmacaoPromover(usuario)}
-                          className="text-xs font-bold text-coral-texto hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-coral-texto hover:underline whitespace-nowrap"
                         >
                           Tornar admin
                         </button>
