@@ -763,6 +763,7 @@ export function CriarAtividade() {
             <button
               type="button"
               onClick={() => setMostrarDetalhes((atual) => !atual)}
+              aria-expanded={mostrarDetalhes}
               className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/80 hover:text-azul/80 transition-colors"
             >
               <svg

@@ -125,6 +125,10 @@ export function Login() {
           </Button>
 
           <div className="flex flex-col gap-2 mt-2 text-center text-base">
+            {/* ponytail: ainda sem ação — o backend não tem recuperação de senha */}
+            <button type="button" className="alvo-toque self-center text-sm text-azul/75 hover:underline">
+              Esqueci minha senha
+            </button>
             <p className="text-gray-600">
               Não tem conta?{" "}
               <Link to="/cadastro" className="alvo-toque text-azul font-bold hover:underline">

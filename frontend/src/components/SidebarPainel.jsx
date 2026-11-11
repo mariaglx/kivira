@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -6,6 +6,7 @@ import { LogoKiviraRosa } from "./LogoKiviraRosa";
 import { Avatar } from "./ui/Avatar";
 import { apiRequest } from "../services/api";
 import { limparSessao } from "../services/sessao";
+import { useFecharComEsc } from "../controllers/useFecharComEsc";
 
 // Menu lateral compartilhado por professor e admin. No desktop (lg+) é a
 // coluna azul fixa de sempre; abaixo disso vira uma barra no topo com botão
@@ -21,6 +22,8 @@ export function SidebarPainel({ titulo, itens, usuario }) {
   const { pathname } = useLocation();
   const [aberto, setAberto] = useState(false);
   const fechar = () => setAberto(false);
+  const refBotaoMenu = useRef(null);
+  useFecharComEsc(aberto, fechar, refBotaoMenu);
 
   const sair = async () => {
     // Registra o logout no log de auditoria antes de limpar o token — se a
@@ -40,6 +43,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
       <header className="lg:hidden sticky top-0 z-30 bg-azul text-branco flex items-center justify-between px-4 py-2 shadow-md print:hidden">
         <LogoKiviraRosa className="w-28 h-auto" />
         <button
+          ref={refBotaoMenu}
           type="button"
           onClick={() => setAberto(true)}
           aria-label="Abrir menu"

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { useFecharComEsc } from "../controllers/useFecharComEsc";
 import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ArrowRight, LogIn, Smile, GraduationCap } from "lucide-react";
 
 const AVATARES_VITRINE = ["girassol.png", "raposa.png", "gato-marsupial.png", "coelho.png", "fone-de-ouvido.png", "capivara.png"];
@@ -134,6 +135,8 @@ export function Home() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [menuEntrarAberto, setMenuEntrarAberto] = useState(false);
+  const refBotaoEntrar = useRef(null);
+  useFecharComEsc(menuEntrarAberto, () => setMenuEntrarAberto(false), refBotaoEntrar);
   const navigate = useNavigate();
   const sessionCodeInputRef = useRef(null);
 
@@ -200,6 +203,7 @@ export function Home() {
             botões apertados ao lado da logo ficavam pequenos e confusos */}
         <div className="relative sm:hidden">
           <button
+            ref={refBotaoEntrar}
             type="button"
             onClick={() => setMenuEntrarAberto((v) => !v)}
             aria-expanded={menuEntrarAberto}

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Lock, Blocks } from "lucide-react";
 import { DIFICULDADE_ESTRELAS } from "../../utils/dificuldade";
 import { iconeDisciplina } from "../../utils/disciplina";
+import { useFecharComEsc } from "../../controllers/useFecharComEsc";
 
 const ALTURA_LINHA = 148; // px entre o centro de uma fase e a próxima
 const TAMANHO_NO = 76; // px, fase concluída/bloqueada
@@ -78,6 +79,8 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
 // por um caminho pontilhado sinuoso desenhado em SVG.
 export function TrilhaFases({ atividades, onJogar }) {
   const [faseAberta, setFaseAberta] = useState(null);
+  const refFaseAberta = useRef(null);
+  useFecharComEsc(faseAberta !== null, () => setFaseAberta(null), refFaseAberta);
   const indiceAtual = atividades.findIndex((a) => !a.concluida);
   const alturaTotal = atividades.length * ALTURA_LINHA;
 
@@ -126,8 +129,12 @@ export function TrilhaFases({ atividades, onJogar }) {
             <button
               type="button"
               disabled={estado === "bloqueada"}
-              onClick={() => setFaseAberta(aberta ? null : atividade.id)}
+              onClick={(e) => {
+                refFaseAberta.current = e.currentTarget;
+                setFaseAberta(aberta ? null : atividade.id);
+              }}
               aria-label={`Fase ${indice + 1}: ${atividade.titulo}`}
+              aria-expanded={aberta}
               style={{ width: tamanho, height: tamanho }}
               className={`relative rounded-full flex items-center justify-center shadow-lg border-4 border-branco transition-transform ${corNo} ${
                 estado === "bloqueada" ? "cursor-not-allowed opacity-60" : "hover:scale-105"

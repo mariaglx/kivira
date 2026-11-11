@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LogoKivira } from "../LogoKivira";
 import { BarraProgresso } from "../ui/BarraProgresso";
@@ -6,6 +6,7 @@ import { Avatar } from "../ui/Avatar";
 import { progressoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
+import { useFecharComEsc } from "../../controllers/useFecharComEsc";
 import { MapPin, Sparkles, Users, Settings, Star, Smile } from "lucide-react";
 
 const ABAS = [
@@ -24,6 +25,8 @@ const ABA_FEEDBACK = { to: "/aluno/feedback", Icone: Smile, rotulo: "Opinião" }
 export function HeaderAluno({ aluno }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+  const refBotaoPerfil = useRef(null);
+  useFecharComEsc(menuAberto, () => setMenuAberto(false), refBotaoPerfil);
   const progresso = progressoNivel(aluno?.xp_total);
 
   // "já sei que não respondeu", não "não respondeu": com aluno ainda null no
@@ -88,9 +91,11 @@ export function HeaderAluno({ aluno }) {
 
         <div className="relative">
           <button
+            ref={refBotaoPerfil}
             type="button"
             onClick={() => setMenuAberto((v) => !v)}
             aria-label="Abrir menu do perfil"
+            aria-expanded={menuAberto}
             className="alvo-toque rounded-xl"
           >
             <Avatar
