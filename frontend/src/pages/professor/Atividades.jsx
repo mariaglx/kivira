@@ -1,42 +1,100 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Check, ListChecks, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { apiRequest } from "../../services/api";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
+import { EstadoVazio } from "../../components/ui/EstadoVazio";
 import { Lista, Item, Modal } from "../../components/ui/Animacao";
-import { ehAdmin } from "../../services/sessao";
 import { Alerta } from "../../components/ui/Alerta";
+import { BarraConclusao, Chip, ChipDisciplina, Filtro, IconeDisciplina, MenuMais } from "../../components/professor/Relatorio";
+import { useApi } from "../../controllers/useApi";
+import { corDisciplina } from "../../utils/disciplina";
+import { DIFICULDADE_PROFESSOR } from "../../utils/dificuldade";
+import { ehAdmin } from "../../services/sessao";
 
-const TIPO_LABEL = {
-  multipla_escolha: "Múltipla escolha",
-  associacao: "Associação",
-  arrastar_soltar: "Arrastar e soltar",
-};
+const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 
-const DIFICULDADE_STYLE = {
-  facil: "bg-verde/10 text-verde-texto",
-  medio: "bg-ouro-bg text-ouro-fg",
-  dificil: "bg-vermelho/10 text-vermelho",
-};
+function CartaoAtividade({ atividade, onVerQuestoes, onExcluir }) {
+  const cor = corDisciplina(atividade.disciplina);
+  const dificuldade = DIFICULDADE_PROFESSOR[atividade.dificuldade];
+  return (
+    <div className="cartao rounded-2xl overflow-hidden flex flex-col flex-1">
+      <div className={`h-24 relative flex items-center justify-center ${cor.bg} ${cor.fg}`}>
+        {atividade.imagem_atividade_url ? (
+          <img src={atividade.imagem_atividade_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <IconeDisciplina disciplina={atividade.disciplina} size={38} />
+        )}
+        <span
+          className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+            atividade.publicado ? "bg-verde text-branco" : "bg-branco text-azul"
+          }`}
+        >
+          {atividade.publicado ? "Publicada" : "Rascunho"}
+        </span>
+      </div>
+      <div className="px-4 py-3.5 flex flex-col gap-2.5 flex-1">
+        <h2 className="font-display font-extrabold text-[17px] text-azul break-words">{atividade.titulo}</h2>
+        <div className="flex flex-wrap gap-1.5">
+          <ChipDisciplina disciplina={atividade.disciplina} />
+          {dificuldade && <Chip className={dificuldade.estilo}>{dificuldade.rotulo}</Chip>}
+        </div>
+        {ehAdmin() && atividade.professor_nome && (
+          <p className="text-xs font-bold text-coral-texto">Prof. {atividade.professor_nome}</p>
+        )}
+        {atividade.publicado && atividade.alunos_turma > 0 ? (
+          <div className="flex items-center gap-2 text-sm font-bold text-azul">
+            <BarraConclusao valor={atividade.alunos_concluiram} max={atividade.alunos_turma} className="flex-1" />
+            {atividade.alunos_concluiram}/{atividade.alunos_turma}
+          </div>
+        ) : (
+          <p className="text-sm text-azul/80">
+            {plural(atividade.total_questoes ?? 0, "bloco", "blocos")} · {atividade.turma_nome ?? "Sem turma"}
+          </p>
+        )}
+        <div className="mt-auto pt-2.5 border-t border-cinza-claro flex justify-between items-center gap-2">
+          <Link
+            to={atividade.publicado ? `/professor/atividades/${atividade.id}/relatorio` : `/professor/atividades/${atividade.id}/editar`}
+            className="alvo-toque font-display font-extrabold text-sm text-coral-texto flex items-center gap-1 hover:underline"
+          >
+            {atividade.publicado ? "Ver relatório" : "Continuar editando"} <ArrowRight size={16} />
+          </Link>
+          <MenuMais
+            rotulo={`Mais ações de ${atividade.titulo}`}
+            acima
+            itens={[
+              { rotulo: "Editar", Icone: Pencil, to: `/professor/atividades/${atividade.id}/editar` },
+              { rotulo: "Ver questões", Icone: ListChecks, onClick: onVerQuestoes },
+              { rotulo: "Excluir", Icone: Trash2, onClick: onExcluir, perigo: true },
+            ]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Atividades() {
   const [busca, setBusca] = useState("");
-  const [listaAtividades, setListaAtividades] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+  const [filtro, setFiltro] = useState("todas");
+  const [turmaId, setTurmaId] = useState("");
   const [modalQuestoes, setModalQuestoes] = useState(null);
   const [carregandoQuestoes, setCarregandoQuestoes] = useState(false);
   const [erroQuestoes, setErroQuestoes] = useState(null);
-  const navigate = useNavigate();
+  const [excluindo, setExcluindo] = useState(null);
+  const [erroExcluir, setErroExcluir] = useState(null);
+  const [excluidas, setExcluidas] = useState([]);
+  const { dados, carregando } = useApi("/atividade/professor/minhas");
 
   async function abrirModalQuestoes(atividadeId) {
     setModalQuestoes({ questoes: [] });
     setCarregandoQuestoes(true);
     setErroQuestoes(null);
     try {
-      const dados = await apiRequest(`/atividade/${atividadeId}/questoes`);
-      setModalQuestoes(dados);
+      setModalQuestoes(await apiRequest(`/atividade/${atividadeId}/questoes`));
     } catch (erro) {
       setErroQuestoes(erro.message || "Não foi possível carregar as questões.");
     } finally {
@@ -44,193 +102,131 @@ export function Atividades() {
     }
   }
 
-  useEffect(() => {
-    let cancelado = false;
-    const controller = new AbortController();
-
-    async function carregarAtividades() {
-      try {
-        const response = await apiRequest("/atividade/professor/minhas", {
-          signal: controller.signal,
-        });
-        if (!cancelado) setListaAtividades(Array.isArray(response) ? response : []);
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        console.error("Erro ao carregar atividades:", err.message);
-      } finally {
-        if (!cancelado) setCarregando(false);
-      }
+  async function confirmarExclusao() {
+    const alvo = excluindo;
+    setErroExcluir(null);
+    setExcluindo({ ...alvo, enviando: true });
+    try {
+      await apiRequest(`/atividade/${alvo.id}`, { method: "DELETE" });
+      setExcluidas((atual) => [...atual, alvo.id]);
+      setExcluindo(null);
+    } catch (erro) {
+      setErroExcluir(erro.message || "Não foi possível excluir a atividade.");
+      setExcluindo(alvo);
     }
+  }
 
-    carregarAtividades();
-
-    return () => {
-      cancelado = true;
-      controller.abort();
-    };
-  }, [navigate]);
-
-  const atividadesFiltradas = listaAtividades.filter(
-    (atividade) =>
-      atividade.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      atividade.disciplina?.toLowerCase().includes(busca.toLowerCase()),
-  );
-
-  const dataHoje = new Date().toLocaleDateString("pt-BR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  });
+  const lista = (dados ?? []).filter((a) => !excluidas.includes(a.id));
+  const publicadas = lista.filter((a) => a.publicado).length;
+  const rascunhos = lista.length - publicadas;
+  const turmas = [...new Map(lista.filter((a) => a.turma_id).map((a) => [a.turma_id, a.turma_nome])).entries()];
+  const termo = busca.trim().toLowerCase();
+  const atividadesFiltradas = lista
+    .filter((a) => filtro === "todas" || (filtro === "publicadas" ? a.publicado : !a.publicado))
+    .filter((a) => !turmaId || String(a.turma_id) === turmaId)
+    .filter((a) => !termo || a.titulo.toLowerCase().includes(termo) || a.disciplina?.toLowerCase().includes(termo));
 
   return (
     <>
-      {/* 2. ÁREA PRINCIPAL */}
-      <main className="pagina flex flex-col gap-6 lg:gap-8">
-        <header className="flex flex-wrap justify-between items-start gap-3">
+      <main className="pagina flex flex-col gap-5 lg:gap-6">
+        <header className="flex flex-wrap justify-between items-end gap-3">
           <div>
-            <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Atividades</h1>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
-              {ehAdmin() ? "Atividades de todas as turmas" : "Suas atividades, Professor(a)!"}
-            </h2>
-            <p className="text-azul/80 text-sm mt-1">
-              Gerencie e acompanhe todas as atividades criadas
+            <h1 className="text-2xl sm:text-3xl font-black text-azul">
+              {ehAdmin() ? "Atividades de todas as turmas" : "Atividades"}
+            </h1>
+            <p className="text-sm text-azul/80">
+              {plural(lista.length, "atividade", "atividades")} · {plural(rascunhos, "rascunho", "rascunhos")}
             </p>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
-              {dataHoje}
-            </div>
-            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 min-h-11 text-sm">
-              + Nova Atividade
-            </Button>
-          </div>
+          <Button as={Link} to="/professor/atividades/criar" className="gap-2 px-4 min-h-11 font-display font-extrabold">
+            <Plus size={18} /> Nova atividade
+          </Button>
         </header>
 
-        <div className="w-full max-w-sm">
-          <Input
-            icone={Search}
-            placeholder="Buscar atividade..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            className="py-2.5 text-sm bg-branco shadow-sm"
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-full lg:w-auto lg:flex-1 lg:max-w-sm">
+            <Input
+              icone={Search}
+              placeholder="Buscar atividade"
+              aria-label="Buscar atividade"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="py-2.5 text-sm bg-branco"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por situação">
+            <Filtro ativo={filtro === "todas"} onClick={() => setFiltro("todas")}>Todas {lista.length}</Filtro>
+            <Filtro ativo={filtro === "publicadas"} onClick={() => setFiltro("publicadas")}>Publicadas {publicadas}</Filtro>
+            <Filtro ativo={filtro === "rascunhos"} onClick={() => setFiltro("rascunhos")}>Rascunhos {rascunhos}</Filtro>
+          </div>
+          {turmas.length > 1 && (
+            <div className="w-48">
+              <SelectCustom
+                value={turmaId}
+                onChange={(e) => setTurmaId(e.target.value)}
+                placeholder="Todas as turmas"
+                options={turmas.map(([id, nome]) => ({ value: String(id), label: nome }))}
+              />
+            </div>
+          )}
         </div>
 
         {carregando ? (
           <Carregando embutido texto="Carregando atividades..." />
+        ) : atividadesFiltradas.length === 0 && lista.length > 0 ? (
+          <EstadoVazio>Nenhuma atividade com esse filtro.</EstadoVazio>
         ) : (
-        <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {atividadesFiltradas.map((atividade) => (
-            <Item
-              key={atividade.id}
-              elevar
-              className="cartao rounded-2xl p-6 flex flex-col gap-5 justify-between relative hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-bold text-azul">
-                    {atividade.titulo}
-                  </h3>
-                  <span className="text-xs text-azul/80 font-medium">
-                    {atividade.disciplina}
-                  </span>
-                </div>
-                {atividade.publicado ? (
-                  <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-xs font-bold">
-                    Publicada
-                  </span>
-                ) : (
-                  <span className="badge bg-cinza-claro text-azul/80 border-none rounded-md px-2.5 py-1 text-xs font-bold">
-                    Rascunho
-                  </span>
-                )}
-              </div>
-
-              <hr className="border-cinza-claro/30" />
-
-              <div className="flex flex-col gap-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-azul/80 font-bold uppercase tracking-wider">
-                    Tipo
-                  </span>
-                  <span className="text-azul font-semibold">
-                    {TIPO_LABEL[atividade.tipo_atividade]}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-azul/80 font-bold uppercase tracking-wider">
-                    Dificuldade
-                  </span>
-                  <span
-                    className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
-                  >
-                    {atividade.dificuldade}
-                  </span>
-                </div>
-                {ehAdmin() && (
-                  <div className="flex justify-between">
-                    <span className="text-azul/80 font-bold uppercase tracking-wider">Professor</span>
-                    <span className="text-azul font-semibold">{atividade.professor_nome ?? "—"}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-azul/80 font-bold uppercase tracking-wider">
-                    Turma
-                  </span>
-                  <span className="text-azul font-semibold">
-                    {atividade.turma_nome ?? "Nenhuma"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-azul/80 font-bold uppercase tracking-wider">
-                    Blocos
-                  </span>
-                  <span className="text-azul font-semibold">
-                    {atividade.quantidade_blocos}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-2 w-full">
-                <Button tamanho="sm" onClick={() => abrirModalQuestoes(atividade.id)} className="flex-1">
-                  Ver questões
-                </Button>
-                <Button
-                  tamanho="sm"
-                  variante="contorno"
-                  onClick={() => navigate(`/professor/atividades/${atividade.id}/editar`)}
-                  className="flex-1"
+          <Lista className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {atividadesFiltradas.map((atividade) => (
+              <Item key={atividade.id} elevar className="flex">
+                <CartaoAtividade
+                  atividade={atividade}
+                  onVerQuestoes={() => abrirModalQuestoes(atividade.id)}
+                  onExcluir={() => { setErroExcluir(null); setExcluindo(atividade); }}
+                />
+              </Item>
+            ))}
+            {lista.length === 0 && (
+              <Item elevar className="flex">
+                <Link
+                  to="/professor/atividades/criar"
+                  className="flex-1 border-2 border-dashed border-coral/60 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-1.5 text-center hover:bg-branco/50 transition-colors"
                 >
-                  Editar
-                </Button>
-              </div>
-              <Button
-                tamanho="sm"
-                variante="secundario"
-                as={Link}
-                to={`/professor/atividades/${atividade.id}/relatorio`}
-                className="w-full"
-              >
-                Ver relatório
-              </Button>
-            </Item>
-          ))}
-
-          <Item elevar className="flex">
-            <Link
-              to="/professor/atividades/criar"
-              className="flex-1 bg-branco/40 hover:bg-branco/80 border-2 border-dashed border-coral/40 rounded-2xl p-6 min-h-[220px] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
-            >
-              <span className="text-3xl text-coral-texto font-bold">+</span>
-              <span className="text-sm font-bold text-coral-texto">
-                Criar nova atividade
-              </span>
-            </Link>
-          </Item>
-        </Lista>
+                  <Plus size={28} className="text-coral-texto" />
+                  <span className="font-display font-extrabold text-coral-texto">Criar sua primeira atividade</span>
+                </Link>
+              </Item>
+            )}
+          </Lista>
         )}
       </main>
+
+      <Modal aberto={!!excluindo} onFechar={excluindo?.enviando ? undefined : () => setExcluindo(null)}>
+        {excluindo && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-por-bg text-vermelho flex items-center justify-center">
+                <Trash2 size={19} />
+              </div>
+              <div>
+                <p className="font-display font-extrabold text-lg text-azul">Excluir atividade?</p>
+                <p className="text-sm text-azul/80">
+                  "{excluindo.titulo}" e as questões dela somem de vez. Não dá pra desfazer.
+                </p>
+              </div>
+            </div>
+            {erroExcluir && <Alerta>{erroExcluir}</Alerta>}
+            <div className="flex justify-end gap-2">
+              <Button variante="fantasma" tamanho="sm" onClick={() => setExcluindo(null)} disabled={excluindo.enviando}>
+                Cancelar
+              </Button>
+              <Button variante="perigo" tamanho="sm" onClick={confirmarExclusao} disabled={excluindo.enviando} className="gap-1.5">
+                <Trash2 size={14} /> {excluindo.enviando ? "Excluindo..." : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal aberto={!!modalQuestoes} onFechar={() => setModalQuestoes(null)} className="max-w-lg max-h-[85vh] overflow-y-auto">
         {modalQuestoes && (
@@ -238,61 +234,35 @@ export function Atividades() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="font-extrabold text-azul">Questões</p>
-                {modalQuestoes.titulo && (
-                  <p className="text-xs text-azul/80">{modalQuestoes.titulo}</p>
-                )}
+                {modalQuestoes.titulo && <p className="text-xs text-azul/80">{modalQuestoes.titulo}</p>}
               </div>
-              <Button
-                variante="fantasma"
-                tamanho="icone"
-                aria-label="Fechar"
-                onClick={() => setModalQuestoes(null)}
-              >
+              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setModalQuestoes(null)}>
                 <X size={16} />
               </Button>
             </div>
 
-            {carregandoQuestoes && (
-              <p className="text-sm text-azul/80">Carregando questões...</p>
-            )}
-
-            {erroQuestoes && (
-              <Alerta>
-                {erroQuestoes}
-              </Alerta>
-            )}
-
+            {carregandoQuestoes && <p className="text-sm text-azul/80">Carregando questões...</p>}
+            {erroQuestoes && <Alerta>{erroQuestoes}</Alerta>}
             {!carregandoQuestoes && !erroQuestoes && modalQuestoes.questoes?.length === 0 && (
-              <p className="text-sm text-azul/80">
-                Essa atividade ainda não tem nenhuma questão cadastrada.
-              </p>
+              <p className="text-sm text-azul/80">Essa atividade ainda não tem nenhuma questão cadastrada.</p>
             )}
 
             {!carregandoQuestoes && modalQuestoes.questoes?.length > 0 && (
               <div className="flex flex-col gap-3">
                 {modalQuestoes.questoes.map((questao) => (
-                  <div
-                    key={questao.id}
-                    className="bg-bege/40 border border-bege rounded-2xl p-4 flex flex-col gap-2"
-                  >
-                    <span className="text-xs font-bold text-azul/80">
-                      Questão {questao.ordem}
-                    </span>
-                    <p className="text-sm font-semibold text-azul">
-                      {questao.texto_questao}
-                    </p>
+                  <div key={questao.id} className="bg-bege/40 border border-bege rounded-2xl p-4 flex flex-col gap-2">
+                    <span className="text-xs font-bold text-azul/80">Questão {questao.ordem}</span>
+                    <p className="text-sm font-semibold text-azul">{questao.texto_questao}</p>
                     {questao.opcoes?.length > 0 && (
                       <div className="flex flex-col gap-1 mt-1">
                         {questao.opcoes.map((opcao) => (
                           <span
                             key={opcao.id}
-                            className={`text-xs px-3 py-1.5 rounded-lg ${
-                              opcao.correta
-                                ? "bg-verde/10 text-verde-texto font-bold"
-                                : "bg-branco text-azul/80"
+                            className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
+                              opcao.correta ? "bg-verde/10 text-verde-texto font-bold" : "bg-branco text-azul/80"
                             }`}
                           >
-                            {opcao.correta ? "✓ " : ""}
+                            {opcao.correta && <Check size={13} />}
                             {opcao.texto_opcao}
                           </span>
                         ))}

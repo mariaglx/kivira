@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { Check, MessageSquare } from "lucide-react";
+import { Check, Send } from "lucide-react";
 import { apiRequest } from "../../services/api";
 import { PERGUNTA_ABERTA_PROFESSOR, PERGUNTAS_PROFESSOR as PERGUNTAS } from "../../utils/feedback";
 import { Button } from "../../components/ui/Button";
@@ -12,12 +12,21 @@ import { Alerta } from "../../components/ui/Alerta";
 const TOTAL_PERGUNTAS = PERGUNTAS.length + 1;
 
 // Número da pergunta: a mesma marca em todos os cartões dá ritmo à coluna.
-function Numero({ children }) {
+function Numero({ children, respondida }) {
   return (
-    <span className="shrink-0 w-7 h-7 mt-0.5 rounded-full bg-bege text-azul/80 text-xs font-black flex items-center justify-center">
+    <span
+      className={`shrink-0 w-7 h-7 rounded-full font-display text-[13px] font-black flex items-center justify-center ${
+        respondida ? "bg-coral text-azul-escuro" : "bg-bege text-azul"
+      }`}
+    >
       {children}
     </span>
   );
+}
+
+// ["2", "3", "4"] -> "2, 3 e 4"
+function juntar(partes) {
+  return partes.length <= 1 ? partes.join("") : `${partes.slice(0, -1).join(", ")} e ${partes.at(-1)}`;
 }
 
 export function Feedback() {
@@ -27,12 +36,6 @@ export function Feedback() {
   const [comentario, setComentario] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
-
-  const dataHoje = new Date().toLocaleDateString("pt-BR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
   const objetivasRespondidas = PERGUNTAS.filter((p) => notas[p.campo]).length;
   const respondidas = objetivasRespondidas + (comentario.trim() ? 1 : 0);
@@ -66,7 +69,7 @@ export function Feedback() {
     return (
       <main className="pagina flex flex-col gap-6">
         <Entrada className="cartao text-center py-12 px-6 max-w-lg mx-auto">
-          <div className="w-14 h-14 rounded-2xl bg-verde/15 text-verde flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-cie-bg text-cie-fg-escuro flex items-center justify-center mx-auto mb-4">
             <Check size={28} />
           </div>
           <h2 className="text-xl font-extrabold text-azul">Feedback enviado</h2>
@@ -78,163 +81,112 @@ export function Feedback() {
     );
   }
 
-  return (
-    // Uma coluna só, ancorada à esquerda: título, pílula de data e cartões
-    // dividem a mesma borda esquerda e a mesma direita. Antes eram três
-    // alinhamentos diferentes e o olho não tinha onde se apoiar.
-    <main className="pagina flex flex-col gap-6">
-      <header className="w-full flex flex-wrap justify-between items-start gap-3">
-        <div>
-          <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">
-            Feedback
-          </h1>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-azul mt-1">
-            Conte o que você achou
-          </h2>
-        </div>
+  // "Falta: perguntas 2, 3 e o comentário."
+  const faltando = PERGUNTAS.map((p, i) => (notas[p.campo] ? null : i + 1)).filter(Boolean);
+  const partesFalta = [
+    faltando.length ? `${faltando.length === 1 ? "pergunta" : "perguntas"} ${juntar(faltando.map(String))}` : null,
+    comentario.trim() ? null : "o comentário",
+  ].filter(Boolean);
 
-        <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
-          {dataHoje}
-        </div>
+  return (
+    <main className="pagina flex flex-col gap-5 lg:gap-6">
+      <header>
+        <h1 className="text-2xl sm:text-3xl font-black text-azul">Conte o que você achou</h1>
+        <p className="text-sm text-azul/80">{TOTAL_PERGUNTAS} perguntas, leva uns 2 minutos</p>
       </header>
 
-      {/* Duas colunas (padrão do DESIGN_SYSTEM): perguntas à esquerda, painel
-          que acompanha a rolagem à direita. O painel dá função ao espaço que
-          sobrava e mantém o botão de enviar sempre alcançável. */}
+      {/* Duas colunas: perguntas à esquerda, painel que acompanha a rolagem à
+          direita com o progresso e o botão de enviar sempre alcançável. */}
       <form onSubmit={enviar} className="w-full flex flex-col lg:flex-row gap-5 items-start">
-        <div className="w-full lg:flex-1 min-w-0 flex flex-col gap-4">
+        <div className="w-full lg:flex-1 min-w-0 flex flex-col gap-3">
           {PERGUNTAS.map((pergunta, indice) => {
-          const escolhida = notas[pergunta.campo];
-          return (
-            <Entrada key={pergunta.campo} delay={indice * 0.05}>
-              {/* div com role em vez de fieldset/legend: o <legend> nativo
-                  renderiza por cima da borda, fora do padding, e fura o cartão */}
-              <div
-                role="radiogroup"
-                aria-labelledby={`pergunta-${pergunta.campo}`}
-                className="cartao p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8"
-              >
-                {/* Pergunta de um lado, escala do outro: é o formato de matriz
-                    de questionário, e é o que preenche a largura do cartão sem
-                    esticar os botões. No celular as duas partes empilham. */}
-                <div className="lg:flex-1 min-w-0">
-                  <div className="flex items-start gap-3">
-                    <Numero>{indice + 1}</Numero>
-                    <p
-                      id={`pergunta-${pergunta.campo}`}
-                      className="font-bold text-azul leading-snug"
-                    >
+            const escolhida = notas[pergunta.campo];
+            return (
+              <Entrada key={pergunta.campo} delay={indice * 0.05}>
+                {/* div com role em vez de fieldset/legend: o <legend> nativo
+                    renderiza por cima da borda, fora do padding, e fura o cartão */}
+                <div role="radiogroup" aria-labelledby={`pergunta-${pergunta.campo}`} className="cartao @container px-4 sm:px-5 py-4 flex flex-col gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <Numero respondida={Boolean(escolhida)}>{indice + 1}</Numero>
+                    <p id={`pergunta-${pergunta.campo}`} className="font-bold text-azul leading-snug">
                       {pergunta.titulo}
                     </p>
                   </div>
-
-                  {/* Altura reservada pro selo da resposta, pra nada pular
-                      quando a pessoa seleciona */}
-                  <div className="h-7 flex items-center ml-10 mt-1">
-                    {escolhida && (
-                      <span className="rounded-full bg-coral/10 text-coral-texto text-xs font-bold px-3 py-1">
-                        {pergunta.opcoes[escolhida - 1]}
-                      </span>
-                    )}
+                  {/* Os 5 rótulos ficam sempre à vista. Card estreito (celular, ou
+                      desktop espremido entre menu e painel): lista vertical com
+                      número e rótulo lado a lado. Só com espaço (@container ≥ 36rem)
+                      vira as 5 colunas com o rótulo embaixo do número. */}
+                  <div className="flex flex-col gap-1.5 @xl:grid @xl:grid-cols-5">
+                    {pergunta.opcoes.map((opcao, posicao) => {
+                      const valor = posicao + 1;
+                      const marcado = escolhida === valor;
+                      return (
+                        <label
+                          key={valor}
+                          className={`min-h-11 rounded-xl px-3 py-2 flex items-center gap-3 text-left cursor-pointer border-[1.5px] transition-colors @xl:min-h-16 @xl:px-1.5 @xl:py-2.5 @xl:flex-col @xl:justify-start @xl:gap-1 @xl:text-center has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-coral has-[:focus-visible]:ring-offset-2 ${
+                            marcado ? "border-coral bg-por-bg" : "border-cinza-claro hover:border-coral/60"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={pergunta.campo}
+                            value={valor}
+                            checked={marcado}
+                            aria-label={`${valor}, ${opcao}`}
+                            onChange={() => setNotas((atual) => ({ ...atual, [pergunta.campo]: valor }))}
+                            className="sr-only"
+                          />
+                          <span className="w-5 shrink-0 text-center font-display font-black text-base text-azul">{valor}</span>
+                          <span className="text-sm @xl:text-xs font-bold text-azul leading-tight">{opcao}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
+              </Entrada>
+            );
+          })}
 
-                <div className="w-full lg:w-80 shrink-0">
-                <div className="flex gap-1.5 sm:gap-2">
-                  {pergunta.opcoes.map((opcao, posicao) => {
-                    const valor = posicao + 1;
-                    const marcado = escolhida === valor;
-                    return (
-                      <label
-                        key={valor}
-                        className={`flex-1 min-h-11 rounded-xl flex items-center justify-center text-sm font-black cursor-pointer border transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-coral has-[:focus-visible]:ring-offset-2 ${
-                          marcado
-                            ? "bg-coral text-azul-escuro border-coral shadow-sm"
-                            : "bg-bege/50 text-azul/80 border-transparent hover:bg-bege hover:text-azul/80"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={pergunta.campo}
-                          value={valor}
-                          checked={marcado}
-                          aria-label={`${valor}, ${opcao}`}
-                          onChange={() =>
-                            setNotas((atual) => ({ ...atual, [pergunta.campo]: valor }))
-                          }
-                          className="sr-only"
-                        />
-                        {valor}
-                      </label>
-                    );
-                  })}
-                </div>
-
-                {/* Rótulos das pontas: é o que devolve a direção da escala, que
-                    some quando as 5 opções ficam empilhadas na vertical */}
-                <div className="flex justify-between mt-2 text-xs font-semibold text-azul/80">
-                  <span>{pergunta.opcoes[0]}</span>
-                  <span>{pergunta.opcoes[pergunta.opcoes.length - 1]}</span>
-                </div>
-                </div>
+          <Entrada delay={PERGUNTAS.length * 0.05}>
+            <div className="cartao px-4 sm:px-5 py-4 flex flex-col gap-3">
+              <div className="flex items-start gap-2.5">
+                <Numero respondida={Boolean(comentario.trim())}>{TOTAL_PERGUNTAS}</Numero>
+                <label htmlFor="comentario" className="font-bold text-azul leading-snug flex-1">
+                  {PERGUNTA_ABERTA_PROFESSOR}
+                </label>
+                <span className="shrink-0 rounded-full bg-por-bg text-coral-texto text-xs font-bold px-2.5 py-0.5">Obrigatória</span>
               </div>
-            </Entrada>
-          );
-        })}
-
-        <Entrada delay={PERGUNTAS.length * 0.05}>
-          <div className="cartao p-5 sm:p-6">
-            <div className="flex items-start gap-3 mb-4">
-              <Numero>{TOTAL_PERGUNTAS}</Numero>
-              <label htmlFor="comentario" className="font-bold text-azul leading-snug">
-                {PERGUNTA_ABERTA_PROFESSOR}
-              </label>
-            </div>
-            <textarea
-              id="comentario"
-              value={comentario}
-              onChange={(evento) => setComentario(evento.target.value)}
-              maxLength={5000}
-              rows={5}
-              placeholder="Escreva aqui"
-              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 resize-y"
-            />
+              <textarea
+                id="comentario"
+                value={comentario}
+                onChange={(evento) => setComentario(evento.target.value)}
+                maxLength={5000}
+                rows={4}
+                required
+                placeholder="Escreva aqui"
+                className="w-full rounded-xl bg-branco border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 resize-y"
+              />
             </div>
           </Entrada>
         </div>
 
         {/* lg:sticky só no desktop: no celular o painel vira o rodapé natural
             do formulário, logo depois da última pergunta */}
-        <aside className="w-full lg:w-72 shrink-0 lg:sticky lg:top-6">
-          <div className="cartao p-5 flex flex-col gap-4">
-            <div>
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="rotulo">
-                  Progresso
-                </span>
-                <span className="text-xs font-bold text-azul/80 tabular-nums">
-                  {respondidas} de {TOTAL_PERGUNTAS}
-                </span>
-              </div>
-              <BarraProgresso valor={respondidas} max={TOTAL_PERGUNTAS} segmentos />
-            </div>
+        <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-6">
+          <div className="cartao p-4 sm:p-5 flex flex-col gap-3">
+            <span className="rotulo">Progresso</span>
+            <p className="font-display font-black text-2xl text-azul -mt-1">
+              {respondidas} de {TOTAL_PERGUNTAS}
+            </p>
+            <BarraProgresso valor={respondidas} max={TOTAL_PERGUNTAS} segmentos trilha="bg-cinza-claro" preenchimento="bg-coral" />
+            {!completo && <p className="text-sm text-azul/80">Falta: {juntar(partesFalta)}.</p>}
 
-            {erro && (
-              <Alerta>
-                {erro}
-              </Alerta>
-            )}
+            {erro && <Alerta>{erro}</Alerta>}
 
-            <Button type="submit" disabled={!completo || enviando} className="w-full">
-              <MessageSquare size={18} className="mr-2" />
+            <Button type="submit" disabled={!completo || enviando} className="w-full gap-2 font-display font-extrabold">
+              <Send size={17} />
               {enviando ? "Enviando..." : "Enviar feedback"}
             </Button>
-
-            {!completo && (
-              <p className="text-xs text-azul/80 font-medium text-center">
-                Responda todas para enviar.
-              </p>
-            )}
           </div>
         </aside>
       </form>

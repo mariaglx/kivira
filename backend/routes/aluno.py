@@ -747,6 +747,7 @@ def relatorio_do_aluno(id_aluno: int, session = Depends(pegar_sessao_kivira), us
             "atividade_id": atividade.id,
             "titulo": atividade.titulo,
             "disciplina": atividade.disciplina,
+            "imagem_atividade_url": atividade.imagem_atividade_url,
             "turma_nome": nome_turma.get(atividade.turma_id),
             "status": sit["status"],
             "tentativas": sit["tentativas"],

@@ -1,14 +1,64 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTurmaForm } from "../../controllers/useTurmaForm";
-import { StarIcon } from "../../components/icons/star";
-import { Power, Trash2, UserCheck, UserX } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  CircleAlert,
+  CircleCheck,
+  Copy,
+  KeyRound,
+  Plus,
+  Power,
+  Printer,
+  TriangleAlert,
+  Trophy,
+  UserCheck,
+  UserMinus,
+  UserPlus,
+  UsersRound,
+  UserX,
+  X,
+} from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Animacao";
 import { Input } from "../../components/ui/Input";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
 import { Alerta } from "../../components/ui/Alerta";
+import { Avatar } from "../../components/ui/Avatar";
+import { Chip, CodigoCopiavel, TileDisciplina } from "../../components/professor/Relatorio";
+import { useCopiar } from "../../controllers/useCopiar";
+import { nomeDisciplina } from "../../utils/disciplina";
+import { DIFICULDADE_PROFESSOR } from "../../utils/dificuldade";
+
+// Botão "contorno coral" — sobre o cartão branco o botão não pode ser branco
+// chapado, então a borda coral é que separa ele da superfície
+const CLASSE_CONTORNO_CORAL =
+  "alvo-toque inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 min-h-9 text-xs font-bold border-[1.5px] border-coral bg-branco text-coral-texto hover:bg-coral/10 transition disabled:opacity-50 disabled:cursor-not-allowed";
+
+// Botão só de ícone nas linhas de aluno: 36px visíveis, 44px de toque (alvo-toque)
+const CLASSE_ICONE_LINHA =
+  "alvo-toque w-9 h-9 rounded-xl border-[1.5px] border-cinza-claro flex items-center justify-center shrink-0 text-azul hover:bg-bege/60 transition disabled:opacity-50 aria-disabled:opacity-50";
+
+// 1º ao 9º ano do fundamental; uma turma antiga com outro texto continua
+// aparecendo (é acrescentada nas opções em vez de sumir do campo)
+const ANOS_ESCOLARES = Array.from({ length: 9 }, (_, i) => `${i + 1}º ano`);
+
+const plural = (n, singular, pluralTexto) => `${n} ${n === 1 ? singular : pluralTexto}`;
+
+// "2026-11-08" ou "2026-11-08T10:00:00" vira "08/11" — fatia a string em vez de
+// passar por Date, que leria a data sem hora como UTC e podia voltar um dia
+const diaMes = (data) => (data ? `${data.slice(8, 10)}/${data.slice(5, 7)}` : null);
+
+function BotaoFechar({ onClick }) {
+  return (
+    <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={onClick}>
+      <X size={18} />
+    </Button>
+  );
+}
 
 // Modal de "revelar credenciais" — usado pra mostrar a senha nova depois de
 // um reset de senha de aluno (o cadastro em si mostra a credencial numa
@@ -28,9 +78,7 @@ function CredenciaisModal({
     <Modal aberto onFechar={onFechar} className="max-w-sm">
         <div className="flex items-start justify-between mb-4">
           <p className="font-extrabold text-azul">{titulo}</p>
-          <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={onFechar}>
-            ×
-          </Button>
+          <BotaoFechar onClick={onFechar} />
         </div>
 
         <p className="text-sm text-azul/80 mb-4">{texto}</p>
@@ -91,7 +139,6 @@ function CredenciaisModal({
 }
 
 export function TurmaForm() {
-  const navigate = useNavigate();
   const {
     escolherProfessor,
     professores,
@@ -99,6 +146,7 @@ export function TurmaForm() {
     setProfessorId,
     modoEdicao,
     formData,
+    nomeSalvo,
     codigoAcesso,
     alunos,
     atividades,
@@ -155,6 +203,12 @@ export function TurmaForm() {
   } = useTurmaForm();
   const [campoCopiado, setCampoCopiado] = useState(null);
   const [rankingAberto, setRankingAberto] = useState(false);
+  const { copiado: codigoCopiado, copiar: copiarCodigo } = useCopiar();
+
+  const opcoesAnoEscolar = [
+    ...ANOS_ESCOLARES,
+    ...(formData.ano_escolar && !ANOS_ESCOLARES.includes(formData.ano_escolar) ? [formData.ano_escolar] : []),
+  ].map((ano) => ({ value: ano, label: ano }));
 
   // Pra avisar de cara, na busca de "aluno já matriculado", quem já está
   // NESTA turma — sem isso o professor só descobre depois de clicar e levar
@@ -203,60 +257,40 @@ export function TurmaForm() {
   return (
     <>
       <main className="pagina flex flex-col gap-6 print:hidden">
-        <header className="flex items-center gap-3">
-          <Link
-            to="/professor/turmas"
-            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
-          >
-            ← Turmas
-          </Link>
-        </header>
+        <Link
+          to={modoEdicao ? `/professor/turmas/${id}` : "/professor/turmas"}
+          className="alvo-toque self-start inline-flex items-center gap-1.5 text-azul/80 hover:text-azul text-sm font-bold min-w-0"
+        >
+          <ArrowLeft size={16} className="shrink-0" />
+          <span className="truncate">{modoEdicao ? nomeSalvo || "Turma" : "Turmas"}</span>
+        </Link>
 
-        {/* Todas as ações sobre a turma inteira moram no cabeçalho, longe dos
-            campos: o
-            salvar/cancelar ficam sempre no mesmo canto, fácil de achar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight min-w-0 break-words">
-            {modoEdicao ? `Turma: ${formData.nome}` : "Nova Turma"}
-          </h2>
-
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+              {modoEdicao ? "Editar turma" : "Nova turma"}
+            </h2>
             {modoEdicao && (
-              <Button
-                variante="fantasma"
-                tamanho="sm"
-                onClick={alternarAtivoTurma}
-                disabled={alternandoAtivo}
-                className={`gap-2 ${formData.ativo ? "text-vermelho hover:bg-vermelho/10" : ""}`}
-              >
-                <Power size={16} />
-                {formData.ativo ? "Desativar turma" : "Reativar turma"}
-              </Button>
-            )}
-
-            {/* Só aparecem quando há alteração pendente nos campos da turma.
-                Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
-            {houveAlteracao && (
-              <>
-                <Button
-                  variante="fantasma"
-                  tamanho="sm"
-                  disabled={salvando}
-                  onClick={() =>
-                    modoEdicao ? desfazerAlteracoes() : navigate("/professor/turmas")
-                  }
-                >
-                  Cancelar
-                </Button>
-                {/* form="form-turma" liga o botão ao formulário mesmo estando
-                    fora dele — sem isso o submit nativo (e a validação dos
-                    campos required) deixaria de funcionar */}
-                <Button type="submit" form="form-turma" disabled={salvando} className="px-4 py-2 text-sm">
-                  {salvando ? "Salvando..." : modoEdicao ? "Salvar alterações" : "Criar turma"}
-                </Button>
-              </>
+              <Chip className={formData.ativo ? "bg-cie-bg text-cie-fg-escuro" : "bg-cinza-claro text-azul"}>
+                {formData.ativo ? "Ativa" : "Desativada"}
+              </Chip>
             )}
           </div>
+
+          {/* Turma nunca é excluída: o botão vai pro banco na hora (PATCH ativo),
+              sem passar pelo Salvar do formulário */}
+          {modoEdicao && (
+            <Button
+              variante="contorno"
+              tamanho="sm"
+              onClick={alternarAtivoTurma}
+              disabled={alternandoAtivo}
+              className="gap-2 shrink-0"
+            >
+              <Power size={16} />
+              {formData.ativo ? "Desativar turma" : "Reativar turma"}
+            </Button>
+          )}
         </div>
 
         {erro && (
@@ -268,9 +302,8 @@ export function TurmaForm() {
         <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
           {/* COLUNA ESQUERDA — dados da turma */}
           <form
-            id="form-turma"
             onSubmit={handleSubmit}
-            className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8"
+            className="w-full lg:max-w-xs cartao rounded-2xl p-5 flex flex-col gap-4 shrink-0 lg:sticky lg:top-8"
           >
             {escolherProfessor && (
               <SelectCustom
@@ -299,22 +332,15 @@ export function TurmaForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-ano-escolar" className="rotulo">
-                  Ano escolar
-                </label>
-                <Input id="campo-ano-escolar"
-                  type="text"
-                  name="ano_escolar"
-                  value={formData.ano_escolar}
-                  onChange={handleChange}
-                  required
-                  placeholder="Ex: 3º ano"
-                  className="w-full py-2 text-sm"
-                />
-              </div>
+              <SelectCustom
+                label="Ano escolar"
+                name="ano_escolar"
+                value={formData.ano_escolar}
+                onChange={handleChange}
+                options={opcoesAnoEscolar}
+              />
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 min-w-0">
                 <label htmlFor="campo-ano-letivo" className="rotulo">
                   Ano letivo
                 </label>
@@ -331,219 +357,279 @@ export function TurmaForm() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="campo-descricao" className="rotulo">
-                Descrição
+                Descrição <span className="normal-case tracking-normal font-medium">(opcional)</span>
               </label>
               <textarea id="campo-descricao"
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Uma breve descrição da turma (opcional)"
+                placeholder="Uma breve descrição da turma"
                 className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm resize-none"
               />
             </div>
 
-            {modoEdicao && (
-              <>
-                <hr className="m-0 border-t border-cinza-claro/60" />
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="rotulo">
-                    Código de acesso
-                  </span>
+            {modoEdicao && codigoAcesso && (
+              <div className="bg-bege rounded-xl px-3.5 py-3 flex flex-col gap-1">
+                <span className="rotulo">Código de acesso</span>
+                <div className="flex items-center justify-between gap-2">
+                  <b className="font-mono tracking-[0.14em] text-lg text-azul truncate">{codigoAcesso}</b>
                   <button
                     type="button"
-                    onClick={() => copiar(codigoAcesso, "codigoAcesso")}
-                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 hover:bg-bege/70 transition-all"
+                    onClick={() => copiarCodigo(codigoAcesso)}
+                    aria-label={`Copiar o código ${codigoAcesso}`}
+                    className={CLASSE_CONTORNO_CORAL}
                   >
-                    <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
-                      {codigoAcesso}
-                    </span>
-                    <span className="text-xs font-bold text-coral-texto">
-                      {campoCopiado === "codigoAcesso" ? "Copiado!" : "Copiar"}
-                    </span>
+                    {codigoCopiado ? <Check size={14} /> : <Copy size={14} />}
+                    <span aria-live="polite">{codigoCopiado ? "Copiado" : "Copiar"}</span>
                   </button>
-                  <p className="text-xs text-azul/80">
-                    Gerado automaticamente, não pode ser alterado.
-                  </p>
                 </div>
-              </>
+                <p className="text-xs text-azul/80">Gerado automaticamente</p>
+              </div>
             )}
 
+            {/* Salvar sempre à vista no fim do formulário, com o estado do lado.
+                Mexer em alunos não conta: aquilo já vai pro banco na hora. */}
+            <div className="flex flex-wrap items-center gap-2 border-t border-cinza-claro pt-3">
+              <span aria-live="polite" className="flex-1 min-w-0 text-sm font-bold">
+                {modoEdicao &&
+                  (houveAlteracao ? (
+                    <span className="flex items-center gap-1.5 text-coral-texto">
+                      <CircleAlert size={16} className="shrink-0" />
+                      Alterações não salvas
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-verde-texto">
+                      <CircleCheck size={16} className="shrink-0" />
+                      Tudo salvo
+                    </span>
+                  ))}
+              </span>
+              {modoEdicao && houveAlteracao && (
+                <Button variante="fantasma" tamanho="sm" disabled={salvando} onClick={desfazerAlteracoes}>
+                  Desfazer
+                </Button>
+              )}
+              <Button
+                type="submit"
+                tamanho="sm"
+                disabled={salvando || !houveAlteracao}
+                className="px-4 text-sm"
+              >
+                {salvando ? "Salvando..." : modoEdicao ? "Salvar" : "Criar turma"}
+              </Button>
+            </div>
           </form>
 
           {/* COLUNA DIREITA — alunos e atividades da turma (só existem já criada) */}
           {modoEdicao && (
             <div className="flex-1 min-w-0 flex flex-col gap-5">
-              {/* Sem borda de propósito: cinza-claro/10 é 90% transparente, então
-                  ela não aparece como borda — só abre 1px do bg-branco do card
-                  entre a sombra e o cabeçalho pêssego, virando um fio branco */}
-              <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-3 bg-laranja/20 px-6 py-3.5">
-                  <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
-                    Alunos ({alunos.length})
+              <section className="cartao rounded-2xl overflow-hidden">
+                <div className="flex flex-wrap items-center gap-2.5 px-4 sm:px-5 py-3.5 border-b border-cinza-claro">
+                  <h3 className="flex-1 whitespace-nowrap font-extrabold text-lg text-azul">
+                    Alunos <span className="text-base text-azul/80">{alunos.length}</span>
                   </h3>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={() => setRankingAberto(true)} className={CLASSE_CONTORNO_CORAL}>
+                      <Trophy size={15} />
+                      Ranking
+                    </button>
                     {filaImpressao.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Button variante="fantasma" tamanho="sm" onClick={limparFilaImpressao}>
-                          Limpar
-                        </Button>
-                        <Button variante="contorno" tamanho="sm" onClick={() => window.print()}>
-                          Imprimir Turma ({filaImpressao.length})
-                        </Button>
-                      </div>
+                      <Button variante="fantasma" tamanho="sm" onClick={limparFilaImpressao}>
+                        Limpar
+                      </Button>
                     )}
-                    {/* Contorno (fundo branco) como o "Imprimir Turma": o ouro-bg
-                        se confundia com o bege da faixa no desktop */}
-                    <Button
-                      variante="contorno"
-                      tamanho="sm"
-                      onClick={() => setRankingAberto(true)}
-                      className="gap-1"
+                    {/* A fila só tem senhas geradas nesta aba (cadastro ou nova
+                        senha) — sem nenhuma, não há o que imprimir */}
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      disabled={filaImpressao.length === 0}
+                      title={filaImpressao.length === 0 ? "Cadastre alunos ou gere novas senhas pra imprimir os acessos" : undefined}
+                      className={CLASSE_CONTORNO_CORAL}
                     >
-                      <StarIcon size={13} isAnimated={false} className="text-ouro-fg" />
-                      Ver ranking
-                    </Button>
-                    <Button tamanho="sm" onClick={abrirModalAluno}>
-                      + Adicionar aluno
-                    </Button>
+                      <Printer size={15} />
+                      Imprimir acessos{filaImpressao.length > 0 && ` (${filaImpressao.length})`}
+                    </button>
+                    {alunos.length > 0 && (
+                      <Button tamanho="sm" onClick={abrirModalAluno} className="gap-1.5">
+                        <UserPlus size={15} />
+                        Adicionar aluno
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <div className="px-6 py-2">
-                  {alunos.length === 0 ? (
-                    <p className="text-sm text-azul/80 py-3">
-                      Nenhum aluno matriculado ainda. Compartilhe o código de acesso ou adicione direto por aqui.
+
+                {alunos.length === 0 ? (
+                  <div className="flex flex-col items-center text-center gap-3 px-5 py-10">
+                    <div className="w-14 h-14 rounded-2xl bg-pessego-bg text-pessego-fg flex items-center justify-center">
+                      <UsersRound size={28} aria-hidden="true" />
+                    </div>
+                    <p className="font-extrabold text-lg text-azul">Chame a turma pra entrar</p>
+                    <p className="text-sm text-azul/80 max-w-xs">
+                      Passe o código pros alunos ou cadastre eles aqui.
                     </p>
-                  ) : (
-                    <ul className="flex flex-col">
-                      {alunos.map((aluno) => (
+                    <CodigoCopiavel codigo={codigoAcesso} className="bg-bege text-azul" />
+                    <Button tamanho="sm" onClick={abrirModalAluno} className="gap-1.5 mt-1">
+                      <UserPlus size={15} />
+                      Adicionar aluno
+                    </Button>
+                  </div>
+                ) : (
+                  <ul className="flex flex-col">
+                    {alunos.map((aluno) => {
+                      const desativada = aluno.conta_ativa === false;
+                      const nome = aluno.apelido || aluno.nome_completo;
+                      const detalhe = [
+                        aluno.apelido ? aluno.nome_completo : null,
+                        aluno.matricula ? `matrícula ${aluno.matricula}` : "sem matrícula",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ");
+                      return (
                         <li
                           key={aluno.matricula_id}
-                          className="group flex items-center gap-3 py-2.5 border-b border-cinza-claro last:border-0"
+                          className={`flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-cinza-claro last:border-0 ${
+                            desativada ? "bg-cinza-claro/30" : ""
+                          }`}
                         >
-                          {aluno.avatar_url && (
-                            <img
-                              src={`/avatares/${aluno.avatar_url}`}
-                              alt=""
-                              className="w-8 h-8 rounded-lg object-cover"
-                            />
-                          )}
-                          <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate py-3 -my-3 hover:text-coral-texto hover:underline underline-offset-2">
-                              {aluno.apelido || aluno.nome_completo}
+                          <Avatar
+                            arquivo={aluno.avatar_url}
+                            nome={nome}
+                            className={`w-10 h-10 text-sm rounded-full ${desativada ? "opacity-50" : ""}`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Link
+                              to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`}
+                              className={`block truncate font-bold hover:text-coral-texto hover:underline underline-offset-2 ${
+                                desativada ? "text-azul/80" : "text-azul"
+                              }`}
+                            >
+                              {nome}
                             </Link>
-                            {aluno.matricula && (
-                              <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
-                                {aluno.matricula}
-                              </span>
+                            {desativada ? (
+                              <Chip className="bg-cinza-claro text-azul mt-0.5">Conta desativada</Chip>
+                            ) : (
+                              <p className="text-xs text-azul/80 truncate">{detalhe}</p>
                             )}
-                            {aluno.conta_ativa === false && (
-                              <span className="text-xs font-bold text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded shrink-0">
-                                Desativado
-                              </span>
-                            )}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => alternarContaAluno(aluno)}
-                            disabled={alternandoContaAlunoId === aluno.aluno_id}
-                            aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
-                            title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
-                            className={`${aluno.conta_ativa === false ? "" : "[@media(hover:hover)]:opacity-0"} group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0`}
-                          >
-                            {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
-                          </button>
-                          <button
-                            type="button"
-                            // aria-disabled em vez de disabled: botão desabilitado perde o
-                            // foco, e aí o modal da senha não tem pra onde devolver ao fechar
-                            onClick={() => resetandoSenhaAlunoId !== aluno.aluno_id && resetarSenhaAluno(aluno.aluno_id)}
-                            aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
-                            aria-label="Gerar nova senha de primeiro acesso"
-                            title="Gerar nova senha de primeiro acesso"
-                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </button>
+                          </div>
+
+                          {desativada ? (
+                            <button
+                              type="button"
+                              onClick={() => alternarContaAluno(aluno)}
+                              disabled={alternandoContaAlunoId === aluno.aluno_id}
+                              aria-label={`Reativar a conta de ${nome}`}
+                              className={CLASSE_CONTORNO_CORAL}
+                            >
+                              <UserCheck size={15} />
+                              Reativar
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                // aria-disabled em vez de disabled: botão desabilitado perde o
+                                // foco, e aí o modal da senha não tem pra onde devolver ao fechar
+                                onClick={() => resetandoSenhaAlunoId !== aluno.aluno_id && resetarSenhaAluno(aluno.aluno_id)}
+                                aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
+                                aria-label={`Gerar nova senha pra ${nome}`}
+                                title="Gerar nova senha"
+                                className={CLASSE_ICONE_LINHA}
+                              >
+                                <KeyRound size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => alternarContaAluno(aluno)}
+                                disabled={alternandoContaAlunoId === aluno.aluno_id}
+                                aria-label={`Desativar a conta de ${nome}`}
+                                title="Desativar conta"
+                                className={CLASSE_ICONE_LINHA}
+                              >
+                                <UserX size={16} />
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
                             onClick={() => pedirRemocaoAluno(aluno)}
                             disabled={removendoMatriculaId === aluno.matricula_id}
-                            aria-label="Remover aluno da turma"
-                            title="Remover da turma"
-                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-azul/60 hover:text-vermelho alvo-toque w-8 h-8 flex items-center justify-center text-lg leading-none shrink-0"
+                            aria-label={`Tirar ${nome} da turma`}
+                            title="Tirar da turma"
+                            className={`${CLASSE_ICONE_LINHA} text-vermelho`}
                           >
-                            ×
+                            <UserMinus size={16} />
                           </button>
                         </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
 
-              {/* Sem borda de propósito: cinza-claro/10 é 90% transparente, então
-                  ela não aparece como borda — só abre 1px do bg-branco do card
-                  entre a sombra e o cabeçalho pêssego, virando um fio branco */}
-              <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
-                  <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
-                    Atividades ({atividades.length})
+              <section className="cartao rounded-2xl overflow-hidden">
+                <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-cinza-claro">
+                  <h3 className="flex-1 whitespace-nowrap font-extrabold text-lg text-azul">
+                    Atividades <span className="text-base text-azul/80">{atividades.length}</span>
                   </h3>
-                  <Button
-                    tamanho="sm"
-                    onClick={() => navigate("/professor/atividades/criar", { state: { turmaIdPadrao: id } })}
+                  <Link
+                    to="/professor/atividades/criar"
+                    state={{ turmaIdPadrao: id }}
+                    className="alvo-toque inline-flex items-center gap-1 font-display font-extrabold text-sm text-coral-texto hover:underline underline-offset-2"
                   >
-                    + Nova atividade
-                  </Button>
+                    <Plus size={16} />
+                    Nova atividade
+                  </Link>
                 </div>
-                <div className="px-6 py-2">
-                  {atividades.length === 0 ? (
-                    <p className="text-sm text-azul/80 py-3">
-                      Nenhuma atividade atribuída a essa turma ainda.
-                    </p>
-                  ) : (
-                    <ul className="flex flex-col">
-                      {atividades.map((atividade) => (
-                        <li
-                          key={atividade.id}
-                          className="flex items-center gap-3 py-2.5 border-b border-cinza-claro last:border-0"
-                        >
-                          {atividade.imagem_atividade_url ? (
-                            <img
-                              src={atividade.imagem_atividade_url}
-                              alt=""
-                              className="w-10 h-10 rounded-lg object-cover bg-bege shrink-0"
-                            />
-                          ) : (
-                            // Quadrado tracejado no lugar da imagem: sem ele, os
-                            // títulos das atividades sem imagem começariam num x
-                            // diferente e a lista ficaria desalinhada
-                            <div className="w-10 h-10 rounded-lg bg-bege border border-dashed border-cinza-claro shrink-0" />
-                          )}
-
-                          <span className="text-sm font-semibold text-azul grow min-w-0 truncate">
-                            {atividade.titulo}
-                          </span>
-                          <span
-                            className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${
-                              atividade.publicado
-                                ? "bg-verde/10 text-verde-texto"
-                                : "bg-cinza-claro text-azul/80"
-                            }`}
+                {atividades.length === 0 ? (
+                  <p className="text-sm text-azul/80 px-4 sm:px-5 py-4">
+                    Nenhuma atividade atribuída a essa turma ainda.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col">
+                    {atividades.map((atividade) => {
+                      const blocos = atividade.total_questoes ?? atividade.quantidade_blocos;
+                      const detalhe = [
+                        nomeDisciplina(atividade.disciplina) || null,
+                        DIFICULDADE_PROFESSOR[atividade.dificuldade]?.rotulo,
+                        blocos != null ? plural(blocos, "bloco", "blocos") : null,
+                        atividade.data_criacao ? `criada ${diaMes(atividade.data_criacao)}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ");
+                      return (
+                        <li key={atividade.id} className="border-b border-cinza-claro last:border-0">
+                          {/* Rascunho abre pra continuar editando; publicada abre o relatório */}
+                          <Link
+                            to={`/professor/atividades/${atividade.id}/${atividade.publicado ? "relatorio" : "editar"}`}
+                            className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-bege/40 transition"
                           >
-                            {atividade.publicado ? "Publicada" : "Rascunho"}
-                          </span>
+                            <TileDisciplina
+                              disciplina={atividade.disciplina}
+                              imagem={atividade.imagem_atividade_url}
+                              className="w-10 h-10 rounded-xl"
+                              tamanhoIcone={18}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-azul truncate">{atividade.titulo}</p>
+                              <p className="text-xs text-azul/80 truncate">{detalhe}</p>
+                            </div>
+                            <Chip
+                              className={
+                                atividade.publicado ? "bg-cie-bg text-cie-fg-escuro" : "bg-cinza-claro text-azul"
+                              }
+                            >
+                              {atividade.publicado ? "Publicada" : "Rascunho"}
+                            </Chip>
+                            <ChevronRight size={18} className="text-coral-texto shrink-0" aria-hidden="true" />
+                          </Link>
                         </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
             </div>
           )}
         </div>
@@ -580,9 +666,7 @@ export function TurmaForm() {
         <Modal aberto onFechar={fecharModalAluno} className="max-w-xl">
             <div className="flex items-start justify-between mb-4">
               <p className="font-extrabold text-azul">Adicionar aluno</p>
-              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={fecharModalAluno}>
-                ×
-              </Button>
+              <BotaoFechar onClick={fecharModalAluno} />
             </div>
 
             {/* Duas formas de matricular: preencher a lista de linhas (1
@@ -612,10 +696,10 @@ export function TurmaForm() {
               resultadoLote ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2.5 bg-verde/10 rounded-xl px-3.5 py-2.5">
-                    <span className="w-6 h-6 rounded-full bg-verde text-branco text-xs font-black flex items-center justify-center shrink-0">
-                      ✓
+                    <span className="w-6 h-6 rounded-full bg-verde text-branco flex items-center justify-center shrink-0">
+                      <Check size={14} strokeWidth={3} aria-hidden="true" />
                     </span>
-                    <span className="text-[12.5px] font-bold text-azul">
+                    <span className="text-sm font-bold text-azul">
                       {resultadoLote.length} aluno{resultadoLote.length === 1 ? "" : "s"} cadastrado{resultadoLote.length === 1 ? "" : "s"} e matriculado{resultadoLote.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -629,7 +713,7 @@ export function TurmaForm() {
                         <span className="font-bold text-azul flex-1 truncate flex items-center gap-1.5 min-w-0">
                           <span className="truncate">{aluno.nome_completo}</span>
                           {aluno.matricula && (
-                            <span className="text-[9.5px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                            <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                               {aluno.matricula}
                             </span>
                           )}
@@ -657,7 +741,7 @@ export function TurmaForm() {
                   {/* flex, não grid: cada input pede um "mínimo de conteúdo" pra
                       não encolher (min-width automático do navegador); min-w-0
                       derruba isso e deixa o flex-1 mandar de verdade — sem essa
-                      linha, Nome/Sobrenome empurravam Matrícula e o "×" pra fora
+                      linha, Nome/Sobrenome empurravam Matrícula e o "x" pra fora
                       em telas mais estreitas. */}
                   <div className="flex gap-2.5 px-0.5">
                     <span className="flex-1 min-w-0 rotulo">Nome</span>
@@ -688,6 +772,7 @@ export function TurmaForm() {
                           <Input
                             ref={ultimaLinha ? refUltimoNome : undefined}
                             type="text"
+                            aria-label={`Nome do aluno ${indice + 1}`}
                             value={linha.nome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "nome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
@@ -696,6 +781,7 @@ export function TurmaForm() {
                           />
                           <Input
                             type="text"
+                            aria-label={`Sobrenome do aluno ${indice + 1}`}
                             value={linha.sobrenome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "sobrenome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
@@ -704,6 +790,7 @@ export function TurmaForm() {
                           />
                           <Input
                             type="text"
+                            aria-label={`Matrícula do aluno ${indice + 1}`}
                             value={linha.matricula}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "matricula", e.target.value)}
                             onKeyDown={aoPressionarEnter}
@@ -716,9 +803,9 @@ export function TurmaForm() {
                             disabled={linhasCadastro.length === 1}
                             aria-label="Remover esta linha"
                             title="Remover esta linha"
-                            className="w-7 h-7 rounded-lg text-azul/30 hover:text-vermelho hover:bg-vermelho/5 disabled:opacity-0 disabled:pointer-events-none font-bold text-lg flex items-center justify-center shrink-0 transition-all"
+                            className="w-7 h-7 rounded-lg text-azul/60 hover:text-vermelho hover:bg-vermelho/5 disabled:opacity-0 disabled:pointer-events-none flex items-center justify-center shrink-0 transition-all"
                           >
-                            ×
+                            <X size={16} />
                           </button>
                         </div>
                       );
@@ -733,7 +820,7 @@ export function TurmaForm() {
                     onClick={adicionarLinhaCadastro}
                     className="border-2 border-dashed border-coral/40 rounded-2xl py-2.5 flex items-center justify-center gap-2 text-coral-texto font-bold text-sm hover:bg-coral/5 transition-all active:scale-[0.99]"
                   >
-                    <span className="text-lg leading-none">+</span> Adicionar outro aluno
+                    <Plus size={16} /> Adicionar outro aluno
                   </button>
 
                   <p className="text-xs text-azul/80">
@@ -803,21 +890,15 @@ export function TurmaForm() {
                       key={aluno.id}
                       className="flex items-center gap-3 border border-cinza-claro/60 rounded-2xl px-3.5 py-2.5"
                     >
-                      {aluno.avatar_url ? (
-                        <img
-                          src={`/avatares/${aluno.avatar_url}`}
-                          alt=""
-                          className="w-9 h-9 rounded-lg object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-lg bg-coral text-azul-escuro text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
-                          {(aluno.apelido || aluno.nome_completo || "?").charAt(0)}
-                        </div>
-                      )}
+                      <Avatar
+                        arquivo={aluno.avatar_url}
+                        nome={aluno.apelido || aluno.nome_completo}
+                        className="w-9 h-9 text-xs rounded-lg"
+                      />
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[13px] font-extrabold text-azul truncate">
+                          <span className="text-sm font-extrabold text-azul truncate">
                             {aluno.apelido || aluno.nome_completo}
                           </span>
                           {aluno.matricula && (
@@ -887,12 +968,10 @@ export function TurmaForm() {
         <Modal aberto onFechar={() => setRankingAberto(false)} className="max-w-md">
             <div className="flex items-start justify-between mb-1">
               <div className="flex items-center gap-2">
-                <StarIcon size={18} isAnimated={false} className="text-ouro-fg-escuro" />
+                <Trophy size={18} className="text-ouro-fg-escuro" aria-hidden="true" />
                 <p className="font-extrabold text-azul text-lg">Ranking da turma</p>
               </div>
-              <Button variante="fantasma" tamanho="icone" aria-label="Fechar" onClick={() => setRankingAberto(false)}>
-                ×
-              </Button>
+              <BotaoFechar onClick={() => setRankingAberto(false)} />
             </div>
 
             {rankingAlunos.length === 0 ? (
@@ -931,17 +1010,7 @@ export function TurmaForm() {
                       {temXp ? indice + 1 : "–"}
                     </span>
 
-                    {aluno.avatar_url ? (
-                      <img
-                        src={`/avatares/${aluno.avatar_url}`}
-                        alt=""
-                        className="w-8 h-8 rounded-lg object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-coral text-azul-escuro text-xs font-extrabold uppercase flex items-center justify-center shrink-0">
-                        {(aluno.nome || "?").charAt(0)}
-                      </div>
-                    )}
+                    <Avatar arquivo={aluno.avatar_url} nome={aluno.nome} className="w-8 h-8 text-xs rounded-lg" />
 
                     <span className="text-sm font-semibold text-azul grow min-w-0 truncate">
                       {aluno.nome}
@@ -952,7 +1021,7 @@ export function TurmaForm() {
                     </span>
 
                     <span
-                      className={`text-[13px] font-extrabold shrink-0 w-16 text-right ${
+                      className={`text-sm font-extrabold shrink-0 w-16 text-right ${
                         aluno.xp_total > 0 ? "text-ouro-fg-escuro" : "text-azul/30"
                       }`}
                     >
@@ -971,11 +1040,11 @@ export function TurmaForm() {
       {alunoParaRemover && (
         <Modal aberto onFechar={cancelarRemocaoAluno} className="max-w-sm flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
-              <Trash2 size={28} />
+              <UserMinus size={28} aria-hidden="true" />
             </div>
 
             <h3 className="text-xl font-extrabold text-azul mt-3">
-              Remover da turma?
+              Tirar da turma?
             </h3>
             <p className="text-sm text-azul/80 mt-2">
               <strong className="text-azul">{alunoParaRemover.nome}</strong> sai
@@ -999,8 +1068,8 @@ export function TurmaForm() {
                 className="flex-1"
               >
                 {removendoMatriculaId === alunoParaRemover.matricula_id
-                  ? "Removendo..."
-                  : "Remover"}
+                  ? "Tirando..."
+                  : "Tirar da turma"}
               </Button>
             </div>
         </Modal>
@@ -1009,8 +1078,8 @@ export function TurmaForm() {
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
         <Modal aberto onFechar={fecharErroAcaoAluno} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-vermelho/10 flex items-center justify-center text-3xl">
-              ⚠️
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
+              <TriangleAlert size={28} aria-hidden="true" />
             </div>
             <h3 className="text-xl font-extrabold text-azul">
               Ops, algo deu errado

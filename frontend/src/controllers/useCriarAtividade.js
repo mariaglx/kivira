@@ -4,6 +4,9 @@ import { apiRequest } from "../services/api";
 // Precisa bater com POR_PAGINA em backend/services/pixabay_service.py
 const IMAGENS_POR_PAGINA = 20;
 
+// Quantas questões em branco a atividade nova já começa tendo
+const QUESTOES_INICIAIS = 12;
+
 export function useCriarAtividade() {
   const [formData, setFormData] = useState({
     titulo: "",
@@ -13,11 +16,10 @@ export function useCriarAtividade() {
     disciplina: "",
     dificuldade: "facil",
     imagem_atividade_url: "",
-    quantidade_blocos: 12,
     tempo_limite_seg: "",
   });
 
-  // Uma questão por bloco — a lista sempre tem o mesmo tamanho de formData.quantidade_blocos
+  // Uma questão por bloco — quantidade_blocos é derivado do tamanho da lista na hora de salvar
   // localId nunca muda (mesmo quando "ordem" é renumerado) — usado como key, pra não confundir o React na animação
   const criarQuestaoVazia = (ordem) => ({
     localId: crypto.randomUUID(),
@@ -29,34 +31,14 @@ export function useCriarAtividade() {
   });
 
   const [questoes, setQuestoes] = useState(
-    Array.from({ length: formData.quantidade_blocos }, (_, i) => criarQuestaoVazia(i + 1))
+    Array.from({ length: QUESTOES_INICIAIS }, (_, i) => criarQuestaoVazia(i + 1))
   );
 
   const [questoesParaRemover, setQuestoesParaRemover] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-
-    if (name === "quantidade_blocos") {
-      const novaQuantidade = parseInt(value) || 0;
-
-      if (novaQuantidade < questoes.length) {
-        const removidas = questoes.slice(novaQuantidade).filter((q) => q.questaoId);
-        setQuestoesParaRemover([...questoesParaRemover, ...removidas.map((q) => q.questaoId)]);
-      }
-
-      setQuestoes((atual) => {
-        if (novaQuantidade > atual.length) {
-          const novosBlocos = Array.from(
-            { length: novaQuantidade - atual.length },
-            (_, i) => criarQuestaoVazia(atual.length + i + 1)
-          );
-          return [...atual, ...novosBlocos];
-        }
-        return atual.slice(0, novaQuantidade);
-      });
-    }
+    setFormData((atual) => ({ ...atual, [name]: value }));
   };
 
   const handleChangeBloco = (index, campo, valor) => {
@@ -68,10 +50,6 @@ export function useCriarAtividade() {
   const adicionarQuestao = () => {
     const novaQuestao = criarQuestaoVazia(questoes.length + 1);
     setQuestoes((atual) => [...atual, novaQuestao]);
-    setFormData((atual) => ({
-      ...atual,
-      quantidade_blocos: (parseInt(atual.quantidade_blocos) || 0) + 1,
-    }));
     return novaQuestao;
   };
 
@@ -83,10 +61,6 @@ export function useCriarAtividade() {
     setQuestoes((atual) =>
       atual.filter((_, i) => i !== index).map((questao, i) => ({ ...questao, ordem: i + 1 }))
     );
-    setFormData((atual) => ({
-      ...atual,
-      quantidade_blocos: (parseInt(atual.quantidade_blocos) || 0) - 1,
-    }));
   };
 
   const moverQuestao = (origemIndex, destinoIndex) => {

@@ -1,31 +1,74 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Reorder, AnimatePresence, useDragControls } from "motion/react";
 import "animate.css";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { useCriarAtividade } from "../../controllers/useCriarAtividade";
+import { useFecharComEsc } from "../../controllers/useFecharComEsc";
 import { apiRequest } from "../../services/api";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Animacao";
 import { Carregando } from "../../components/ui/Carregando";
 import { comemorar } from "../../utils/comemorar";
-import { Search, Sparkles, Trash2, X } from "lucide-react";
+import { corDisciplina, nomeDisciplina } from "../../utils/disciplina";
+import { DIFICULDADE_PROFESSOR } from "../../utils/dificuldade";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Ellipsis,
+  GripVertical,
+  HandGrab,
+  Image as IconeImagem,
+  Play,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  Undo2,
+  Upload,
+  X,
+} from "lucide-react";
 import { Alerta } from "../../components/ui/Alerta";
 
-// Um card de questão arrastável — precisa ser seu próprio componente pra cada
-// um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
-// em vez do card inteiro virar arrastável e atrapalhar o clique nos campos)
-function QuestaoCard({
+const CLASSE_CAMPO =
+  "w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm";
+const SEM_SETINHAS =
+  "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+
+// Alcinha de arrastar pra reordenar (Reorder, da motion). Só ela aciona o
+// arraste, senão o clique pra abrir a questão e os campos viravam arrasto.
+function AlcaArrastar({ dragControls }) {
+  return (
+    <span
+      onPointerDown={(e) => dragControls.start(e)}
+      title="Arraste para reordenar"
+      className="w-8 h-11 shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/40 hover:text-azul/80 transition-colors select-none touch-none"
+    >
+      <GripVertical size={18} aria-hidden="true" />
+    </span>
+  );
+}
+
+// Uma questão da lista. Fechada é uma linha compacta (número, pergunta e a
+// resposta certa em verde); só a que está em edição abre com os campos.
+// Precisa ser seu próprio componente pra cada uma ter seu useDragControls.
+function QuestaoLinha({
   questao,
   index,
   erro,
   tentativaInvalida,
+  editando,
   podeRemover,
+  onEditar,
   onMudarBloco,
   onRemover,
   registrarInputRef,
 }) {
   const dragControls = useDragControls();
+  const idErro = `erro-${questao.localId}`;
 
   return (
     <Reorder.Item
@@ -37,96 +80,131 @@ function QuestaoCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className="mb-3"
+      className="mb-2.5"
     >
-      <div
-        key={erro ? `erro-${tentativaInvalida}` : "ok"}
-        className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
-          erro
-            ? "border-vermelho/40 animate-tremida-leve"
-            : "border-cinza-claro/10"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-azul/80">
-            Questão {questao.ordem}
-          </span>
-          <div className="flex items-center gap-1">
-            <span
-              onPointerDown={(e) => dragControls.start(e)}
-              title="Arraste para reordenar"
-              className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-azul/25 hover:text-azul/80 transition-colors select-none touch-none"
-            >
-              <svg
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="w-3.5 h-3.5"
-              >
-                <circle cx="5" cy="3" r="1.3" />
-                <circle cx="11" cy="3" r="1.3" />
-                <circle cx="5" cy="8" r="1.3" />
-                <circle cx="11" cy="8" r="1.3" />
-                <circle cx="5" cy="13" r="1.3" />
-                <circle cx="11" cy="13" r="1.3" />
-              </svg>
+      {editando ? (
+        <div
+          key={erro ? `erro-${tentativaInvalida}` : "ok"}
+          className={`bg-branco rounded-2xl shadow-sm border-2 p-3 sm:p-4 flex flex-col gap-3 ${
+            erro ? "border-vermelho/60 animate-tremida-leve" : "border-coral"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-full bg-coral text-azul-escuro font-bold text-sm flex items-center justify-center shrink-0">
+              {questao.ordem}
             </span>
+            <span className="flex-1 min-w-0 text-sm font-bold text-azul/80">Editando</span>
             <button
               type="button"
               onClick={() => onRemover(index)}
               disabled={!podeRemover}
-              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-vermelho disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
+              aria-label={`Excluir questão ${questao.ordem}`}
+              className="alvo-toque w-9 h-9 rounded-full flex items-center justify-center text-vermelho hover:bg-vermelho/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
             >
-              ×
+              <Trash2 size={18} />
             </button>
+            <button
+              type="button"
+              onClick={() => onEditar(null, questao.localId)}
+              aria-expanded="true"
+              aria-label={`Recolher questão ${questao.ordem}`}
+              className="alvo-toque w-9 h-9 rounded-full flex items-center justify-center text-azul/80 hover:bg-azul/5 transition-colors"
+            >
+              <ChevronUp size={18} />
+            </button>
+            <AlcaArrastar dragControls={dragControls} />
+          </div>
+
+          {erro && (
+            <p id={idErro} className="text-xs font-bold text-vermelho -mt-1">
+              Questão não pode estar em branco
+            </p>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <label htmlFor={`pergunta-${questao.localId}`} className="rotulo">
+                Pergunta
+              </label>
+              <input
+                id={`pergunta-${questao.localId}`}
+                ref={(el) => registrarInputRef(`${questao.localId}-texto`, el)}
+                type="text"
+                aria-invalid={!!erro?.texto}
+                aria-describedby={erro?.texto ? idErro : undefined}
+                value={questao.texto_questao}
+                onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
+                placeholder="Ex: Qual o som que a vaca faz?"
+                className={`${CLASSE_CAMPO} ${
+                  erro?.texto ? "border-vermelho/40 focus:border-vermelho" : "border-cinza-claro/30"
+                }`}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <label htmlFor={`resposta-${questao.localId}`} className="rotulo">
+                Resposta certa
+              </label>
+              <input
+                id={`resposta-${questao.localId}`}
+                ref={(el) => registrarInputRef(`${questao.localId}-resposta`, el)}
+                type="text"
+                aria-invalid={!!erro?.resposta}
+                aria-describedby={erro?.resposta ? idErro : undefined}
+                value={questao.resposta_certa}
+                onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
+                placeholder="Ex: Muuuu"
+                className={`${CLASSE_CAMPO} ${
+                  erro?.resposta ? "border-vermelho/40 focus:border-vermelho" : "border-cinza-claro/30"
+                }`}
+              />
+            </div>
           </div>
         </div>
-
-        {erro && (
-          <p id={`erro-${questao.localId}`} className="text-xs font-bold text-vermelho -mt-1.5">
-            Questão não pode estar em branco
-          </p>
-        )}
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`pergunta-${questao.localId}`} className="rotulo">
-            Texto da pergunta
-          </label>
-          <input id={`pergunta-${questao.localId}`}
-            ref={(el) => registrarInputRef(`${questao.localId}-texto`, el)}
-            type="text"
-            aria-invalid={!!erro?.texto}
-            aria-describedby={erro?.texto ? `erro-${questao.localId}` : undefined}
-            value={questao.texto_questao}
-            onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
-            placeholder="Ex: Qual o som que a vaca faz?"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
-              erro?.texto
-                ? "border-vermelho/40 focus:border-vermelho"
-                : "border-cinza-claro/30"
-            }`}
-          />
+      ) : (
+        <div
+          key={erro ? `erro-${tentativaInvalida}` : "ok"}
+          className={`bg-branco rounded-2xl shadow-sm border flex items-center gap-1 pr-1 ${
+            erro ? "border-vermelho/40 animate-tremida-leve" : "border-cinza-claro/30"
+          }`}
+        >
+          <button
+            type="button"
+            ref={(el) => registrarInputRef(`${questao.localId}-linha`, el)}
+            onClick={() => onEditar(questao.localId)}
+            aria-expanded="false"
+            aria-describedby={erro ? idErro : undefined}
+            className="flex-1 min-w-0 min-h-11 flex items-center gap-3 p-3 sm:px-4 text-left rounded-2xl hover:bg-bege/30 transition-colors"
+          >
+            <span className="w-8 h-8 rounded-full bg-bege text-azul font-bold text-sm flex items-center justify-center shrink-0">
+              <span className="sr-only">Editar questão </span>
+              {questao.ordem}
+            </span>
+            <span className="flex-1 min-w-0">
+              <span
+                className={`block text-sm font-bold break-words ${
+                  questao.texto_questao ? "text-azul" : "text-azul/80 italic"
+                }`}
+              >
+                {questao.texto_questao || "Pergunta em branco"}
+              </span>
+              {questao.resposta_certa && (
+                <span className="mt-0.5 flex items-center gap-1 text-sm font-bold text-verde-texto break-words">
+                  <Check size={14} className="shrink-0" aria-hidden="true" />
+                  <span className="sr-only">Resposta certa: </span>
+                  {questao.resposta_certa}
+                </span>
+              )}
+              {erro && (
+                <span id={idErro} className="mt-0.5 block text-xs font-bold text-vermelho">
+                  Questão não pode estar em branco
+                </span>
+              )}
+            </span>
+          </button>
+          <AlcaArrastar dragControls={dragControls} />
         </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`resposta-${questao.localId}`} className="rotulo">
-            Resposta certa
-          </label>
-          <input id={`resposta-${questao.localId}`}
-            ref={(el) => registrarInputRef(`${questao.localId}-resposta`, el)}
-            type="text"
-            aria-invalid={!!erro?.resposta}
-            aria-describedby={erro?.resposta ? `erro-${questao.localId}` : undefined}
-            value={questao.resposta_certa}
-            onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
-            placeholder="Ex: Muuuu"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
-              erro?.resposta
-                ? "border-vermelho/40 focus:border-vermelho"
-                : "border-cinza-claro/30"
-            }`}
-          />
-        </div>
-      </div>
+      )}
     </Reorder.Item>
   );
 }
@@ -226,9 +304,20 @@ export function CriarAtividade() {
   const [tentativaInvalida, setTentativaInvalida] = useState(0);
   const inputRefs = useRef({});
 
-  // Foto do estado como ele veio do banco. Serve pra saber se sobrou alguma
-  // alteração pendente — sem isso, "Atualizar atividade" fica sempre aceso,
-  // como se houvesse algo por salvar mesmo quando não há.
+  // Só uma questão fica aberta por vez. Atividade nova já abre a primeira
+  // (estão todas em branco); na edição todas começam fechadas.
+  const [questaoEditando, setQuestaoEditando] = useState(() =>
+    idRota ? null : questoes[0]?.localId ?? null,
+  );
+
+  // Menu de três pontos (Excluir) — fecha no Esc, clique fora ou ao escolher
+  const [menuAberto, setMenuAberto] = useState(false);
+  const refBotaoMenu = useRef(null);
+  const fecharMenu = useCallback(() => setMenuAberto(false), []);
+  useFecharComEsc(menuAberto, fecharMenu, refBotaoMenu);
+
+  // Foto do estado como ele veio do banco (ou do último salvamento). Serve pra
+  // saber se sobrou alteração pendente e pro "Desfazer" voltar a ele.
   const [estadoOriginal, setEstadoOriginal] = useState(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
 
@@ -254,6 +343,20 @@ export function CriarAtividade() {
       }
       return copia;
     });
+  };
+
+  // Abre uma questão (e põe o foco na pergunta) ou, com null, fecha a aberta e
+  // devolve o foco pra linha dela — senão o foco cai no <body> quando os
+  // campos somem. O foco espera o próximo quadro, quando os campos já existem.
+  const editarQuestao = (localId, localIdFechada) => {
+    setQuestaoEditando(localId);
+    const chave = localId ? `${localId}-texto` : `${localIdFechada}-linha`;
+    requestAnimationFrame(() => inputRefs.current[chave]?.focus());
+  };
+
+  const aoAdicionarQuestao = () => {
+    const nova = adicionarQuestao();
+    editarQuestao(nova.localId);
   };
 
   // Reordena por arrastar (Reorder, da motion) — recebe o array já na nova ordem
@@ -336,14 +439,11 @@ export function CriarAtividade() {
           tipo_atividade: atividade.tipo_atividade || "arrastar_soltar",
           turma_id: atividade.turma_id ? String(atividade.turma_id) : "",
           descricao: atividade.descricao || "",
-          disciplina: atividade.disciplina || "",
+          // Já mostra com acento ("Matematica" vira "Matemática"); só vai pro
+          // banco assim se o professor salvar
+          disciplina: nomeDisciplina(atividade.disciplina),
           dificuldade: atividade.dificuldade || "facil",
           imagem_atividade_url: atividade.imagem_atividade_url || "",
-          // Se já existem questões salvas, o número de blocos precisa bater com
-          // elas (senão o campo "Blocos" mostra um número que não confere com
-          // os cards de questão exibidos abaixo)
-          quantidade_blocos:
-            questoesCarregadas.length || atividade.quantidade_blocos,
           tempo_limite_seg: atividade.tempo_limite_seg || "",
         }));
 
@@ -400,6 +500,8 @@ export function CriarAtividade() {
 
     if (Object.keys(novasInvalidas).length > 0) {
       setQuestoesInvalidas(novasInvalidas);
+      // Abre a primeira questão com erro, pro efeito de validação achar o campo
+      setQuestaoEditando(questoes.find((q) => novasInvalidas[q.localId]).localId);
       setTentativaInvalida((atual) => atual + 1);
       return;
     }
@@ -415,7 +517,8 @@ export function CriarAtividade() {
       disciplina: formData.disciplina,
       dificuldade: formData.dificuldade,
       imagem_atividade_url: formData.imagem_atividade_url || null,
-      quantidade_blocos: formData.quantidade_blocos,
+      // Um bloco por questão: o número vem da lista, não de um campo à parte
+      quantidade_blocos: questoes.length,
       tempo_limite_seg: formData.tempo_limite_seg || null,
     };
 
@@ -467,23 +570,23 @@ export function CriarAtividade() {
     const idsPorOrdem = new Map(
       respostaQuestoes.questoes.map((q) => [q.ordem, q]),
     );
-    setQuestoes((atual) =>
-      atual.map((q) => {
-        const salva = idsPorOrdem.get(q.ordem);
-        return salva
-          ? { ...q, questaoId: salva.questao_id, opcaoId: salva.opcao_id }
-          : q;
-      }),
-    );
+    const comIdsSalvos = (q) => {
+      const salva = idsPorOrdem.get(q.ordem);
+      return salva
+        ? { ...q, questaoId: salva.questao_id, opcaoId: salva.opcao_id }
+        : q;
+    };
+    setQuestoes((atual) => atual.map(comIdsSalvos));
 
     setQuestoesParaRemover([]);
 
-    // Acabou de salvar: o que está na tela passa a ser o novo "original", então
-    // os botões voltam a ficar apagados até a próxima edição
+    // Acabou de salvar: o que está na tela passa a ser o novo "original" (já
+    // com os ids que o banco devolveu, senão questão nova pareceria alterada)
+    const questoesSalvas = questoes.map(comIdsSalvos);
     setEstadoOriginal({
       dados: formData,
-      questoes,
-      texto: instantaneoDaAtividade(formData, questoes),
+      questoes: questoesSalvas,
+      texto: instantaneoDaAtividade(formData, questoesSalvas),
     });
 
     setFoiCriacao(!idAtividadeCriada);
@@ -501,9 +604,6 @@ export function CriarAtividade() {
     );
   }
 
-  // Em edição, os botões só acendem se algo mudou em relação ao que veio do
-  // banco. Na criação não há "original" pra comparar — ali a atividade inteira
-  // é novidade, e os botões seguem disponíveis como sempre.
   const emEdicao = Boolean(idRota);
   const instantaneoAtual = instantaneoDaAtividade(formData, questoes);
 
@@ -517,11 +617,11 @@ export function CriarAtividade() {
     setEstadoOriginal({ dados: formData, questoes, texto: instantaneoAtual });
   }
 
+  // Sem "original" (atividade nova ainda não salva) tudo é novidade
   const houveAlteracao =
-    !emEdicao || (estadoOriginal !== null && instantaneoAtual !== estadoOriginal.texto);
+    estadoOriginal === null || instantaneoAtual !== estadoOriginal.texto;
 
-  // "Cancelar" ao lado de "Atualizar" significa desfazer a edição, não sair da
-  // tela — o professor fica onde está, com a atividade como o banco a tem.
+  // Volta pro estado do banco/último salvamento — o professor fica onde está
   const desfazerAlteracoes = () => {
     if (!estadoOriginal) return;
     setFormData(estadoOriginal.dados);
@@ -549,381 +649,333 @@ export function CriarAtividade() {
     }
   };
 
+  const corDaDisciplina = corDisciplina(formData.disciplina);
+
   return (
     <>
-      {/* 2. ÁREA PRINCIPAL */}
-      <main className="pagina flex flex-col gap-6">
-        <header className="flex items-center gap-3">
+      <main className="pagina flex flex-col gap-5">
+        <header className="flex items-center justify-between gap-3">
           <Link
             to="/professor/atividades"
-            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
+            className="alvo-toque inline-flex items-center gap-1.5 text-sm font-bold text-azul/80 hover:text-azul"
           >
-            ← Atividades
+            <ArrowLeft size={18} aria-hidden="true" />
+            Atividades
           </Link>
-        </header>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight min-w-0 break-words">
-            {idAtividadeCriada
-              ? `Atividade: ${formData.titulo}`
-              : "Nova Atividade"}
-          </h2>
+          <h1 className="sr-only">
+            {idAtividadeCriada ? `Editar atividade ${formData.titulo}` : "Nova atividade"}
+          </h1>
 
           {idAtividadeCriada && (
-            <Button
-              variante="fantasma"
-              tamanho="sm"
-              onClick={abrirExclusao}
-              className="gap-2 text-vermelho hover:bg-vermelho/10 shrink-0"
-            >
-              <Trash2 size={16} />
-              Excluir atividade
-            </Button>
-          )}
-        </div>
+            <div className="relative">
+              <button
+                ref={refBotaoMenu}
+                type="button"
+                onClick={() => setMenuAberto((v) => !v)}
+                aria-expanded={menuAberto}
+                aria-label="Mais ações"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-azul hover:bg-azul/5 transition-colors"
+              >
+                <Ellipsis size={22} />
+              </button>
 
-        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
-          {/* COLUNA ESQUERDA — dados da atividade */}
-          <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="campo-titulo" className="rotulo">
-                Título
-              </label>
-              <input id="campo-titulo"
-                type="text"
-                name="titulo"
-                value={formData.titulo}
-                onChange={handleChange}
-                placeholder="Ex: Sons dos Animais"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-disciplina" className="rotulo">
-                  Disciplina
-                </label>
-                <input id="campo-disciplina"
-                  type="text"
-                  name="disciplina"
-                  value={formData.disciplina}
-                  onChange={handleChange}
-                  placeholder="Ex: Ciências"
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <SelectCustom
-                  label="Turma"
-                  name="turma_id"
-                  value={formData.turma_id}
-                  onChange={handleChange}
-                  placeholder="Nenhuma (opcional)"
-                  options={turmas.map((turma) => ({
-                    value: String(turma.id),
-                    label: turma.nome,
-                  }))}
-                />
-                {erroTurmas && (
-                  <p role="alert" className="text-xs text-vermelho">
-                    Não foi possível carregar: {erroTurmas}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <hr className="m-0 border-t border-cinza-claro/60" />
-
-            <div className="grid grid-cols-2 gap-3">
-              <SelectCustom
-                label="Tipo de atividade"
-                name="tipo_atividade"
-                value={formData.tipo_atividade}
-                onChange={handleChange}
-                options={[
-                  { value: "arrastar_soltar", label: "Arrastar e soltar" },
-                  { value: "associacao", label: "Associação" },
-                  { value: "multipla_escolha", label: "Múltipla escolha" },
-                ]}
-              />
-
-              <SelectCustom
-                label="Dificuldade"
-                name="dificuldade"
-                value={formData.dificuldade}
-                onChange={handleChange}
-                options={[
-                  { value: "facil", label: "Fácil" },
-                  { value: "medio", label: "Médio" },
-                  { value: "dificil", label: "Difícil" },
-                ]}
-              />
-            </div>
-
-            <hr className="m-0 border-t border-cinza-claro/60" />
-
-            <div className="flex flex-col gap-1.5">
-              <span className="rotulo">
-                Imagem da atividade
-              </span>
-              <div className="flex gap-2 items-center">
-                {formData.imagem_atividade_url ? (
-                  <div className="relative group w-11 h-11 shrink-0">
-                    <img
-                      src={formData.imagem_atividade_url}
-                      alt="Prévia da imagem escolhida"
-                      className="w-11 h-11 rounded-xl object-cover border border-cinza-claro/30"
-                    />
+              {menuAberto && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={fecharMenu} />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-branco rounded-2xl shadow-xl border border-cinza-claro/40 p-2">
                     <button
                       type="button"
-                      aria-label="Remover imagem"
-                      onClick={() =>
-                        setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
-                      }
-                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                      onClick={() => {
+                        fecharMenu();
+                        abrirExclusao();
+                      }}
+                      className="w-full min-h-11 flex items-center gap-2 rounded-xl px-3 text-sm font-bold text-vermelho hover:bg-vermelho/10 transition-colors"
                     >
-                      <X size={16} />
+                      <Trash2 size={16} aria-hidden="true" />
+                      Excluir atividade
                     </button>
                   </div>
-                ) : (
+                </>
+              )}
+            </div>
+          )}
+        </header>
+
+        <form
+          id="form-atividade"
+          onSubmit={handleSubmit}
+          className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start"
+        >
+          {/* COLUNA ESQUERDA — capa, identidade e configuração */}
+          <div className="w-full lg:max-w-xs shrink-0 flex flex-col gap-3 lg:sticky lg:top-8">
+            {/* 1. Imagem do jogo + código. A "capa" é a mesma imagem que vai pro
+                tabuleiro (imagem_atividade_url), buscada no Pixabay ou enviada do
+                computador — as duas passam pelo Cloudinary no backend. */}
+            <section aria-label="Imagem do jogo e código" className="cartao overflow-hidden">
+              {formData.imagem_atividade_url ? (
+                <div className="relative h-40 bg-bege">
+                  <img src={formData.imagem_atividade_url} alt="Imagem do jogo" className="w-full h-full object-cover" />
                   <button
                     type="button"
-                    onClick={() => abrirBuscaImagem("enviar")}
-                    aria-label="Enviar imagem do computador"
-                    className="group relative w-11 h-11 rounded-xl border border-dashed border-cinza-claro/50 hover:border-coral/50 shrink-0 flex items-center justify-center text-azul/25 hover:text-coral-texto transition-colors"
+                    aria-label="Remover imagem do jogo"
+                    onClick={() =>
+                      setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
+                    }
+                    className="alvo-toque absolute top-2 right-2 w-9 h-9 rounded-full bg-branco/90 text-azul shadow-sm flex items-center justify-center hover:text-vermelho transition-colors"
                   >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="group-hover:opacity-0 transition-opacity"
-                    >
-                      <rect width="18" height="18" x="3" y="3" rx="2" />
-                      <circle cx="9" cy="9" r="2" />
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                    </svg>
-                    <svg
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                      className="w-4 h-4 absolute opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
-                      <path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V11.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z" />
-                    </svg>
+                    <X size={16} />
                   </button>
-                )}
+                </div>
+              ) : (
                 <button
                   type="button"
                   onClick={() => abrirBuscaImagem("buscar")}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul/80 hover:bg-bege/40 shadow-sm transition-all text-sm text-left truncate inline-flex items-center gap-2"
+                  className="m-3 mb-0 h-36 w-[calc(100%-1.5rem)] rounded-xl border-2 border-dashed border-coral/60 bg-bege/40 flex flex-col items-center justify-center gap-1 text-center px-4 hover:bg-bege/70 transition-colors"
                 >
-                  <Search size={14} />
-                  {formData.imagem_atividade_url ? "Trocar imagem" : "Escolher imagem"}
+                  <IconeImagem size={28} className="text-coral-texto" aria-hidden="true" />
+                  <span className="font-display font-extrabold text-coral-texto">Escolher imagem do jogo</span>
+                  <span className="text-xs text-azul/80">Ela aparece no tabuleiro e no card da atividade</span>
                 </button>
-              </div>
-            </div>
+              )}
 
-            <div className="flex flex-col gap-1.5">
-              <span className="rotulo">
-                Código da atividade
-              </span>
-              {codigoAtividade ? (
+              <div className="px-4 pt-2 pb-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="rotulo w-full mb-0">Imagem do jogo</span>
                 <button
                   type="button"
-                  onClick={copiarCodigo}
-                  className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco hover:bg-bege/40 shadow-sm transition-all"
+                  onClick={() => abrirBuscaImagem("buscar")}
+                  className="alvo-toque inline-flex items-center gap-1.5 text-sm font-bold text-coral-texto hover:underline"
                 >
-                  <span className="font-mono font-extrabold tracking-widest text-azul text-sm">
-                    {codigoAtividade}
-                  </span>
-                  <span className="text-xs font-bold text-coral-texto">
-                    {codigoCopiado ? "Copiado!" : "Copiar"}
-                  </span>
+                  <Search size={15} aria-hidden="true" />
+                  {formData.imagem_atividade_url ? "Trocar" : "Buscar"}
                 </button>
-              ) : (
-                <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
-                  <span className="font-mono font-extrabold tracking-widest text-sm">
-                    ••••••••
-                  </span>
-                  {/* Texto fixo em vez de tooltip: tooltip não aparece no toque */}
-                  <span className="text-xs font-bold text-azul/75">Gerado ao salvar</span>
-                </div>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => abrirBuscaImagem("enviar")}
+                  className="alvo-toque inline-flex items-center gap-1.5 text-sm font-bold text-coral-texto hover:underline"
+                >
+                  <Upload size={15} aria-hidden="true" />
+                  Enviar do computador
+                </button>
+              </div>
 
-            <hr className="m-0 border-t border-cinza-claro/60" />
+              <div className="px-4 pb-2.5 pt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-cinza-claro mt-1.5">
+                <span className="text-xs font-bold text-azul/80">Código</span>
 
-            <button
-              type="button"
-              onClick={() => setMostrarDetalhes((atual) => !atual)}
-              aria-expanded={mostrarDetalhes}
-              className="flex items-center gap-1.5 rotulo transition-colors"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`w-3.5 h-3.5 transition-transform ${mostrarDetalhes ? "rotate-180" : ""}`}
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-              {mostrarDetalhes ? "Menos detalhes" : "Mais detalhes"}
-            </button>
+                {codigoAtividade ? (
+                  <button
+                    type="button"
+                    onClick={copiarCodigo}
+                    aria-label={`Copiar código da atividade: ${codigoAtividade}`}
+                    className="alvo-toque inline-flex items-center gap-1.5 font-mono text-sm font-bold tracking-widest text-azul"
+                  >
+                    {codigoAtividade}
+                    {codigoCopiado ? (
+                      <Check size={16} className="text-verde-texto" aria-hidden="true" />
+                    ) : (
+                      <Copy size={16} className="text-coral-texto" aria-hidden="true" />
+                    )}
+                  </button>
+                ) : (
+                  // Texto fixo em vez de tooltip: tooltip não aparece no toque
+                  <span className="text-xs font-bold text-azul/80">Código gerado ao salvar</span>
+                )}
+                <span className="sr-only" aria-live="polite">
+                  {codigoCopiado ? "Código copiado" : ""}
+                </span>
+              </div>
+            </section>
 
-            {mostrarDetalhes && (
-              <>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="campo-descricao" className="rotulo">
-                    Descrição
+            {/* 2. Identidade */}
+            <section aria-label="Identificação" className="cartao p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="campo-titulo" className="rotulo">
+                  Título
+                </label>
+                <input
+                  id="campo-titulo"
+                  type="text"
+                  name="titulo"
+                  value={formData.titulo}
+                  onChange={handleChange}
+                  placeholder="Ex: Sons dos Animais"
+                  className={`${CLASSE_CAMPO} border-cinza-claro/30`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5 min-w-0">
+                  <label htmlFor="campo-disciplina" className="rotulo">
+                    Disciplina
                   </label>
-                  <textarea id="campo-descricao"
-                    name="descricao"
-                    value={formData.descricao}
+                  <div className="relative">
+                    {formData.disciplina.trim() && (
+                      <span
+                        aria-hidden="true"
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-current ${corDaDisciplina.fg}`}
+                      />
+                    )}
+                    <input
+                      id="campo-disciplina"
+                      type="text"
+                      name="disciplina"
+                      value={formData.disciplina}
+                      onChange={handleChange}
+                      // Ao sair do campo, "Matematica" vira "Matemática"
+                      onBlur={() =>
+                        setFormData((atual) => ({
+                          ...atual,
+                          disciplina: nomeDisciplina(atual.disciplina),
+                        }))
+                      }
+                      placeholder="Ex: Ciências"
+                      className={`${CLASSE_CAMPO} border-cinza-claro/30 ${
+                        formData.disciplina.trim() ? "pl-7" : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="min-w-0">
+                  <SelectCustom
+                    label="Turma"
+                    name="turma_id"
+                    value={formData.turma_id}
                     onChange={handleChange}
-                    placeholder="Uma breve descrição da atividade (opcional)"
-                    rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm resize-none"
+                    placeholder="Nenhuma"
+                    options={turmas.map((turma) => ({
+                      value: String(turma.id),
+                      label: turma.nome,
+                    }))}
                   />
                 </div>
-              </>
-            )}
+              </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-blocos" className="rotulo">
-                  Blocos
-                </label>
-                <input id="campo-blocos"
-                  type="number"
-                  name="quantidade_blocos"
-                  value={formData.quantidade_blocos}
-                  onChange={handleChange}
-                  min={1}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
+              {erroTurmas && <Alerta>Não foi possível carregar as turmas: {erroTurmas}</Alerta>}
+            </section>
+
+            {/* 3. Configuração */}
+            <section aria-label="Configuração" className="cartao p-4 flex flex-col gap-3">
+              {/* Hoje só existe um tipo de jogo, então em vez de um select com
+                  uma opção só fica o aviso de como ele funciona. O
+                  tipo_atividade continua indo no corpo, como sempre. */}
+              <div className="flex items-center gap-3 rounded-xl bg-bege px-3 py-2.5">
+                <HandGrab size={20} className="text-coral-texto shrink-0" aria-hidden="true" />
+                <p className="text-sm text-azul min-w-0">
+                  <strong className="block">Arrastar e associar</strong>
+                  <span className="text-azul/80">A criança arrasta a resposta até a pergunta</span>
+                </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-tempo-seg" className="rotulo">
-                  Tempo (seg)
-                </label>
-                <input id="campo-tempo-seg"
-                  type="number"
-                  name="tempo_limite_seg"
-                  value={formData.tempo_limite_seg}
-                  onChange={handleChange}
-                  placeholder="Sem limite"
-                  min={0}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
+                <span id="rotulo-dificuldade" className="rotulo">
+                  Dificuldade
+                </span>
+                <div role="group" aria-labelledby="rotulo-dificuldade" className="grid grid-cols-3 gap-2">
+                  {Object.entries(DIFICULDADE_PROFESSOR).map(([valor, { rotulo }]) => {
+                    const ativo = formData.dificuldade === valor;
+                    return (
+                      <button
+                        key={valor}
+                        type="button"
+                        aria-pressed={ativo}
+                        onClick={() => setFormData((atual) => ({ ...atual, dificuldade: valor }))}
+                        className={`min-h-11 rounded-xl border text-sm font-bold transition-colors ${
+                          ativo
+                            ? "bg-coral border-coral text-azul-escuro"
+                            : "bg-branco border-azul/20 text-azul hover:border-coral"
+                        }`}
+                      >
+                        {rotulo}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarDetalhes((atual) => !atual)}
+                aria-expanded={mostrarDetalhes}
+                aria-controls="mais-opcoes"
+                className="min-h-11 flex items-center justify-between gap-2 text-sm font-bold text-coral-texto"
+              >
+                Mais opções
+                <span className="inline-flex items-center gap-1 text-xs text-azul/80">
+                  Tempo, descrição
+                  <ChevronDown
+                    size={16}
+                    aria-hidden="true"
+                    className={`transition-transform ${mostrarDetalhes ? "rotate-180" : ""}`}
+                  />
+                </span>
+              </button>
+
+              {mostrarDetalhes && (
+                <div id="mais-opcoes" className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="campo-tempo-seg" className="rotulo">
+                      Tempo limite (seg)
+                    </label>
+                    <input
+                      id="campo-tempo-seg"
+                      type="number"
+                      name="tempo_limite_seg"
+                      value={formData.tempo_limite_seg}
+                      onChange={handleChange}
+                      placeholder="Sem limite"
+                      min={0}
+                      className={`${CLASSE_CAMPO} border-cinza-claro/30 ${SEM_SETINHAS}`}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="campo-descricao" className="rotulo">
+                      Descrição
+                    </label>
+                    <textarea
+                      id="campo-descricao"
+                      name="descricao"
+                      value={formData.descricao}
+                      onChange={handleChange}
+                      placeholder="Uma breve descrição da atividade (opcional)"
+                      rows={3}
+                      className={`${CLASSE_CAMPO} border-cinza-claro/30 resize-none`}
+                    />
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
 
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
-          <div className="flex-1 min-w-0 flex flex-col gap-4">
+          <div className="flex-1 min-w-0 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h4 className="rotulo">
-                Questões ({questoes.length}{" "}
-                {questoes.length === 1 ? "bloco" : "blocos"})
-              </h4>
+              <h2 className="text-xl font-bold text-azul">
+                Questões{" "}
+                <span className="text-base font-semibold text-azul/80">{questoes.length}</span>
+              </h2>
 
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
-                {/* Contorno (fundo branco) como o "Ver ranking": o coral/10
-                    de antes se confundia com o bege da página */}
-                <Button
-                  type="button"
-                  variante="contorno"
-                  onClick={gerarQuestoesComIA}
-                  disabled={gerandoIA}
-                  className="px-5 py-2.5 text-sm font-bold gap-2"
-                >
-                  {gerandoIA ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-coral/40 border-t-coral rounded-full animate-spin" />
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} className="text-coral-texto" />
-                      Gerar com IA
-                    </>
-                  )}
-                </Button>
-
-              {/* Um lugar só, duas funções que nunca coexistem: com alteração
-                  pendente aparecem Cancelar/Atualizar; sem ela, a
-                  pré-visualização. Elas se excluem de verdade — a
-                  pré-visualização lê a atividade do servidor, então enquanto
-                  houver edição por salvar ela mostraria conteúdo velho. */}
-              {houveAlteracao ? (
-                <>
-                  <Button
-                    variante="fantasma"
-                    disabled={salvando}
-                    onClick={() =>
-                      emEdicao ? desfazerAlteracoes() : navigate("/professor/atividades")
-                    }
-                    className="px-5 py-2.5 text-sm"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={salvando} className="px-5 py-2.5 text-sm">
-                    {salvando
-                      ? "Salvando..."
-                      : idAtividadeCriada
-                        ? "Atualizar Atividade"
-                        : "Criar Atividade"}
-                  </Button>
-                </>
-              ) : (
-              <div>
-                {idAtividadeCriada ? (
-                  <Button
-                    as={Link}
-                    variante="secundario"
-                    to="/jogo"
-                    state={{ atividadeId: idAtividadeCriada }}
-                    className="px-5 py-2.5 text-sm gap-2"
-                  >
-                    <svg
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                      className="w-3.5 h-3.5"
-                    >
-                      <path d="M4 2.5v11l10-5.5-10-5.5z" />
-                    </svg>
-                    Pré-visualizar atividade
-                  </Button>
+              {/* Contorno (fundo branco) sobre o bege da página */}
+              <Button
+                type="button"
+                variante="contorno"
+                onClick={gerarQuestoesComIA}
+                disabled={gerandoIA}
+                className="px-4 py-2.5 text-sm font-bold gap-2 text-coral-texto!"
+              >
+                {gerandoIA ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-coral/40 border-t-coral rounded-full animate-spin" />
+                    Gerando...
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="rounded-xl px-5 py-2.5 font-bold text-sm text-azul/30 bg-cinza-claro/10 border-none cursor-not-allowed inline-flex items-center gap-2"
-                  >
-                    <svg
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                      className="w-3.5 h-3.5"
-                    >
-                      <path d="M4 2.5v11l10-5.5-10-5.5z" />
-                    </svg>
-                    Salve para pré-visualizar
-                  </button>
+                  <>
+                    <Sparkles size={16} aria-hidden="true" />
+                    Gerar com IA
+                  </>
                 )}
-              </div>
-              )}
-              </div>
+              </Button>
             </div>
 
             {erroIA && (
@@ -949,13 +1001,15 @@ export function CriarAtividade() {
             >
               <AnimatePresence initial={false}>
                 {questoes.map((questao, index) => (
-                  <QuestaoCard
+                  <QuestaoLinha
                     key={questao.localId}
                     questao={questao}
                     index={index}
                     erro={questoesInvalidas[questao.localId]}
                     tentativaInvalida={tentativaInvalida}
+                    editando={questaoEditando === questao.localId}
                     podeRemover={questoes.length > 1}
+                    onEditar={editarQuestao}
                     onMudarBloco={aoMudarBloco}
                     onRemover={removerQuestao}
                     registrarInputRef={(chave, el) => {
@@ -968,14 +1022,92 @@ export function CriarAtividade() {
 
             <button
               type="button"
-              onClick={() => adicionarQuestao()}
-              className="w-full border-2 border-dashed border-coral/40 rounded-2xl py-4 flex items-center justify-center gap-2 text-coral-texto font-bold text-sm hover:bg-branco/40 transition-all hover:scale-[1.01] active:scale-95"
+              onClick={aoAdicionarQuestao}
+              className="w-full min-h-11 border-2 border-dashed border-azul/40 rounded-2xl py-3 flex items-center justify-center gap-2 text-azul font-bold text-sm hover:bg-branco/40 hover:border-coral transition-colors"
             >
-              + Adicionar questão
+              <Plus size={18} aria-hidden="true" />
+              Adicionar questão
             </button>
-
           </div>
         </form>
+
+        {/* Barra fixa embaixo: estado do salvamento + ações. O "Salvar" fica
+            fora do <form>, ligado a ele pelo atributo form (Enter num campo
+            continua salvando). */}
+        <div className="sticky bottom-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 -mb-6 lg:-mb-8 px-4 sm:px-6 lg:px-8 py-3 bg-branco border-t border-cinza-claro flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p aria-live="polite" className="flex-1 min-w-40 flex items-center gap-2 text-sm font-bold text-azul">
+            {houveAlteracao ? (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-coral shrink-0" aria-hidden="true" />
+                {idAtividadeCriada ? "Alterações não salvas" : "Atividade ainda não salva"}
+              </>
+            ) : (
+              <>
+                <Check size={16} className="text-verde-texto shrink-0" aria-hidden="true" />
+                Tudo salvo
+              </>
+            )}
+          </p>
+
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
+            {estadoOriginal ? (
+              <Button
+                variante="contorno"
+                onClick={desfazerAlteracoes}
+                disabled={salvando || !houveAlteracao}
+                className="px-4 py-2.5 text-sm gap-2 border-coral! text-coral-texto!"
+              >
+                <Undo2 size={16} aria-hidden="true" />
+                Desfazer
+              </Button>
+            ) : (
+              // Atividade nova nunca salva: não há o que desfazer, então sai da tela
+              <Button
+                variante="contorno"
+                onClick={() => navigate("/professor/atividades")}
+                disabled={salvando}
+                className="px-4 py-2.5 text-sm border-coral! text-coral-texto!"
+              >
+                Cancelar
+              </Button>
+            )}
+
+            {/* A pré-visualização lê a atividade do servidor: com edição por
+                salvar ela mostraria conteúdo velho, então só libera salvo */}
+            {idAtividadeCriada &&
+              (houveAlteracao ? (
+                <Button
+                  variante="secundario"
+                  disabled
+                  title="Salve para pré-visualizar"
+                  className="px-4 py-2.5 text-sm gap-2"
+                >
+                  <Play size={16} aria-hidden="true" />
+                  Pré-visualizar
+                </Button>
+              ) : (
+                <Button
+                  as={Link}
+                  variante="secundario"
+                  to="/jogo"
+                  state={{ atividadeId: idAtividadeCriada }}
+                  className="px-4 py-2.5 text-sm gap-2"
+                >
+                  <Play size={16} aria-hidden="true" />
+                  Pré-visualizar
+                </Button>
+              ))}
+
+            <Button
+              type="submit"
+              form="form-atividade"
+              disabled={salvando || !houveAlteracao}
+              className="px-5 py-2.5 text-sm"
+            >
+              {salvando ? "Salvando..." : "Salvar atividade"}
+            </Button>
+          </div>
+        </div>
       </main>
 
       {/* Modal de sucesso ao criar/atualizar a atividade */}

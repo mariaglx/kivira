@@ -156,6 +156,11 @@ export function useTurmaForm() {
       setErro("Escolha o professor responsável pela turma");
       return;
     }
+    // Ano escolar virou <select>, que não tem o `required` nativo do SelectCustom
+    if (!formData.ano_escolar) {
+      setErro("Escolha o ano escolar da turma");
+      return;
+    }
 
     setSalvando(true);
     setErro(null);
@@ -465,6 +470,8 @@ export function useTurmaForm() {
     professorId,
     setProfessorId,
     formData,
+    // Nome como está no banco (o "voltar" não muda enquanto o professor digita)
+    nomeSalvo: dadosOriginais?.nome ?? "",
     codigoAcesso,
     alunos,
     atividades,

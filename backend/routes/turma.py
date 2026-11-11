@@ -15,7 +15,7 @@ from schemas.turma import TurmaSchema, TurmaUpdateSchema
 from sqlalchemy import func
 import secrets # Gerar o código de acesso de forma automática | Nativo Python
 from services.auditoria_service import registrar_log
-from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO
+from services.relatorio_service import situacao_por_aluno_atividade, primeiras_respostas, porcentagem, SEM_SESSAO, estatisticas_turmas
 from services.sessao_jogo_service import nivel_por_xp
 
 turma_router = APIRouter(prefix="/turma", tags=["turma"], dependencies=[Depends(admin_ou_professor)])
@@ -73,6 +73,9 @@ def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Dep
         .all()
     ) if turma_ids else {}
 
+    # Conclusão, alunos parados, avatares e feedback de cada turma (cards e menu)
+    stats = estatisticas_turmas(session, turma_ids)
+
     return[
         {
             "id": turma.id,
@@ -80,7 +83,9 @@ def listar_turmas(session = Depends(pegar_sessao_kivira), usuario: Usuario = Dep
             "ano_escolar": turma.ano_escolar,
             "ano_letivo": turma.ano_letivo,
             "descricao": turma.descricao,
+            "codigo_acesso": turma.codigo_acesso,
             "ativo": turma.ativo,
+            **stats[turma.id],
             "professor_id": turma.professor_id,
             "professor_nome": nome_professor.get(turma.professor_id),
             "alunos_count": alunos_por_turma.get(turma.id, 0),
@@ -323,6 +328,7 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
             "atividade_id": a.id,
             "titulo": a.titulo,
             "disciplina": a.disciplina,
+            "imagem_atividade_url": a.imagem_atividade_url,
             "total_questoes": total_questoes.get(a.id, 0),
             "alunos_concluiram": sum(1 for aluno_id in aluno_ids if concluiu(aluno_id, a.id)),
             "taxa_acerto_primeira": porcentagem(respostas_por_atividade.get(a.id, [])),
@@ -341,6 +347,8 @@ def relatorio_da_turma(id_turma: int, session = Depends(pegar_sessao_kivira), us
             "atividades_concluidas": sum(1 for atividade_id in atividade_ids if concluiu(a.id, atividade_id)),
             "taxa_acerto_primeira": porcentagem(respostas_por_aluno.get(a.id, [])),
             "respondeu_feedback": a.usuario_id in responderam,
+            # Abriu alguma atividade da turma (mesmo sem concluir)
+            "comecou": any((a.id, atividade_id) in situacao for atividade_id in atividade_ids),
         }
         for a in alunos
     ]
