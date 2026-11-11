@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Presentation, Search } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
@@ -75,10 +75,10 @@ export function Turmas() {
           <Lista className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {turmasFiltradas.map((turma) => (
               <Item key={turma.id} elevar className="flex">
-                <Link
-                  to={`/professor/turmas/${turma.id}`}
-                  className="cartao flex-1 rounded-2xl p-6 flex flex-col gap-5 justify-between hover:shadow-md transition-shadow"
-                >
+                {/* O card é um div (e não um Link inteiro) pra caber o botão
+                    "Exibir código" sem aninhar link dentro de link */}
+                <div className="cartao flex-1 rounded-2xl p-6 flex flex-col gap-5 justify-between hover:shadow-md transition-shadow">
+                <Link to={`/professor/turmas/${turma.id}`} className="flex flex-col gap-5">
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <h3 className="text-lg font-bold text-azul break-words">{turma.nome}</h3>
@@ -109,11 +109,27 @@ export function Turmas() {
                       <div className="text-xl font-extrabold text-azul">{turma.atividades_count ?? 0}</div>
                       <div className="rotulo">Atividades</div>
                     </div>
-                    <span className="ml-auto text-sm font-bold text-coral-texto flex items-center gap-1">
-                      Abrir <ChevronRight size={16} />
-                    </span>
                   </div>
                 </Link>
+
+                <div className="flex items-center justify-between gap-3">
+                  <Button
+                    as={Link}
+                    to={`/professor/turmas/${turma.id}/codigo`}
+                    tamanho="sm"
+                    className="gap-1.5"
+                    aria-label={`Exibir código da turma ${turma.nome}`}
+                  >
+                    <Presentation size={14} /> Exibir código
+                  </Button>
+                  <Link
+                    to={`/professor/turmas/${turma.id}`}
+                    className="alvo-toque text-sm font-bold text-coral-texto flex items-center gap-1"
+                  >
+                    Abrir <ChevronRight size={16} />
+                  </Link>
+                </div>
+                </div>
               </Item>
             ))}
 

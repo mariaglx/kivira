@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Copy, Maximize, Minimize } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
 import { useApi } from "../../controllers/useApi";
-import { subtituloTurma } from "../../utils/turma";
 import { comemorar } from "../../utils/comemorar";
 
 // Cada letra do código vira uma "peça" do tabuleiro, nas cores do Kivira —
@@ -22,7 +21,7 @@ const CORES_PECA = [
 const AVATARES = [
   { nome: "capivara", posicao: "top-[8%] left-[6%]", atraso: "0s" },
   { nome: "coruja", posicao: "top-[12%] right-[8%]", atraso: "1.2s" },
-  { nome: "lontra", posicao: "bottom-[14%] left-[10%]", atraso: "0.6s" },
+  { nome: "lontra", posicao: "bottom-[5%] left-[4%]", atraso: "0.6s" },
   { nome: "coelho", posicao: "bottom-[10%] right-[6%]", atraso: "1.8s" },
   { nome: "nave-lunar", posicao: "top-[45%] left-[2%]", atraso: "2.4s" },
   { nome: "girassol", posicao: "top-[42%] right-[3%]", atraso: "0.9s" },
@@ -55,11 +54,12 @@ function useTelaCheia() {
   return { cheia, alternar, suportada: Boolean(document.documentElement.requestFullscreen) };
 }
 
-// Tela pra projetar na sala: o código da turma gigante no centro, com a cara
-// do jogo (peças, avatares, cores), pra criança entrar e já perceber que hoje
-// tem Kivira. Fica fora do PainelLayout de propósito — sem menu, só o código.
+// Tela pra projetar na sala: só o código da turma gigante no centro, com a
+// cara do jogo (peças, avatares, cores), pra criança entrar e já perceber que
+// hoje tem Kivira. Aberta pelo "Exibir código" do card da turma. Fica fora do PainelLayout de propósito — sem menu, só o código.
 export function CodigoTurma() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { dados: turma, erro, carregando } = useApi(`/turma/${id}`);
   const { cheia, alternar, suportada } = useTelaCheia();
   const [copiado, setCopiado] = useState(false);
@@ -84,7 +84,6 @@ export function CodigoTurma() {
   }
 
   const codigo = turma.codigo_acesso.toUpperCase();
-  const site = window.location.host;
 
   const copiar = async () => {
     try {
@@ -116,12 +115,14 @@ export function CodigoTurma() {
 
       {/* Controles do professor — discretos, no canto */}
       <header className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <Link
-          to={`/professor/turmas/${turma.id}`}
+        {/* Volta pra onde o professor veio (lista de turmas ou a turma) */}
+        <button
+          type="button"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/professor/turmas"))}
           className="alvo-toque text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit"
         >
           <ArrowLeft size={14} /> Voltar
-        </Link>
+        </button>
         <div className="flex gap-2">
           <Button tamanho="sm" variante="contorno" onClick={copiar} className="gap-1.5">
             {copiado ? <Check size={14} /> : <Copy size={14} />}
@@ -143,18 +144,10 @@ export function CodigoTurma() {
           className="h-14 sm:h-20 lg:h-24 w-auto animate__animated animate__bounceIn"
         />
 
-        <div className="flex flex-col items-center gap-2">
-          <span className="faixa-secao text-sm sm:text-base">✨ Hoje tem Kivira! ✨</span>
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-azul">
-            Bora jogar, {turma.nome}!
-          </h1>
-          {subtituloTurma(turma) && (
-            <p className="text-sm sm:text-base font-bold text-azul/80">{subtituloTurma(turma)}</p>
-          )}
-        </div>
+        <span className="faixa-secao text-sm sm:text-base">✨ Hoje tem Kivira! ✨</span>
 
         <div className="cartao rounded-[2rem] px-5 py-6 sm:px-10 sm:py-8 flex flex-col items-center gap-4 sm:gap-6 animate__animated animate__zoomIn">
-          <span className="rotulo text-sm sm:text-base">Código da turma</span>
+          <span className="rotulo text-sm sm:text-base">Código da turma · {turma.nome}</span>
           <p className="sr-only">{codigo.split("").join(" ")}</p>
           <div aria-hidden="true" className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4">
             {codigo.split("").map((letra, i) => (
@@ -168,21 +161,6 @@ export function CodigoTurma() {
             ))}
           </div>
         </div>
-
-        <ol className="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-4 text-left">
-          {[
-            ["1", <>Abra <strong className="font-black">{site}</strong></>],
-            ["2", "Digite o código acima"],
-            ["3", "Escolha seu avatar e jogue! 🎲"],
-          ].map(([numero, texto]) => (
-            <li key={numero} className="cartao rounded-2xl px-4 py-3 flex items-center gap-3 text-base sm:text-lg font-bold">
-              <span className="shrink-0 w-9 h-9 rounded-full bg-azul text-branco font-black flex items-center justify-center">
-                {numero}
-              </span>
-              <span className="min-w-0 break-words">{texto}</span>
-            </li>
-          ))}
-        </ol>
       </section>
     </main>
   );
