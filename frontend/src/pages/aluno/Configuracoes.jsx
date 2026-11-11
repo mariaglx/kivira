@@ -14,7 +14,7 @@ function Aviso({ aviso }) {
   return (
     <p
       className={`text-sm font-semibold mt-3 ${
-        aviso.tipo === "ok" ? "text-green-600" : "text-vermelho"
+        aviso.tipo === "ok" ? "text-verde-texto" : "text-vermelho"
       }`}
     >
       {aviso.texto}
@@ -105,7 +105,7 @@ export function Configuracoes() {
                   onChange={(e) => setApelido(e.target.value)}
                   maxLength={50}
                   placeholder={aluno?.nome_completo}
-                  className="w-full bg-bege/40 border-2 border-cinza-claro focus:border-coral rounded-2xl pl-11 pr-4 py-3 text-azul font-semibold outline-none transition"
+                  className="w-full bg-bege/40 border-2 border-cinza-claro rounded-2xl pl-11 pr-4 py-3 text-azul font-semibold transition"
                 />
               </div>
               <button
@@ -155,7 +155,7 @@ export function Configuracoes() {
                   <button
                     type="button"
                     onClick={voltarParaSenhaAtual}
-                    className="text-sm font-bold text-azul/80 hover:text-azul px-2"
+                    className="alvo-toque text-sm font-bold text-azul/80 hover:text-azul px-2"
                   >
                     ← Trocar senha de agora
                   </button>

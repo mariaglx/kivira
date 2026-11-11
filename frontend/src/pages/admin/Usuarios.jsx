@@ -6,6 +6,7 @@ import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/pape
 import { mensagemErroCarregamento } from "../../utils/erroCarregamento";
 import { useVerComo } from "../../controllers/useVerComo";
 import { Modal } from "../../components/ui/Animacao";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Usuarios() {
   const [busca, setBusca] = useState("");
@@ -128,7 +129,7 @@ export function Usuarios() {
             placeholder="Buscar por nome, login ou turma..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
           />
         </div>
 
@@ -144,17 +145,17 @@ export function Usuarios() {
       </div>
 
       {erroConta && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroConta}</div>
+        <Alerta>{erroConta}</Alerta>
       )}
 
       {erroVerComo && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+        <Alerta>{erroVerComo}</Alerta>
       )}
 
       {erro && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+        <Alerta>
           {erro}
-        </div>
+        </Alerta>
       )}
 
       {carregando ? (
@@ -163,7 +164,7 @@ export function Usuarios() {
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-azul/80 font-bold border-b border-cinza-claro/20">
+              <tr className="text-left rotulo border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>
                 <th className="px-5 py-3">Nome</th>
                 <th className="px-5 py-3">Login</th>
@@ -185,11 +186,11 @@ export function Usuarios() {
                   </td>
                   <td className="px-5 py-3 text-azul/80">{usuario.identificador || "—"}</td>
                   <td className="px-5 py-3">
-                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/80"}`}>
+                    <span className={`badge border-none rounded-md px-2.5 py-1 text-xs font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/80"}`}>
                       {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
                     </span>
                     {!usuario.ativo && (
-                      <span className="badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold bg-vermelho/10 text-vermelho ml-1">
+                      <span className="badge border-none rounded-md px-2.5 py-1 text-xs font-bold bg-vermelho/10 text-vermelho ml-1">
                         Desativado
                       </span>
                     )}
@@ -207,7 +208,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => verComo("aluno", usuario.aluno_id)}
                           disabled={abrindo === `aluno:${usuario.aluno_id}`}
-                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-azul hover:underline whitespace-nowrap"
                         >
                           {abrindo === `aluno:${usuario.aluno_id}` ? "Abrindo..." : "Ver como aluno"}
                         </button>
@@ -217,7 +218,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => verComo("professor", usuario.professor_id)}
                           disabled={abrindo === `professor:${usuario.professor_id}`}
-                          className="text-xs font-bold text-azul hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-azul hover:underline whitespace-nowrap"
                         >
                           {abrindo === `professor:${usuario.professor_id}` ? "Abrindo..." : "Ver como professor"}
                         </button>
@@ -227,7 +228,7 @@ export function Usuarios() {
                           type="button"
                           onClick={() => alternarConta(usuario)}
                           disabled={alternandoId === usuario.id}
-                          className={`text-xs font-bold hover:underline whitespace-nowrap ${usuario.ativo ? "text-vermelho" : "text-azul"}`}
+                          className={`alvo-toque text-xs font-bold hover:underline whitespace-nowrap ${usuario.ativo ? "text-vermelho" : "text-azul"}`}
                         >
                           {alternandoId === usuario.id ? "Salvando..." : usuario.ativo ? "Desativar" : "Reativar"}
                         </button>
@@ -237,7 +238,7 @@ export function Usuarios() {
                         <button
                           type="button"
                           onClick={() => abrirConfirmacaoPromover(usuario)}
-                          className="text-xs font-bold text-coral-texto hover:underline whitespace-nowrap"
+                          className="alvo-toque text-xs font-bold text-coral-texto hover:underline whitespace-nowrap"
                         >
                           Tornar admin
                         </button>
@@ -280,13 +281,13 @@ export function Usuarios() {
               placeholder="000000"
               value={codigo2fa}
               onChange={(e) => setCodigo2fa(e.target.value.replace(/\D/g, ""))}
-              className="w-full mb-5 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50"
+              className="w-full mb-5 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul text-center tracking-[0.4em]"
             />
 
             {erroPromocao && (
-              <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              <Alerta className="mb-4">
                 {erroPromocao}
-              </div>
+              </Alerta>
             )}
 
             <div className="flex gap-2 justify-end">

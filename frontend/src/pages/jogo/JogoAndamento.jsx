@@ -169,7 +169,7 @@ export function JogoAndamento() {
         <p className="text-azul font-bold">
           {erroCarregamento || "Nenhuma atividade selecionada."}
         </p>
-        <Link to={rotaVoltar} className="text-coral-texto font-bold text-sm hover:underline">
+        <Link to={rotaVoltar} className="alvo-toque text-coral-texto font-bold text-sm hover:underline">
           ← Voltar pras atividades
         </Link>
       </div>
@@ -194,7 +194,7 @@ export function JogoAndamento() {
           <Link
             to={isAluno ? rotaVoltar : `/professor/atividades/${atividadeId}/editar`}
             aria-label={isAluno ? "Voltar pra trilha" : "Voltar pra edição"}
-            className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-bege text-azul font-bold text-sm hover:bg-laranja-claro transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 h-11 px-3 rounded-full bg-bege text-azul font-bold text-sm hover:bg-laranja-claro transition-colors"
           >
             <ArrowLeft size={18} />
             <span className="hidden sm:inline">{isAluno ? "Voltar" : "Editar"}</span>
@@ -489,7 +489,7 @@ export function JogoAndamento() {
               >
                 Ver o mosaico
               </button>
-              <Link to={rotaVoltar} className="text-azul/80 hover:text-azul text-sm font-bold">
+              <Link to={rotaVoltar} className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold">
                 {isAluno ? "← Voltar pras atividades" : "← Voltar"}
               </Link>
             </div>

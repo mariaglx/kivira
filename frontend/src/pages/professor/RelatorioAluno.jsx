@@ -12,6 +12,7 @@ import { Indicador, SeloStatus } from "../../components/professor/Relatorio";
 import { useApi } from "../../controllers/useApi";
 import { formatarTempo } from "../../utils/tempo";
 import { progressoNivel } from "../../utils/xp";
+import { Alerta } from "../../components/ui/Alerta";
 
 function formatarData(valor) {
   return valor ? new Date(valor).toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) : null;
@@ -20,7 +21,7 @@ function formatarData(valor) {
 function Metrica({ rotulo, valor }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-azul/80">{rotulo}</span>
+      <span className="rotulo">{rotulo}</span>
       <span className="text-sm font-semibold text-azul">{valor}</span>
     </div>
   );
@@ -74,12 +75,12 @@ export function RelatorioAluno() {
           )}
           <div className="flex flex-wrap gap-1.5 mt-1">
             {aluno.matricula && (
-              <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-2 py-0.5 rounded-md">
+              <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-2 py-0.5 rounded-md">
                 {aluno.matricula}
               </span>
             )}
             {aluno.turmas.map((turma) => (
-              <span key={turma} className="text-[10px] font-bold text-coral-texto bg-coral/10 px-2 py-0.5 rounded-md">
+              <span key={turma} className="text-xs font-bold text-coral-texto bg-coral/10 px-2 py-0.5 rounded-md">
                 {turma}
               </span>
             ))}
@@ -104,7 +105,7 @@ export function RelatorioAluno() {
       </header>
 
       {erroVerComo && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erroVerComo}</div>
+        <Alerta>{erroVerComo}</Alerta>
       )}
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -148,7 +149,7 @@ export function RelatorioAluno() {
 
                 {a.questoes_erradas.length > 0 && (
                   <div className="bg-bege/40 border border-bege rounded-xl p-3 flex flex-col gap-1.5">
-                    <span className="text-xs font-bold text-red-500">Errou de primeira</span>
+                    <span className="text-xs font-bold text-vermelho">Errou de primeira</span>
                     {a.questoes_erradas.map((q) => (
                       <p key={q.ordem} className="text-sm text-azul break-words">
                         <span className="font-bold text-azul/80 mr-1.5">{q.ordem}.</span>

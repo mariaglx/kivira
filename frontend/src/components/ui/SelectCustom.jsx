@@ -1,75 +1,51 @@
-import { useState, useRef, useEffect } from "react";
+import { useId } from "react";
 
+// Select padrão do app: <select> nativo com a classe `select` do daisyUI nas
+// cores do Kivira. Nativo de propósito: teclado (setas, letra inicial, Esc),
+// leitor de tela e a roda de opções do celular vêm de graça.
+// `placeholder` vira a opção vazia ("") quando `options` não traz uma; sem
+// `label` visível, ele também serve de nome acessível (filtros do admin).
 export function SelectCustom({
   label,
   name,
   value,
   onChange,
   options,
-  placeholder = "Selecione",
+  placeholder,
 }) {
-  const [aberto, setAberto] = useState(false);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const fecharAoClicarFora = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setAberto(false);
-      }
-    };
-    document.addEventListener("mousedown", fecharAoClicarFora);
-    return () => document.removeEventListener("mousedown", fecharAoClicarFora);
-  }, []);
-
-  const opcaoSelecionada = options.find((opcao) => opcao.value === value);
-
-  const selecionar = (novoValor) => {
-    onChange({ target: { name, value: novoValor } });
-    setAberto(false);
-  };
+  const id = useId();
+  // Sem `placeholder` o campo é obrigatório: a opção vazia só aparece enquanto
+  // nada foi escolhido, pra não dar pra "desescolher" (ex: dificuldade)
+  const mostrarVazia =
+    !options.some((opcao) => opcao.value === "") && (placeholder !== undefined || !value);
 
   return (
-    <div className="flex flex-col gap-1.5" ref={containerRef}>
+    <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+        <label htmlFor={id} className="rotulo">
           {label}
         </label>
       )}
 
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setAberto(!aberto)}
-          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm text-left"
-        >
-          <span className={`truncate min-w-0 ${opcaoSelecionada ? "text-azul" : "text-azul/80"}`}>
-            {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
-          </span>
-          <span
-            className={`shrink-0 text-azul/80 text-xs transition-transform ${aberto ? "rotate-180" : ""}`}
-          >
-            ▾
-          </span>
-        </button>
-
-        {aberto && (
-          <ul className="absolute z-20 top-full mt-0 w-full bg-branco rounded-xl border border-cinza-claro/20 shadow-lg overflow-hidden max-h-56 overflow-y-auto">
-            {options
-              .filter((opcao) => opcao.value !== value)
-              .map((opcao) => (
-                <li key={opcao.value}>
-                  <button
-                    type="button"
-                    onClick={() => selecionar(opcao.value)}
-                    className="w-full text-left px-4 py-3.5 text-sm text-azul hover:bg-bege/60 transition-colors"
-                  >
-                    {opcao.label}
-                  </button>
-                </li>
-              ))}
-          </ul>
-        )}
-      </div>
+      <select
+        id={id}
+        name={name}
+        value={value ?? ""}
+        onChange={onChange}
+        aria-label={label ? undefined : placeholder}
+        // appearance-none: o daisyUI liga o `base-select` do Chrome novo, onde
+        // texto longo passava por baixo da setinha em vez de ser cortado
+        className={`select appearance-none w-full rounded-xl border-cinza-claro bg-branco text-sm shadow-sm ${
+          value ? "text-azul" : "text-azul/75"
+        }`}
+      >
+        {mostrarVazia && <option value="">{placeholder ?? "Selecione"}</option>}
+        {options.map((opcao) => (
+          <option key={opcao.value} value={opcao.value} className="text-azul">
+            {opcao.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

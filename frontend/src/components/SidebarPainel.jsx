@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -6,6 +6,7 @@ import { LogoKiviraRosa } from "./LogoKiviraRosa";
 import { Avatar } from "./ui/Avatar";
 import { apiRequest } from "../services/api";
 import { limparSessao } from "../services/sessao";
+import { useFecharComEsc } from "../controllers/useFecharComEsc";
 
 // Menu lateral compartilhado por professor e admin. No desktop (lg+) é a
 // coluna azul fixa de sempre; abaixo disso vira uma barra no topo com botão
@@ -21,6 +22,8 @@ export function SidebarPainel({ titulo, itens, usuario }) {
   const { pathname } = useLocation();
   const [aberto, setAberto] = useState(false);
   const fechar = () => setAberto(false);
+  const refBotaoMenu = useRef(null);
+  useFecharComEsc(aberto, fechar, refBotaoMenu);
 
   const sair = async () => {
     // Registra o logout no log de auditoria antes de limpar o token — se a
@@ -40,6 +43,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
       <header className="lg:hidden sticky top-0 z-30 bg-azul text-branco flex items-center justify-between px-4 py-2 shadow-md print:hidden">
         <LogoKiviraRosa className="w-28 h-auto" />
         <button
+          ref={refBotaoMenu}
           type="button"
           onClick={() => setAberto(true)}
           aria-label="Abrir menu"
@@ -121,7 +125,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
                       title={sub.rotulo}
                       onClick={fechar}
                       className={({ isActive }) =>
-                        `px-3 py-2 rounded-lg text-sm truncate transition ${
+                        `px-3 py-3 rounded-lg text-sm truncate transition ${
                           isActive ? "bg-branco/10 text-laranja font-bold" : "text-cinza-claro/80 hover:text-branco hover:bg-branco/5"
                         }`
                       }
@@ -137,15 +141,15 @@ export function SidebarPainel({ titulo, itens, usuario }) {
         </div>
 
         <div className="pt-4 border-t border-branco/15 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar arquivo={usuario.avatar} nome={usuario.nome} className="w-10 h-10 rounded-xl shadow-sm" />
-            <div className="overflow-hidden">
+            <div className="min-w-0">
               <p className="text-sm font-semibold truncate text-branco">{usuario.nome}</p>
               {usuario.perfilUrl && (
                 <Link
                   to={usuario.perfilUrl}
                   onClick={fechar}
-                  className="text-xs text-laranja hover:underline"
+                  className="alvo-toque text-xs text-laranja hover:underline"
                 >
                   Ver perfil &rarr;
                 </Link>
@@ -155,7 +159,7 @@ export function SidebarPainel({ titulo, itens, usuario }) {
           <button
             type="button"
             onClick={sair}
-            className="text-xs text-laranja hover:underline shrink-0"
+            className="alvo-toque text-xs text-laranja hover:underline shrink-0"
           >
             Sair
           </button>

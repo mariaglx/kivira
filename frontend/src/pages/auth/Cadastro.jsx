@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Cadastro() {
   const navigate = useNavigate();
@@ -70,12 +71,12 @@ export function Cadastro() {
         <div className="flex justify-center mb-4">
           <LogoKivira className="h-15 md:h-11 w-auto" />
         </div>
-        <p className="text-center text-gray-400 text-sm mb-6">Crie sua conta</p>
+        <p className="text-center text-azul/80 text-sm mb-6">Crie sua conta</p>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -116,9 +117,9 @@ export function Cadastro() {
           </Button>
         </form>
 
-        <p className="text-center text-gray-600 text-sm mt-4">
+        <p className="text-center text-azul/80 text-sm mt-4">
           Já tem conta?{" "}
-          <Link to="/login" className="text-azul font-semibold">
+          <Link to="/login" className="alvo-toque text-azul font-semibold">
             Entrar
           </Link>
         </p>

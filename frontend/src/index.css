@@ -13,6 +13,7 @@
   --color-branco: #ffffff;
   --color-vermelho: #c0392b; /* ações destrutivas — excluir conta, turma, atividade */
   --color-verde: #30855d; /* acerto no jogo — escurecido de #3fae7a pra passar 4.5:1 com texto branco */
+  --color-verde-texto: #21793f; /* verde pra TEXTO sobre fundo verde/10 (badges "Publicada") — o #30855d dá 4.0:1 ali */
   --color-coral-escuro: #c45a48; /* sombra "tátil" dos botões coral */
   --color-laranja-escuro: #c98f5a; /* sombra "tátil" das peças */
   --color-azul-escuro: #15303b; /* sombra "tátil" dos botões azuis */
@@ -54,6 +55,10 @@
   --color-accent-content: #214a5a; /* Texto escuro/azul sobre o Laranja */
 
   /* Elementos Neutros */
+  /* Erro (alert-error, toasts): o mesmo vermelho dos botões de perigo */
+  --color-error: #c0392b;
+  --color-error-content: #ffffff;
+
   --color-neutral: #ececec; /* Cinza Claro: Usado para elementos neutros */
   --color-neutral-content: #214a5a; /* Texto escuro/azul sobre o Cinza Claro */
 
@@ -97,6 +102,24 @@
   h1, h2, h3 {
     font-family: var(--font-display);
   }
+
+  /* Foco do teclado (Tab), igual no app todo: borda azul de 2px colada no
+     elemento (botão, link, campo), seguindo o arredondamento dele, mais um
+     halo coral suave em volta (o mesmo que os campos tinham). Só aparece no
+     teclado: clique de mouse em botão não mostra. O halo vai em --anel pra
+     somar com a sombra do .tatil e dos shadow-* do Tailwind em vez de sumir. */
+  :focus-visible {
+    outline: 2px solid var(--color-azul);
+    outline-offset: 0;
+    --anel: 0 0 0 3px color-mix(in srgb, var(--color-coral) 45%, transparent),
+      0 0 12px 3px color-mix(in srgb, var(--color-coral) 40%, transparent);
+    --tw-ring-shadow: var(--anel);
+    box-shadow: var(--anel);
+  }
+  /* Em fundo azul (menu do professor/admin) o azul sumiria */
+  .bg-azul :focus-visible {
+    outline-color: var(--color-laranja-claro);
+  }
 }
 
 /* Botão "tátil": sombra sólida embaixo que afunda ao clicar. A cor da sombra
@@ -104,19 +127,34 @@
    `components` pra os utilitários do Tailwind (disabled:, hover:) poderem vencer. */
 @layer components {
   .tatil {
-    box-shadow: 0 4px 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 4px 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
     transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
   }
   .tatil:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 6px 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
   }
   .tatil:active:not(:disabled) {
     transform: translateY(4px);
-    box-shadow: 0 0 0 var(--sombra, var(--color-coral-escuro));
+    box-shadow: 0 0 0 var(--sombra, var(--color-coral-escuro)), var(--anel, 0 0 #0000);
   }
   .tatil:disabled {
     box-shadow: none;
+  }
+  /* Área de toque mínima de 44x44 sem mudar o tamanho visível: um ::after
+     invisível centralizado no elemento recebe o clique/toque. Pra botões e
+     links pequenos (ícones, botões sm, "Sair"). Ver DESIGN_SYSTEM.md. */
+  .alvo-toque {
+    position: relative;
+  }
+  .alvo-toque::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
   }
 
   /* Área de conteúdo de toda página com menu (aluno, professor, admin): o

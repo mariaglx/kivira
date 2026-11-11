@@ -8,6 +8,7 @@ import { Modal } from "../../components/ui/Animacao";
 import { Input } from "../../components/ui/Input";
 import { SelectCustom } from "../../components/ui/SelectCustom";
 import { Carregando } from "../../components/ui/Carregando";
+import { Alerta } from "../../components/ui/Alerta";
 
 // Modal de "revelar credenciais" — usado pra mostrar a senha nova depois de
 // um reset de senha de aluno (o cadastro em si mostra a credencial numa
@@ -36,7 +37,7 @@ function CredenciaisModal({
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+            <span className="rotulo">
               Usuário
             </span>
             <button
@@ -54,7 +55,7 @@ function CredenciaisModal({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+            <span className="rotulo">
               Senha de primeiro acesso
             </span>
             <button
@@ -205,7 +206,7 @@ export function TurmaForm() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/turmas"
-            className="text-azul/80 hover:text-azul text-sm font-bold"
+            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Turmas
           </Link>
@@ -259,9 +260,9 @@ export function TurmaForm() {
         </div>
 
         {erro && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl max-w-md">
+          <Alerta className="max-w-md">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <div className="flex flex-col lg:flex-row gap-6 items-stretch lg:items-start">
@@ -283,10 +284,10 @@ export function TurmaForm() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-nome-da-turma" className="rotulo">
                 Nome da turma
               </label>
-              <Input
+              <Input id="campo-nome-da-turma"
                 type="text"
                 name="nome"
                 value={formData.nome}
@@ -299,10 +300,10 @@ export function TurmaForm() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-escolar" className="rotulo">
                   Ano escolar
                 </label>
-                <Input
+                <Input id="campo-ano-escolar"
                   type="text"
                   name="ano_escolar"
                   value={formData.ano_escolar}
@@ -314,10 +315,10 @@ export function TurmaForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-letivo" className="rotulo">
                   Ano letivo
                 </label>
-                <Input
+                <Input id="campo-ano-letivo"
                   type="number"
                   name="ano_letivo"
                   value={formData.ano_letivo}
@@ -329,16 +330,16 @@ export function TurmaForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-descricao" className="rotulo">
                 Descrição
               </label>
-              <textarea
+              <textarea id="campo-descricao"
                 name="descricao"
                 value={formData.descricao}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Uma breve descrição da turma (opcional)"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm resize-none"
               />
             </div>
 
@@ -347,9 +348,9 @@ export function TurmaForm() {
                 <hr className="m-0 border-t border-cinza-claro/60" />
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="rotulo">
                     Código de acesso
-                  </label>
+                  </span>
                   <button
                     type="button"
                     onClick={() => copiar(codigoAcesso, "codigoAcesso")}
@@ -362,7 +363,7 @@ export function TurmaForm() {
                       {campoCopiado === "codigoAcesso" ? "Copiado!" : "Copiar"}
                     </span>
                   </button>
-                  <p className="text-[11px] text-azul/80">
+                  <p className="text-xs text-azul/80">
                     Gerado automaticamente, não pode ser alterado.
                   </p>
                 </div>
@@ -378,11 +379,11 @@ export function TurmaForm() {
                   ela não aparece como borda — só abre 1px do bg-branco do card
                   entre a sombra e o cabeçalho pêssego, virando um fio branco */}
               <div className="bg-branco rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-laranja/20 px-6 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-laranja/20 px-6 py-3.5">
                   <h3 className="font-bold text-azul uppercase tracking-wider text-xs">
                     Alunos ({alunos.length})
                   </h3>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {filaImpressao.length > 0 && (
                       <div className="flex items-center gap-2">
                         <Button variante="fantasma" tamanho="sm" onClick={limparFilaImpressao}>
@@ -393,12 +394,15 @@ export function TurmaForm() {
                         </Button>
                       </div>
                     )}
+                    {/* Contorno (fundo branco) como o "Imprimir Turma": o ouro-bg
+                        se confundia com o bege da faixa no desktop */}
                     <Button
+                      variante="contorno"
                       tamanho="sm"
                       onClick={() => setRankingAberto(true)}
-                      className="gap-1 bg-ouro-bg text-ouro-fg-escuro [--sombra:var(--color-ouro-fg)]"
+                      className="gap-1"
                     >
-                      <StarIcon size={13} isAnimated={false} />
+                      <StarIcon size={13} isAnimated={false} className="text-ouro-fg" />
                       Ver ranking
                     </Button>
                     <Button tamanho="sm" onClick={abrirModalAluno}>
@@ -426,16 +430,16 @@ export function TurmaForm() {
                             />
                           )}
                           <span className="text-sm font-semibold text-azul flex-1 flex items-center gap-2 min-w-0">
-                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate hover:text-coral-texto hover:underline underline-offset-2">
+                            <Link to={`/professor/turmas/${id}/alunos/${aluno.aluno_id}`} className="truncate py-3 -my-3 hover:text-coral-texto hover:underline underline-offset-2">
                               {aluno.apelido || aluno.nome_completo}
                             </Link>
                             {aluno.matricula && (
-                              <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                              <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                                 {aluno.matricula}
                               </span>
                             )}
                             {aluno.conta_ativa === false && (
-                              <span className="text-[10px] font-bold text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded shrink-0">
+                              <span className="text-xs font-bold text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded shrink-0">
                                 Desativado
                               </span>
                             )}
@@ -446,7 +450,7 @@ export function TurmaForm() {
                             disabled={alternandoContaAlunoId === aluno.aluno_id}
                             aria-label={aluno.conta_ativa === false ? "Reativar conta do aluno" : "Desativar conta do aluno"}
                             title={aluno.conta_ativa === false ? "Reativar conta" : "Desativar conta (o aluno não entra mais)"}
-                            className={`${aluno.conta_ativa === false ? "" : "opacity-0"} group-hover:opacity-100 disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0`}
+                            className={`${aluno.conta_ativa === false ? "" : "[@media(hover:hover)]:opacity-0"} group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0`}
                           >
                             {aluno.conta_ativa === false ? <UserCheck size={16} /> : <UserX size={16} />}
                           </button>
@@ -458,7 +462,7 @@ export function TurmaForm() {
                             aria-disabled={resetandoSenhaAlunoId === aluno.aluno_id}
                             aria-label="Gerar nova senha de primeiro acesso"
                             title="Gerar nova senha de primeiro acesso"
-                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/30 hover:text-coral-texto w-6 h-6 flex items-center justify-center shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 aria-disabled:opacity-100 transition-opacity text-azul/60 hover:text-coral-texto alvo-toque w-8 h-8 flex items-center justify-center shrink-0"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
@@ -471,7 +475,7 @@ export function TurmaForm() {
                             disabled={removendoMatriculaId === aluno.matricula_id}
                             aria-label="Remover aluno da turma"
                             title="Remover da turma"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-azul/30 hover:text-red-500 w-6 h-6 flex items-center justify-center text-lg leading-none shrink-0"
+                            className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-azul/60 hover:text-vermelho alvo-toque w-8 h-8 flex items-center justify-center text-lg leading-none shrink-0"
                           >
                             ×
                           </button>
@@ -526,10 +530,10 @@ export function TurmaForm() {
                             {atividade.titulo}
                           </span>
                           <span
-                            className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                            className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${
                               atividade.publicado
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-100 text-gray-500"
+                                ? "bg-verde/10 text-verde-texto"
+                                : "bg-cinza-claro text-azul/80"
                             }`}
                           >
                             {atividade.publicado ? "Publicada" : "Rascunho"}
@@ -593,7 +597,7 @@ export function TurmaForm() {
                   key={aba.chave}
                   type="button"
                   onClick={() => setAbaModalAluno(aba.chave)}
-                  className={`flex-1 text-[11px] font-extrabold px-2 py-2 rounded-lg transition-all ${
+                  className={`flex-1 text-xs font-extrabold px-2 py-2 rounded-lg transition-all ${
                     abaModalAluno === aba.chave
                       ? "bg-branco text-coral-texto shadow-sm"
                       : "text-azul/80 hover:text-azul"
@@ -608,7 +612,7 @@ export function TurmaForm() {
               resultadoLote ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2.5 bg-verde/10 rounded-xl px-3.5 py-2.5">
-                    <span className="w-5 h-5 rounded-full bg-verde text-branco text-[11px] font-black flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-verde text-branco text-xs font-black flex items-center justify-center shrink-0">
                       ✓
                     </span>
                     <span className="text-[12.5px] font-bold text-azul">
@@ -640,7 +644,7 @@ export function TurmaForm() {
                     ))}
                   </div>
 
-                  <p className="text-[11px] text-azul/80">
+                  <p className="text-xs text-azul/80">
                     Anote agora, as senhas não aparecem de novo depois. Todos já foram adicionados à fila de impressão da turma.
                   </p>
 
@@ -656,9 +660,9 @@ export function TurmaForm() {
                       linha, Nome/Sobrenome empurravam Matrícula e o "×" pra fora
                       em telas mais estreitas. */}
                   <div className="flex gap-2.5 px-0.5">
-                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Nome</span>
-                    <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Sobrenome</span>
-                    <span className="w-28 shrink-0 text-[10px] font-bold uppercase tracking-wider text-azul/80">Matrícula</span>
+                    <span className="flex-1 min-w-0 rotulo">Nome</span>
+                    <span className="flex-1 min-w-0 rotulo">Sobrenome</span>
+                    <span className="w-28 shrink-0 rotulo">Matrícula</span>
                     <span className="w-7 shrink-0" />
                   </div>
 
@@ -712,7 +716,7 @@ export function TurmaForm() {
                             disabled={linhasCadastro.length === 1}
                             aria-label="Remover esta linha"
                             title="Remover esta linha"
-                            className="w-7 h-7 rounded-lg text-azul/30 hover:text-red-500 hover:bg-red-50 disabled:opacity-0 disabled:pointer-events-none font-bold text-lg flex items-center justify-center shrink-0 transition-all"
+                            className="w-7 h-7 rounded-lg text-azul/30 hover:text-vermelho hover:bg-vermelho/5 disabled:opacity-0 disabled:pointer-events-none font-bold text-lg flex items-center justify-center shrink-0 transition-all"
                           >
                             ×
                           </button>
@@ -732,14 +736,14 @@ export function TurmaForm() {
                     <span className="text-lg leading-none">+</span> Adicionar outro aluno
                   </button>
 
-                  <p className="text-[11px] text-azul/80">
+                  <p className="text-xs text-azul/80">
                     Matrícula é opcional. Usuário e senha de cada um são gerados automaticamente.
                   </p>
 
                   {erroCadastroLote && (
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                    <Alerta className="flex items-center justify-between gap-3">
                       <span>{erroCadastroLote}</span>
-                    </div>
+                    </Alerta>
                   )}
 
                   <Button
@@ -760,10 +764,10 @@ export function TurmaForm() {
             {abaModalAluno === "existente" && (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-buscar-por-nome-ou-matricula" className="rotulo">
                     Buscar por nome ou matrícula
                   </label>
-                  <Input
+                  <Input id="campo-buscar-por-nome-ou-matricula"
                     type="text"
                     value={buscaAlunoExistente}
                     onChange={(e) => setBuscaAlunoExistente(e.target.value)}
@@ -774,9 +778,9 @@ export function TurmaForm() {
                 </div>
 
                 {erroMatricularExistente && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  <Alerta className="flex items-center justify-between gap-3">
                     <span>{erroMatricularExistente}</span>
-                  </div>
+                  </Alerta>
                 )}
 
                 <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
@@ -817,7 +821,7 @@ export function TurmaForm() {
                             {aluno.apelido || aluno.nome_completo}
                           </span>
                           {aluno.matricula && (
-                            <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
+                            <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-1.5 py-0.5 rounded shrink-0">
                               {aluno.matricula}
                             </span>
                           )}
@@ -826,7 +830,7 @@ export function TurmaForm() {
                           {aluno.turmas.filter(Boolean).map((turma, indice) => (
                             <span
                               key={`${aluno.id}-${indice}`}
-                              className="text-[10px] font-bold bg-ouro-bg text-ouro-fg-escuro px-2 py-0.5 rounded-full"
+                              className="text-xs font-bold bg-ouro-bg text-ouro-fg-escuro px-2 py-0.5 rounded-full"
                             >
                               {turma}
                             </span>
@@ -902,13 +906,13 @@ export function TurmaForm() {
                 <div className="flex items-center gap-3 mt-4 pb-2 border-b border-cinza-claro/40">
                   <span className="w-6 shrink-0" />
                   <span className="w-8 shrink-0" />
-                  <span className="grow text-[10px] font-bold uppercase tracking-wider text-azul/80">
+                  <span className="grow rotulo">
                     Aluno
                   </span>
-                  <span className="w-20 text-right text-[10px] font-bold uppercase tracking-wider text-azul/80 shrink-0">
+                  <span className="w-20 text-right rotulo shrink-0">
                     Atividades
                   </span>
-                  <span className="w-16 text-right text-[10px] font-bold uppercase tracking-wider text-azul/80 shrink-0">
+                  <span className="w-16 text-right rotulo shrink-0">
                     XP
                   </span>
                 </div>
@@ -943,7 +947,7 @@ export function TurmaForm() {
                       {aluno.nome}
                     </span>
 
-                    <span className="w-20 text-right text-[11px] font-bold text-azul/80 shrink-0">
+                    <span className="w-20 text-right text-xs font-bold text-azul/80 shrink-0">
                       {aluno.atividades_concluidas} de {totalAtividadesPublicadas}
                     </span>
 
@@ -966,7 +970,7 @@ export function TurmaForm() {
           tinha espaço pra explicar que a conta do aluno não é apagada */}
       {alunoParaRemover && (
         <Modal aberto onFechar={cancelarRemocaoAluno} className="max-w-sm flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
 
@@ -1005,7 +1009,7 @@ export function TurmaForm() {
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
         <Modal aberto onFechar={fecharErroAcaoAluno} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 flex items-center justify-center text-3xl">
               ⚠️
             </div>
             <h3 className="text-xl font-extrabold text-azul">

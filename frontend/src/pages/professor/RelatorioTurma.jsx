@@ -186,7 +186,7 @@ function AbaAlunos({ relatorio }) {
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <p className="text-xs font-bold text-coral-texto">Nível {a.nivel_atual}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${
+                        className={`rounded-md px-2 py-0.5 text-xs font-bold whitespace-nowrap ${
                           a.respondeu_feedback ? "bg-verde/15 text-verde" : "bg-coral/10 text-coral-texto"
                         }`}
                       >
@@ -198,11 +198,11 @@ function AbaAlunos({ relatorio }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-cinza-claro">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/80">Concluídas</span>
+                    <span className="block rotulo">Concluídas</span>
                     <span className="text-sm font-semibold text-azul">{a.atividades_concluidas}/{resumo.atividades}</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-azul/80">Acerto de primeira</span>
+                    <span className="block rotulo">Acerto de primeira</span>
                     <span className="text-sm font-semibold text-azul">{porcento(a.taxa_acerto_primeira)}</span>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export function RelatorioTurma() {
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-2">
-        <Link to="/professor/turmas" className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
+        <Link to="/professor/turmas" className="alvo-toque text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
           <ArrowLeft size={14} /> Turmas
         </Link>
         <div className="flex flex-wrap justify-between items-start gap-3">

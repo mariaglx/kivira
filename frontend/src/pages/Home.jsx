@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { LogoKivira } from "../components/LogoKivira";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { useFecharComEsc } from "../controllers/useFecharComEsc";
 import { Ticket, Map, Trophy, Bot, BarChart3, Puzzle, Check, Lock, Blocks, ArrowRight, LogIn, Smile, GraduationCap } from "lucide-react";
 
 const AVATARES_VITRINE = ["girassol.png", "raposa.png", "gato-marsupial.png", "coelho.png", "fone-de-ouvido.png", "capivara.png"];
@@ -16,7 +17,7 @@ function TrilhaPreview() {
       <div className="relative bg-branco p-6 rounded-3xl shadow-2xl border border-cinza-claro">
         <div className="flex items-center gap-2 mb-6 pb-3 border-b border-cinza-claro/60">
           <span className="w-2 h-2 rounded-full bg-coral"></span>
-          <span className="text-xs font-extrabold text-azul/80 uppercase tracking-wider">
+          <span className="rotulo">
             Sua trilha
           </span>
         </div>
@@ -39,7 +40,7 @@ function TrilhaPreview() {
             <div className="w-16 h-16 rounded-full bg-verde border-4 border-branco shadow-lg flex items-center justify-center">
               <Check size={26} className="text-branco" />
             </div>
-            <p className="text-center text-amber-500 text-xs mt-1">⭐⭐⭐</p>
+            <p className="text-center text-xs mt-1">⭐⭐⭐</p>
           </div>
 
           {/* Fase atual, liberada */}
@@ -52,7 +53,7 @@ function TrilhaPreview() {
           {/* Fase bloqueada */}
           <div className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: 240, left: "24%" }}>
             <div className="w-16 h-16 rounded-full bg-cinza-claro border-4 border-branco shadow-lg flex items-center justify-center opacity-70">
-              <Lock size={22} className="text-gray-400" />
+              <Lock size={22} className="text-azul/80" />
             </div>
           </div>
 
@@ -102,7 +103,7 @@ const PASSOS = [
   },
   {
     Icone: Trophy,
-    cor: "bg-amber-100 text-amber-500",
+    cor: "bg-ouro-bg text-ouro-fg",
     titulo: "Conquiste Medalhas e XP",
     texto: "A cada acerto, a ilustração é revelada e o aluno ganha recompensas no seu perfil!",
   },
@@ -134,6 +135,8 @@ export function Home() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [menuEntrarAberto, setMenuEntrarAberto] = useState(false);
+  const refBotaoEntrar = useRef(null);
+  useFecharComEsc(menuEntrarAberto, () => setMenuEntrarAberto(false), refBotaoEntrar);
   const navigate = useNavigate();
   const sessionCodeInputRef = useRef(null);
 
@@ -200,6 +203,7 @@ export function Home() {
             botões apertados ao lado da logo ficavam pequenos e confusos */}
         <div className="relative sm:hidden">
           <button
+            ref={refBotaoEntrar}
             type="button"
             onClick={() => setMenuEntrarAberto((v) => !v)}
             aria-expanded={menuEntrarAberto}
@@ -274,6 +278,8 @@ export function Home() {
                     type="text"
                     placeholder="EX: AB12CD"
                     aria-label="Código da turma"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "erro-codigo-turma" : undefined}
                     value={sessionCode}
                     onChange={(e) => {
                       setSessionCode(e.target.value.toUpperCase());
@@ -283,12 +289,12 @@ export function Home() {
                     disabled={isLoading}
                     className={`w-full bg-bege/40 border-2 ${
                       error
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-cinza-claro focus:border-coral"
-                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase outline-none transition-all`}
+                        ? "border-vermelho focus:border-vermelho"
+                        : "border-cinza-claro"
+                    } rounded-2xl py-3 px-4 text-azul placeholder:text-azul/75 font-black tracking-widest text-center text-lg uppercase transition-all`}
                   />
                   {error && (
-                    <span className="flex items-center justify-center gap-2 bg-red-100 border border-red-200 text-red-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-center animate-bounce-short">
+                    <span id="erro-codigo-turma" role="alert" className="alert alert-error alert-soft rounded-xl justify-center text-center text-sm font-bold animate-bounce-short">
                       {error}
                     </span>
                   )}
@@ -309,7 +315,7 @@ export function Home() {
                 <span className="text-azul/80">Já entrou antes?</span>
                 <Link
                   to="/login_aluno"
-                  className="inline-flex items-center gap-1 whitespace-nowrap text-coral-texto font-bold hover:underline"
+                  className="alvo-toque inline-flex items-center gap-1 whitespace-nowrap text-coral-texto font-bold hover:underline"
                 >
                   Entrar com meu usuário
                   <ArrowRight size={16} />
@@ -339,7 +345,7 @@ export function Home() {
             {PASSOS.map(({ Icone, cor, titulo, texto }, i) => (
               <div
                 key={i}
-                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-orange-200/50"
+                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-laranja/30"
               >
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${cor}`}>
                   <Icone size={26} strokeWidth={2.25} />
@@ -366,7 +372,7 @@ export function Home() {
             {RECURSOS_PROFESSOR.map(({ Icone, cor, titulo, texto }, i) => (
               <div
                 key={i}
-                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-orange-200/50"
+                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-laranja/30"
               >
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${cor}`}>
                   <Icone size={26} strokeWidth={2.25} />
