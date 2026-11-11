@@ -161,6 +161,12 @@ export function CodigoTurma() {
             ))}
           </div>
         </div>
+
+        {/* Endereço lido do próprio navegador: em produção é kivira.vercel.app,
+            e se o domínio mudar a tela acompanha sem precisar mexer aqui */}
+        <p className="cartao rounded-2xl sm:rounded-full px-5 py-3 text-center text-base sm:text-xl font-bold text-azul">
+          Entre em <strong className="font-black text-coral-texto">{window.location.host}</strong> e digite o código 🎲
+        </p>
       </section>
     </main>
   );
