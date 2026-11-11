@@ -56,7 +56,7 @@ export function Turmas() {
                     nome={turma.professor_nome || "P"}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                    <p className="rotulo">
                       Professor(a)
                     </p>
                     <p className="text-sm font-semibold truncate">

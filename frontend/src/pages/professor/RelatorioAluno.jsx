@@ -21,7 +21,7 @@ function formatarData(valor) {
 function Metrica({ rotulo, valor }) {
   return (
     <div className="flex flex-col">
-      <span className="text-xs font-bold uppercase tracking-wider text-azul/80">{rotulo}</span>
+      <span className="rotulo">{rotulo}</span>
       <span className="text-sm font-semibold text-azul">{valor}</span>
     </div>
   );

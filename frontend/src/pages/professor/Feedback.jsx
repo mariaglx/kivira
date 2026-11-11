@@ -209,7 +209,7 @@ export function Feedback() {
           <div className="cartao p-5 flex flex-col gap-4">
             <div>
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <span className="rotulo">
                   Progresso
                 </span>
                 <span className="text-xs font-bold text-azul/80 tabular-nums">

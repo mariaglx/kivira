@@ -88,7 +88,7 @@ function QuestaoCard({
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`pergunta-${questao.localId}`} className="text-xs font-bold uppercase tracking-wider text-azul/80">
+          <label htmlFor={`pergunta-${questao.localId}`} className="rotulo">
             Texto da pergunta
           </label>
           <input id={`pergunta-${questao.localId}`}
@@ -108,7 +108,7 @@ function QuestaoCard({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`resposta-${questao.localId}`} className="text-xs font-bold uppercase tracking-wider text-azul/80">
+          <label htmlFor={`resposta-${questao.localId}`} className="rotulo">
             Resposta certa
           </label>
           <input id={`resposta-${questao.localId}`}
@@ -586,7 +586,7 @@ export function CriarAtividade() {
           {/* COLUNA ESQUERDA — dados da atividade */}
           <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="campo-titulo" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-titulo" className="rotulo">
                 Título
               </label>
               <input id="campo-titulo"
@@ -601,7 +601,7 @@ export function CriarAtividade() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-disciplina" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-disciplina" className="rotulo">
                   Disciplina
                 </label>
                 <input id="campo-disciplina"
@@ -665,7 +665,7 @@ export function CriarAtividade() {
             <hr className="m-0 border-t border-cinza-claro/60" />
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <span className="rotulo">
                 Imagem da atividade
               </span>
               <div className="flex gap-2 items-center">
@@ -731,7 +731,7 @@ export function CriarAtividade() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <span className="rotulo">
                 Código da atividade
               </span>
               {codigoAtividade ? (
@@ -764,7 +764,7 @@ export function CriarAtividade() {
               type="button"
               onClick={() => setMostrarDetalhes((atual) => !atual)}
               aria-expanded={mostrarDetalhes}
-              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-azul/80 hover:text-azul/80 transition-colors"
+              className="flex items-center gap-1.5 rotulo transition-colors"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -783,7 +783,7 @@ export function CriarAtividade() {
             {mostrarDetalhes && (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="campo-descricao" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-descricao" className="rotulo">
                     Descrição
                   </label>
                   <textarea id="campo-descricao"
@@ -800,7 +800,7 @@ export function CriarAtividade() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-blocos" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-blocos" className="rotulo">
                   Blocos
                 </label>
                 <input id="campo-blocos"
@@ -814,7 +814,7 @@ export function CriarAtividade() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-tempo-seg" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-tempo-seg" className="rotulo">
                   Tempo (seg)
                 </label>
                 <input id="campo-tempo-seg"
@@ -833,7 +833,7 @@ export function CriarAtividade() {
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <h4 className="rotulo">
                 Questões ({questoes.length}{" "}
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
@@ -996,7 +996,7 @@ export function CriarAtividade() {
 
             {codigoAtividade && (
               <div className="w-full flex flex-col gap-1.5 mt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <span className="rotulo">
                   Código da atividade
                 </span>
                 <button

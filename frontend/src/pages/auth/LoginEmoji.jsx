@@ -59,7 +59,7 @@ export function LoginEmoji() {
           )}
 
           <div className="flex flex-col gap-0.5 min-w-0 grow">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+            <span className="rotulo">
               Entrando como
             </span>
             {/* Só o nome é truncado: o número precisa aparecer sempre */}

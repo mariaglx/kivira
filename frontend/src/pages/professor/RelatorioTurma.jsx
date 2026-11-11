@@ -198,11 +198,11 @@ function AbaAlunos({ relatorio }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-cinza-claro">
                   <div>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-azul/80">Concluídas</span>
+                    <span className="block rotulo">Concluídas</span>
                     <span className="text-sm font-semibold text-azul">{a.atividades_concluidas}/{resumo.atividades}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-azul/80">Acerto de primeira</span>
+                    <span className="block rotulo">Acerto de primeira</span>
                     <span className="text-sm font-semibold text-azul">{porcento(a.taxa_acerto_primeira)}</span>
                   </div>
                 </div>

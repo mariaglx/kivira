@@ -17,7 +17,7 @@ function TrilhaPreview() {
       <div className="relative bg-branco p-6 rounded-3xl shadow-2xl border border-cinza-claro">
         <div className="flex items-center gap-2 mb-6 pb-3 border-b border-cinza-claro/60">
           <span className="w-2 h-2 rounded-full bg-coral"></span>
-          <span className="text-xs font-extrabold text-azul/80 uppercase tracking-wider">
+          <span className="rotulo">
             Sua trilha
           </span>
         </div>

@@ -8,7 +8,7 @@ import { Lista, Item } from "../../components/ui/Animacao";
 function Campo({ rotulo, children }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+      <span className="rotulo">
         {rotulo}
       </span>
       <div className="px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 text-sm text-azul font-semibold">
@@ -66,7 +66,7 @@ export function TurmaDetalhe() {
                 </Campo>
 
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="rotulo">
                     Professor(a)
                   </span>
                   <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40">

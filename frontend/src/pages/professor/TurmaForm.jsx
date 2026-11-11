@@ -37,7 +37,7 @@ function CredenciaisModal({
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+            <span className="rotulo">
               Usuário
             </span>
             <button
@@ -55,7 +55,7 @@ function CredenciaisModal({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+            <span className="rotulo">
               Senha de primeiro acesso
             </span>
             <button
@@ -284,7 +284,7 @@ export function TurmaForm() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="campo-nome-da-turma" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-nome-da-turma" className="rotulo">
                 Nome da turma
               </label>
               <Input id="campo-nome-da-turma"
@@ -300,7 +300,7 @@ export function TurmaForm() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-ano-escolar" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-escolar" className="rotulo">
                   Ano escolar
                 </label>
                 <Input id="campo-ano-escolar"
@@ -315,7 +315,7 @@ export function TurmaForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="campo-ano-letivo" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-ano-letivo" className="rotulo">
                   Ano letivo
                 </label>
                 <Input id="campo-ano-letivo"
@@ -330,7 +330,7 @@ export function TurmaForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="campo-descricao" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-descricao" className="rotulo">
                 Descrição
               </label>
               <textarea id="campo-descricao"
@@ -348,7 +348,7 @@ export function TurmaForm() {
                 <hr className="m-0 border-t border-cinza-claro/60" />
 
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="rotulo">
                     Código de acesso
                   </span>
                   <button
@@ -660,9 +660,9 @@ export function TurmaForm() {
                       linha, Nome/Sobrenome empurravam Matrícula e o "×" pra fora
                       em telas mais estreitas. */}
                   <div className="flex gap-2.5 px-0.5">
-                    <span className="flex-1 min-w-0 text-xs font-bold uppercase tracking-wider text-azul/80">Nome</span>
-                    <span className="flex-1 min-w-0 text-xs font-bold uppercase tracking-wider text-azul/80">Sobrenome</span>
-                    <span className="w-28 shrink-0 text-xs font-bold uppercase tracking-wider text-azul/80">Matrícula</span>
+                    <span className="flex-1 min-w-0 rotulo">Nome</span>
+                    <span className="flex-1 min-w-0 rotulo">Sobrenome</span>
+                    <span className="w-28 shrink-0 rotulo">Matrícula</span>
                     <span className="w-7 shrink-0" />
                   </div>
 
@@ -764,7 +764,7 @@ export function TurmaForm() {
             {abaModalAluno === "existente" && (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="campo-buscar-por-nome-ou-matricula" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-buscar-por-nome-ou-matricula" className="rotulo">
                     Buscar por nome ou matrícula
                   </label>
                   <Input id="campo-buscar-por-nome-ou-matricula"
@@ -906,13 +906,13 @@ export function TurmaForm() {
                 <div className="flex items-center gap-3 mt-4 pb-2 border-b border-cinza-claro/40">
                   <span className="w-6 shrink-0" />
                   <span className="w-8 shrink-0" />
-                  <span className="grow text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="grow rotulo">
                     Aluno
                   </span>
-                  <span className="w-20 text-right text-xs font-bold uppercase tracking-wider text-azul/80 shrink-0">
+                  <span className="w-20 text-right rotulo shrink-0">
                     Atividades
                   </span>
-                  <span className="w-16 text-right text-xs font-bold uppercase tracking-wider text-azul/80 shrink-0">
+                  <span className="w-16 text-right rotulo shrink-0">
                     XP
                   </span>
                 </div>

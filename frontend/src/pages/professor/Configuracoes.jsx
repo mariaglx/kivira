@@ -216,7 +216,7 @@ export function Configuracoes() {
 
             {/* Estatísticas */}
             <div className="px-6 mt-8">
-              <p className="text-xs font-bold uppercase tracking-wider text-azul/80 mb-3">
+              <p className="rotulo mb-3">
                 Estatísticas:
               </p>
 
@@ -255,7 +255,7 @@ export function Configuracoes() {
           {/* Lado Direito */}
           <Entrada delay={0.1} className="lg:col-span-2 cartao p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <p className="rotulo">
                 Seus dados
               </p>
               <Button tamanho="sm" onClick={() => setModalPerfilAberto(true)} className="gap-2">
@@ -267,7 +267,7 @@ export function Configuracoes() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {dadosPerfil.map((item) => (
                 <div key={item.rotulo} className="flex flex-col gap-1">
-                  <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="flex items-center gap-2 rotulo">
                     <item.Icone size={14} className="text-coral-texto" />
                     {item.rotulo}
                   </span>
@@ -280,7 +280,7 @@ export function Configuracoes() {
 
             {/* Biografia */}
             <div className="flex flex-col gap-1">
-              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+              <span className="flex items-center gap-2 rotulo">
                 <MessageSquare size={14} className="text-coral-texto" />
                 Conte um pouco de você
               </span>
@@ -371,7 +371,7 @@ export function Configuracoes() {
 
             <form onSubmit={handleSalvarPerfil} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-nome-completo" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-nome-completo" className="flex items-center gap-2 rotulo">
                   <User size={14} className="text-coral-texto" />
                   Nome completo
                 </label>
@@ -384,7 +384,7 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-apelido" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-apelido" className="flex items-center gap-2 rotulo">
                   <Sparkles size={14} className="text-coral-texto" />
                   Apelido
                 </label>
@@ -400,7 +400,7 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-onde-voce-da-aula" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-onde-voce-da-aula" className="flex items-center gap-2 rotulo">
                   <MapPin size={14} className="text-coral-texto" />
                   Onde você dá aula
                 </label>
@@ -413,7 +413,7 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-conte-um-pouco-de-voce" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-conte-um-pouco-de-voce" className="flex items-center gap-2 rotulo">
                   <MessageSquare size={14} className="text-coral-texto" />
                   Conte um pouco de você
                 </label>
@@ -449,7 +449,7 @@ export function Configuracoes() {
               )}
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-e-mail-da-conta" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-e-mail-da-conta" className="flex items-center gap-2 rotulo">
                   <Mail size={14} className="text-coral-texto" />
                   E-mail da conta
                 </label>
@@ -465,7 +465,7 @@ export function Configuracoes() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label htmlFor="campo-senha-atual" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-senha-atual" className="flex items-center gap-2 rotulo">
                   <Lock size={14} className="text-coral-texto" />
                   Senha atual
                 </label>
@@ -480,7 +480,7 @@ export function Configuracoes() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="campo-senha-nova" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-senha-nova" className="flex items-center gap-2 rotulo">
                     <Key size={14} className="text-coral-texto" />
                     Senha nova
                   </label>
@@ -495,7 +495,7 @@ export function Configuracoes() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="campo-repita-a-senha-nova" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-repita-a-senha-nova" className="flex items-center gap-2 rotulo">
                     <Check size={14} className="text-coral-texto" />
                     Repita a senha nova
                   </label>
@@ -530,7 +530,7 @@ export function Configuracoes() {
             </p>
 
             <div className="flex flex-col gap-2 mt-5">
-              <label htmlFor="campo-digite-para-confirmar" className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-digite-para-confirmar" className="rotulo">
                 Digite{" "}
                 <span className="text-vermelho">
                   "{FRASE_CONFIRMACAO_DESATIVACAO}"

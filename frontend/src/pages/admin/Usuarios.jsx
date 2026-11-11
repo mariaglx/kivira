@@ -164,7 +164,7 @@ export function Usuarios() {
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-azul/80 font-bold border-b border-cinza-claro/20">
+              <tr className="text-left rotulo border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>
                 <th className="px-5 py-3">Nome</th>
                 <th className="px-5 py-3">Login</th>
