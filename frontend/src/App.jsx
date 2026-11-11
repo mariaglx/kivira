@@ -22,6 +22,7 @@ const CriarAtividade = lazy(() => import("./pages/professor/CriarAtividade"));
 const RelatorioAtividade = lazy(() => import("./pages/professor/RelatorioAtividade"));
 const RelatorioAluno = lazy(() => import("./pages/professor/RelatorioAluno"));
 const RelatorioTurma = lazy(() => import("./pages/professor/RelatorioTurma"));
+const CodigoTurma = lazy(() => import("./pages/professor/CodigoTurma"));
 const Configuracoes = lazy(() => import("./pages/professor/Configuracoes"));
 const Feedback = lazy(() => import("./pages/professor/Feedback"));
 const PrimeiroAcesso = lazy(() => import("./pages/aluno/PrimeiroAcesso"));
@@ -60,6 +61,9 @@ function App() {
         {/* Só professor e admin passam daqui — aluno ou visitante sem token são
             redirecionados antes de a tela sequer montar (ver RequireRole) */}
         <Route element={<RequireRole allowedRoles={["professor", "admin"]} />}>
+          {/* Tela cheia pra projetar na sala, sem o menu lateral */}
+          <Route path="/professor/turmas/:id/codigo" element={<CodigoTurma />} />
+
           {/* Layout compartilhado: Sidebar monta uma vez só e continua viva
               entre as navegações dentro de /professor/* (ver PainelLayout) */}
           <Route element={<PainelLayout />}>

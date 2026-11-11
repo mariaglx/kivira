@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Presentation, Search } from "lucide-react";
 import { Avatar } from "../../components/ui/Avatar";
 import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
@@ -279,9 +279,14 @@ export function RelatorioTurma() {
               <p className="text-xs font-bold text-coral-texto mt-0.5">Prof. {turma.professor_nome}</p>
             )}
           </div>
-          <Button as={Link} to={`/professor/turmas/${turma.id}/editar`} tamanho="sm" variante="contorno">
-            Editar turma
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button as={Link} to={`/professor/turmas/${turma.id}/codigo`} tamanho="sm" className="gap-1.5">
+              <Presentation size={14} /> Mostrar código pra turma
+            </Button>
+            <Button as={Link} to={`/professor/turmas/${turma.id}/editar`} tamanho="sm" variante="contorno">
+              Editar turma
+            </Button>
+          </div>
         </div>
       </header>
 

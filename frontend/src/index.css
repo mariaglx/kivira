@@ -87,6 +87,16 @@
   animation: tremida-leve 0.35s ease-in-out;
 }
 
+/* Avatares boiando em volta do código da turma (tela de projeção) */
+@keyframes flutuar {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+.flutuar {
+  animation: flutuar 5s ease-in-out infinite;
+}
+
 /* Zerar a margem impressa tira o espaço onde o navegador desenha o cabeçalho/
    rodapé padrão (título da aba, data/hora, URL, número da página) — sem essa
    margem reservada, ele simplesmente não tem onde escrever. Quem cuida do
@@ -183,6 +193,7 @@
 /* Quem prefere menos movimento não recebe as animações do jogo */
 @media (prefers-reduced-motion: reduce) {
   .animate-tremida-leve,
+  .flutuar,
   .tatil,
   .modal,
   .modal-box {
