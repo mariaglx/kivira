@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Lista, Item } from "../../components/ui/Animacao";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Indicador } from "../../components/professor/Relatorio";
+import { PerfilAlunoModal } from "../../components/PerfilAlunoModal";
 import { useApi } from "../../controllers/useApi";
 import { subtituloTurma } from "../../utils/turma";
 import { ehAdmin } from "../../services/sessao";
@@ -104,6 +105,8 @@ function VisaoGeral({ relatorio }) {
 function AbaAlunos({ relatorio }) {
   const [busca, setBusca] = useState("");
   const [soPendentes, setSoPendentes] = useState(false);
+  // id do aluno cujo perfil está aberto (null = nenhum)
+  const [perfilAberto, setPerfilAberto] = useState(null);
   const { turma, resumo } = relatorio;
   const termo = busca.trim().toLowerCase();
   // Professor só vê SE o aluno respondeu o feedback, pra poder cobrar — as respostas são só do admin
@@ -168,16 +171,17 @@ function AbaAlunos({ relatorio }) {
         <Lista className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {alunos.map((a) => (
             <Item key={a.aluno_id} elevar>
+              {/* O card inteiro continua abrindo o relatório; o avatar fica por
+                  cima dele, como irmão do Link (não filho), pra não aninhar
+                  botão dentro de link — inválido em HTML e confuso no teclado. */}
+              <div className="relative">
               <Link
                 to={`/professor/turmas/${turma.id}/alunos/${a.aluno_id}`}
                 className="cartao rounded-2xl p-4 flex flex-col gap-3 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-4">
-                  <Avatar
-                    arquivo={a.avatar_url}
-                    nome={a.apelido || a.nome_completo}
-                    className="w-14 h-14 rounded-2xl text-xl ring-2 ring-laranja-claro"
-                  />
+                  {/* espaço reservado pro avatar posicionado por cima */}
+                  <div className="w-14 h-14 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-azul truncate">{a.apelido || a.nome_completo}</p>
                     {a.apelido && a.apelido !== a.nome_completo && (
@@ -207,9 +211,27 @@ function AbaAlunos({ relatorio }) {
                   </div>
                 </div>
               </Link>
+
+              <button
+                type="button"
+                onClick={() => setPerfilAberto(a.aluno_id)}
+                title={`Ver perfil de ${a.apelido || a.nome_completo}`}
+                className="absolute top-4 left-4 cursor-pointer rounded-2xl hover:brightness-95 transition"
+              >
+                <Avatar
+                  arquivo={a.avatar_url}
+                  nome={a.apelido || a.nome_completo}
+                  className="w-14 h-14 rounded-2xl text-xl ring-2 ring-laranja-claro"
+                />
+              </button>
+              </div>
             </Item>
           ))}
         </Lista>
+      )}
+
+      {perfilAberto && (
+        <PerfilAlunoModal alunoId={perfilAberto} onFechar={() => setPerfilAberto(null)} />
       )}
     </>
   );

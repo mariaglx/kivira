@@ -115,6 +115,9 @@ export function TurmaForm() {
     linhasCadastro,
     alterarLinhaCadastro,
     adicionarLinhaCadastro,
+    colarLinhasCadastro,
+    importarArquivoDeAlunos,
+    lendoArquivo,
     removerLinhaCadastro,
     itensLote,
     cadastrandoLote,
@@ -168,6 +171,10 @@ export function TurmaForm() {
   useEffect(() => {
     refUltimoNome.current?.focus();
   }, [linhasCadastro.length]);
+
+  // Arrastar um arquivo de lista pra cima do modal, ou escolher pelo botão
+  const refArquivoAlunos = useRef(null);
+  const [arrastandoArquivo, setArrastandoArquivo] = useState(false);
 
   // Enquanto ninguém pontuou, a ordem do ranking é só alfabética — numerar as
   // posições aí daria a impressão de uma classificação que não existe ainda
@@ -653,7 +660,28 @@ export function TurmaForm() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
+                <div
+                  className="flex flex-col gap-3 relative"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setArrastandoArquivo(true);
+                  }}
+                  onDragLeave={(e) => {
+                    // dragleave dispara também ao passar de um filho pro outro
+                    // dentro da área; só conta quando o ponteiro saiu de verdade
+                    if (!e.currentTarget.contains(e.relatedTarget)) setArrastandoArquivo(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setArrastandoArquivo(false);
+                    importarArquivoDeAlunos(e.dataTransfer.files[0]);
+                  }}
+                >
+                  {arrastandoArquivo && (
+                    <div className="absolute inset-0 z-10 rounded-2xl border-2 border-dashed border-coral bg-bege/95 flex items-center justify-center pointer-events-none">
+                      <span className="text-coral-texto font-bold text-sm">Solte a lista aqui</span>
+                    </div>
+                  )}
                   {/* flex, não grid: cada input pede um "mínimo de conteúdo" pra
                       não encolher (min-width automático do navegador); min-w-0
                       derruba isso e deixa o flex-1 mandar de verdade — sem essa
@@ -683,6 +711,15 @@ export function TurmaForm() {
                         e.preventDefault();
                         adicionarLinhaCadastro();
                       };
+                      // Colar uma lista inteira (do Excel, do Word, de onde for)
+                      // em qualquer campo espalha os nomes pelas linhas. Texto
+                      // sem quebra nem separador é cola normal de um valor só,
+                      // então deixa o navegador fazer o trabalho dele.
+                      const aoColar = (e) => {
+                        const texto = e.clipboardData.getData("text");
+                        if (!/[\n\t;]/.test(texto)) return;
+                        if (colarLinhasCadastro(texto)) e.preventDefault();
+                      };
                       return (
                         <div key={linha.chave} className="flex gap-2.5 items-center">
                           <Input
@@ -691,6 +728,7 @@ export function TurmaForm() {
                             value={linha.nome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "nome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
+                            onPaste={aoColar}
                             placeholder="Ex: João"
                             className="flex-1 min-w-0 py-2 text-sm"
                           />
@@ -699,6 +737,7 @@ export function TurmaForm() {
                             value={linha.sobrenome}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "sobrenome", e.target.value)}
                             onKeyDown={aoPressionarEnter}
+                            onPaste={aoColar}
                             placeholder="Ex: Silva"
                             className="flex-1 min-w-0 py-2 text-sm"
                           />
@@ -707,6 +746,7 @@ export function TurmaForm() {
                             value={linha.matricula}
                             onChange={(e) => alterarLinhaCadastro(linha.chave, "matricula", e.target.value)}
                             onKeyDown={aoPressionarEnter}
+                            onPaste={aoColar}
                             placeholder="Opcional"
                             className="w-28 shrink-0 py-2 text-sm"
                           />
@@ -737,8 +777,35 @@ export function TurmaForm() {
                   </button>
 
                   <p className="text-xs text-azul/80">
+                    {lendoArquivo ? (
+                      <span className="font-bold text-coral-texto">Lendo o arquivo...</span>
+                    ) : (
+                      <>
+                        Cole a lista da chamada num campo, ou{" "}
+                        <button
+                          type="button"
+                          onClick={() => refArquivoAlunos.current?.click()}
+                          className="alvo-toque text-coral-texto font-bold hover:underline"
+                        >
+                          escolha um arquivo
+                        </button>{" "}
+                        .csv, .xlsx, .docx ou .txt. Arrastar pra cima desta janela também vale.
+                      </>
+                    )}{" "}
                     Matrícula é opcional. Usuário e senha de cada um são gerados automaticamente.
                   </p>
+
+                  <input
+                    ref={refArquivoAlunos}
+                    type="file"
+                    accept=".csv,.txt,.tsv,.xlsx,.docx"
+                    hidden
+                    onChange={(e) => {
+                      importarArquivoDeAlunos(e.target.files[0]);
+                      // zera pra escolher o mesmo arquivo de novo disparar change
+                      e.target.value = "";
+                    }}
+                  />
 
                   {erroCadastroLote && (
                     <Alerta className="flex items-center justify-between gap-3">
