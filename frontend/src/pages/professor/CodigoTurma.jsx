@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Copy, Maximize, Minimize } from "lucide-react";
+import { ArrowLeft, Check, Copy, Gamepad2, Maximize, Minimize } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { EstadoVazio } from "../../components/ui/EstadoVazio";
@@ -36,6 +36,18 @@ const FORMAS = [
   { classe: "w-16 h-16 rounded-2xl bg-laranja/50 rotate-6", posicao: "bottom-[28%] right-[18%]" },
   { classe: "w-8 h-8 rounded-full bg-verde/30", posicao: "bottom-[30%] left-[22%]" },
 ];
+
+// Cabeçalho de cada passo: número no círculo azul + o que fazer
+function Passo({ numero, children }) {
+  return (
+    <span className="flex items-center gap-3 text-xl sm:text-3xl font-extrabold font-display text-azul">
+      <span className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-azul text-branco font-black flex items-center justify-center">
+        {numero}
+      </span>
+      {children}
+    </span>
+  );
+}
 
 function useTelaCheia() {
   const [cheia, setCheia] = useState(Boolean(document.fullscreenElement));
@@ -108,7 +120,7 @@ export function CodigoTurma() {
             src={`/avatares/${a.nome}.png`}
             alt=""
             style={{ animationDelay: a.atraso }}
-            className={`flutuar hidden md:block absolute ${a.posicao} w-20 h-20 lg:w-28 lg:h-28 rounded-full bg-branco p-2 ring-4 ring-laranja-claro shadow-sm object-contain`}
+            className={`flutuar hidden 2xl:block absolute ${a.posicao} w-20 h-20 lg:w-28 lg:h-28 rounded-full bg-branco p-2 ring-4 ring-laranja-claro shadow-sm object-contain`}
           />
         ))}
       </div>
@@ -137,36 +149,51 @@ export function CodigoTurma() {
         </div>
       </header>
 
-      <section className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 sm:gap-8 px-4 pb-10 text-center">
+      <section className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 lg:gap-8 px-4 pb-10 text-center">
         <img
           src="/assets/logo.svg"
           alt="Kivira"
-          className="h-14 sm:h-20 lg:h-24 w-auto animate__animated animate__bounceIn"
+          className="h-12 sm:h-16 xl:h-20 w-auto animate__animated animate__bounceIn"
         />
 
-        <span className="faixa-secao text-sm sm:text-base">✨ Hoje tem Kivira! ✨</span>
-
-        <div className="cartao rounded-[2rem] px-5 py-6 sm:px-10 sm:py-8 flex flex-col items-center gap-4 sm:gap-6 animate__animated animate__zoomIn">
-          <span className="rotulo text-sm sm:text-base">Código da turma · {turma.nome}</span>
-          <p className="sr-only">{codigo.split("").join(" ")}</p>
-          <div aria-hidden="true" className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4">
-            {codigo.split("").map((letra, i) => (
-              <span
-                key={i}
-                style={{ animationDelay: `${0.3 + i * 0.12}s` }}
-                className={`tatil peca-codigo animate__animated animate__flipInY ${CORES_PECA[i % CORES_PECA.length]} text-azul-escuro font-black font-display rounded-2xl lg:rounded-3xl flex items-center justify-center w-12 h-16 text-4xl sm:w-16 sm:h-20 sm:text-5xl lg:w-24 lg:h-32 lg:text-7xl`}
-              >
-                {letra}
-              </span>
-            ))}
-          </div>
+        <div className="flex flex-col items-center gap-3">
+          <span className="faixa-secao text-sm sm:text-base">
+            <Gamepad2 size={18} aria-hidden="true" /> Turma {turma.nome}
+          </span>
+          <h1 className="text-4xl sm:text-6xl xl:text-7xl font-black text-azul leading-tight">
+            Vamos jogar Kivira hoje!
+          </h1>
+          <p className="text-lg sm:text-2xl font-bold text-azul/80 max-w-3xl">
+            Siga os dois passos abaixo e prepare-se pra aventura.
+          </p>
         </div>
 
-        {/* Endereço lido do próprio navegador: em produção é kivira.vercel.app,
-            e se o domínio mudar a tela acompanha sem precisar mexer aqui */}
-        <p className="cartao rounded-2xl sm:rounded-full px-5 py-3 text-center text-base sm:text-xl font-bold text-azul">
-          Entre em <strong className="font-black text-coral-texto">{window.location.host}</strong> e digite o código 🎲
-        </p>
+        <ol className="w-full max-w-7xl flex flex-col gap-4 lg:gap-6">
+          {/* Endereço lido do próprio navegador: em produção é kivira.vercel.app,
+              e se o domínio mudar a tela acompanha sem precisar mexer aqui */}
+          <li className="cartao rounded-[2rem] px-5 py-5 sm:px-10 sm:py-7 flex flex-col items-center gap-3 animate__animated animate__fadeInUp">
+            <Passo numero={1}>Entre no site</Passo>
+            <p className="font-display font-black text-coral-texto break-all text-3xl sm:text-5xl xl:text-6xl">
+              {window.location.host}
+            </p>
+          </li>
+
+          <li className="cartao rounded-[2rem] px-5 py-5 sm:px-10 sm:py-7 flex flex-col items-center gap-4 sm:gap-6 animate__animated animate__fadeInUp">
+            <Passo numero={2}>Digite o código da turma</Passo>
+            <p className="sr-only">{codigo.split("").join(" ")}</p>
+            <div aria-hidden="true" className="flex flex-wrap justify-center gap-2 sm:gap-3">
+              {codigo.split("").map((letra, i) => (
+                <span
+                  key={i}
+                  style={{ animationDelay: `${0.3 + i * 0.12}s` }}
+                  className={`tatil animate__animated animate__flipInY ${CORES_PECA[i % CORES_PECA.length]} text-azul-escuro font-black font-display rounded-2xl lg:rounded-3xl flex items-center justify-center w-12 h-16 text-4xl sm:w-16 sm:h-20 sm:text-5xl lg:w-24 lg:h-32 lg:text-7xl xl:w-32 xl:h-40 xl:text-8xl`}
+                >
+                  {letra}
+                </span>
+              ))}
+            </div>
+          </li>
+        </ol>
       </section>
     </main>
   );
