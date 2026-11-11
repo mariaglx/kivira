@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { Carregando } from "../../components/ui/Carregando";
 import { BarraProgresso } from "../../components/ui/BarraProgresso";
 import { Entrada } from "../../components/ui/Animacao";
+import { Alerta } from "../../components/ui/Alerta";
 
 const TOTAL_PERGUNTAS = PERGUNTAS.length + 1;
 
@@ -171,7 +172,7 @@ export function Feedback() {
 
                 {/* Rótulos das pontas: é o que devolve a direção da escala, que
                     some quando as 5 opções ficam empilhadas na vertical */}
-                <div className="flex justify-between mt-2 text-[11px] font-semibold text-azul/80">
+                <div className="flex justify-between mt-2 text-xs font-semibold text-azul/80">
                   <span>{pergunta.opcoes[0]}</span>
                   <span>{pergunta.opcoes[pergunta.opcoes.length - 1]}</span>
                 </div>
@@ -196,7 +197,7 @@ export function Feedback() {
               maxLength={5000}
               rows={5}
               placeholder="Escreva aqui"
-              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral resize-y"
+              className="w-full rounded-xl bg-bege/40 border border-cinza-claro p-3 text-sm text-azul placeholder:text-azul/75 resize-y"
             />
             </div>
           </Entrada>
@@ -208,7 +209,7 @@ export function Feedback() {
           <div className="cartao p-5 flex flex-col gap-4">
             <div>
               <div className="flex items-baseline justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <span className="rotulo">
                   Progresso
                 </span>
                 <span className="text-xs font-bold text-azul/80 tabular-nums">
@@ -219,9 +220,9 @@ export function Feedback() {
             </div>
 
             {erro && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+              <Alerta>
                 {erro}
-              </div>
+              </Alerta>
             )}
 
             <Button type="submit" disabled={!completo || enviando} className="w-full">

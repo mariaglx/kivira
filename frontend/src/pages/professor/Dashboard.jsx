@@ -103,7 +103,7 @@ export function Dashboard() {
 
         {/* Ações Rápidas */}
         <div className="mb-8">
-          <p className="text-xs font-bold text-azul uppercase tracking-wider mb-4 opacity-80">
+          <p className="rotulo mb-4">
             Ações Rápidas
           </p>
           <div className="flex flex-wrap gap-4">
@@ -128,7 +128,7 @@ export function Dashboard() {
             </h3>
             <Link
               to="/professor/turmas"
-              className="text-sm font-semibold text-coral-texto hover:underline"
+              className="alvo-toque text-sm font-semibold text-coral-texto hover:underline"
             >
               Ver todas &rarr;
             </Link>
@@ -149,7 +149,7 @@ export function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-cinza-claro text-xs text-azul/80 font-bold uppercase tracking-wider">
+                  <tr className="border-b border-cinza-claro rotulo">
                     <th className="pb-3">Turma</th>
                     <th className="pb-3">Ano</th>
                     <th className="pb-3">Alunos</th>

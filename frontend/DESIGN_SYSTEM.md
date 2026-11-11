@@ -13,6 +13,7 @@ Tokens e classes ficam em `src/index.css`; componentes em `src/components/ui/`.
 | `azul` | `#214a5a` | texto padrão, menu do professor, botão secundário |
 | `coral` | `#eb7561` | fundo da ação principal, aba ativa, fase liberada — texto/ícone **sobre** ele é `text-azul-escuro` |
 | `coral-texto` | `#a25143` | coral usado **como texto** (links, "Sair", destaques) sobre branco/bege |
+| `verde-texto` | `#21793f` | verde usado **como texto** sobre `bg-verde/10` (selos "Publicada", acertos) |
 | `laranja` / `laranja-claro` | `#eeb37f` / `#f0c6a1` | anéis de avatar, peças do jogo, item ativo do menu |
 | `bege` | `#f5e6d3` | fundo de todas as telas |
 | `branco` | `#ffffff` | superfícies (cards, header) |
@@ -42,7 +43,9 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 
 - Raios: campos/botões `rounded-xl`, cards `rounded-2xl`/`rounded-3xl`, abas e badges `rounded-full`.
 - Sombra: `shadow-sm` em cards; `shadow-xl` só em modais/popovers.
+- **Foco do teclado**: regra única no `index.css` (`:focus-visible`), borda azul de 2px colada no elemento (laranja-claro dentro de `.bg-azul`) + brilho coral suave em volta (`--anel`, que soma com a sombra do `.tatil`). Não use `outline-none` nem `focus:ring-*`/`focus:border-*` pra substituir — só a borda vermelha de campo com erro.
 - **Botão tátil** (`.tatil`): sombra sólida embaixo que afunda ao clicar. Cor da sombra via `[--sombra:var(--color-azul-escuro)]`. Padrão de todo botão de ação no aluno e no jogo.
+- **Área de toque** (`.alvo-toque`): todo botão ou link menor que 44×44 (ícone, `Button` sm/icone, link de texto como "← Voltar") ganha essa classe — um `::after` invisível amplia a área clicável sem mudar o visual. O `Button` sm/icone já inclui.
 
 ## Classes de componente (`@layer components`)
 
@@ -58,11 +61,12 @@ Evite cinzas do Tailwind (`text-gray-*`) — fogem da paleta.
 ## Componentes (`src/components/ui/`)
 
 - `Button` — botão tátil. `variante`: `primario` (coral), `secundario` (azul), `contorno`, `perigo`, `fantasma` (chapado); `tamanho`: `md`, `sm`, `icone`; `as={Link}` pra links.
-- `Input` — campo de texto padrão (`icone` opcional à esquerda).
+- `Input` — campo de texto padrão (`icone` opcional à esquerda). Todo campo tem rótulo ligado: `<label htmlFor="x">` + `id="x"` no campo (em lista, inclua o id do item), ou o `<label>` envolvendo o campo. Texto que não rotula campo nenhum é `<span className="rotulo">`, não `<label>`.
 - `EstadoVazio` — lista vazia padrão (cartão + ação opcional).
+- `Alerta` — **todo** aviso de erro: `alert alert-error alert-soft` do daisyUI com `role="alert"` (o leitor de tela anuncia). Erro de um campo específico: `aria-invalid` no campo + `aria-describedby` apontando pro `id` da mensagem. Não use `text-red-*`/`bg-red-*` do Tailwind.
 - `Animacao` — `Lista`/`Item` (cascata, `elevar` pro hover), `Entrada`, `Contador`. `utils/comemorar` dispara confete. Tudo respeita `prefers-reduced-motion`.
 - `Modal` (em `Animacao`) — **todo** modal do app: `<dialog>` com o `modal` do daisyUI nas cores do Kivira (prende o foco, fecha no Esc/clique fora, devolve o foco). Use `<Modal aberto onFechar={...} className="max-w-sm">`; sem `onFechar` ele não fecha (ex: durante uma exclusão). Não monte overlay `fixed inset-0` à mão.
-- `SelectCustom` — select estilizado.
+- `SelectCustom` — `<select>` nativo com o `select` do daisyUI (teclado, leitor de tela e roda do celular nativos). `placeholder` vira a opção vazia; sem `label`, vira o nome acessível. Não monte dropdown de `<button>` pra escolher valor.
 - `BarraProgresso` — contínua (XP) ou em segmentos (peças).
 - `Avatar` — imagem de `/avatares` ou inicial sobre coral; tamanho/raio/anel via `className`.
 - `Carregando` — estado de carregamento de página.

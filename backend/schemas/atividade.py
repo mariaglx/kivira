@@ -20,6 +20,10 @@ class SalvarImagemPixabaySchema(BaseModel):
     url: str
 
 class AtividadeUpdateSchema(BaseModel):
+    # Exemplo do Swagger sem turma_id: no PATCH, `"turma_id": null` TIRA a
+    # atividade da turma, e quem mandasse o exemplo inteiro faria isso sem querer
+    model_config = {"json_schema_extra": {"examples": [{"titulo": "Sons dos Animais", "dificuldade": "facil"}]}}
+
     titulo: Optional[str] = Field(default=None, examples=[None])
     descricao: Optional[str] = Field(default=None, examples=[None])
     disciplina: Optional[str] = Field(default=None, examples=[None])

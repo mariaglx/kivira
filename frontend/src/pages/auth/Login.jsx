@@ -6,6 +6,7 @@ import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
 import { salvarSessao } from "../../services/sessao";
 import { VerificarDoisFatores } from "./VerificarDoisFatores";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function Login() {
   const navigate = useNavigate();
@@ -77,9 +78,9 @@ export function Login() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         {doisFatores ? (
@@ -87,7 +88,7 @@ export function Login() {
         ) : (
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="email" className="text-start text-azul/80 text-base font-medium">
               E-mail
             </label>
             <Input
@@ -103,7 +104,7 @@ export function Login() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="senha" className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="senha" className="text-start text-azul/80 text-base font-medium">
               Senha
             </label>
             <Input
@@ -124,18 +125,19 @@ export function Login() {
           </Button>
 
           <div className="flex flex-col gap-2 mt-2 text-center text-base">
-            <p className="text-sm text-gray-400 cursor-pointer hover:underline">
+            {/* ponytail: ainda sem ação — o backend não tem recuperação de senha */}
+            <button type="button" className="alvo-toque self-center text-sm text-azul/75 hover:underline">
               Esqueci minha senha
-            </p>
-            <p className="text-gray-600">
+            </button>
+            <p className="text-azul/80">
               Não tem conta?{" "}
-              <Link to="/cadastro" className="text-azul font-bold hover:underline">
+              <Link to="/cadastro" className="alvo-toque text-azul font-bold hover:underline">
                 Criar conta
               </Link>
             </p>
-            <p className="text-gray-600">
+            <p className="text-azul/80">
               É aluno?{" "}
-              <Link to="/login_aluno" className="text-coral-texto font-bold hover:underline">
+              <Link to="/login_aluno" className="alvo-toque text-coral-texto font-bold hover:underline">
                 Entrar por aqui
               </Link>
             </p>

@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/Input";
 import { Carregando } from "../../components/ui/Carregando";
 import { Lista, Item, Modal } from "../../components/ui/Animacao";
 import { ehAdmin } from "../../services/sessao";
+import { Alerta } from "../../components/ui/Alerta";
 
 const TIPO_LABEL = {
   multipla_escolha: "Múltipla escolha",
@@ -15,9 +16,9 @@ const TIPO_LABEL = {
 };
 
 const DIFICULDADE_STYLE = {
-  facil: "bg-green-100 text-green-600",
-  medio: "bg-amber-100 text-amber-600",
-  dificil: "bg-red-100 text-red-500",
+  facil: "bg-verde/10 text-verde-texto",
+  medio: "bg-ouro-bg text-ouro-fg",
+  dificil: "bg-vermelho/10 text-vermelho",
 };
 
 export function Atividades() {
@@ -100,7 +101,7 @@ export function Atividades() {
             <div className="hidden sm:block bg-branco px-4 py-2 rounded-xl border border-cinza-claro text-xs font-semibold text-azul shadow-sm">
               {dataHoje}
             </div>
-            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 text-sm">
+            <Button as={Link} to="/professor/atividades/criar" className="px-5 py-2 min-h-11 text-sm">
               + Nova Atividade
             </Button>
           </div>
@@ -136,11 +137,11 @@ export function Atividades() {
                   </span>
                 </div>
                 {atividade.publicado ? (
-                  <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-xs font-bold">
                     Publicada
                   </span>
                 ) : (
-                  <span className="badge bg-gray-100 text-gray-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-cinza-claro text-azul/80 border-none rounded-md px-2.5 py-1 text-xs font-bold">
                     Rascunho
                   </span>
                 )}
@@ -162,7 +163,7 @@ export function Atividades() {
                     Dificuldade
                   </span>
                   <span
-                    className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
+                    className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
                   >
                     {atividade.dificuldade}
                   </span>
@@ -256,9 +257,9 @@ export function Atividades() {
             )}
 
             {erroQuestoes && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
+              <Alerta>
                 {erroQuestoes}
-              </div>
+              </Alerta>
             )}
 
             {!carregandoQuestoes && !erroQuestoes && modalQuestoes.questoes?.length === 0 && (
@@ -287,7 +288,7 @@ export function Atividades() {
                             key={opcao.id}
                             className={`text-xs px-3 py-1.5 rounded-lg ${
                               opcao.correta
-                                ? "bg-green-100 text-green-700 font-bold"
+                                ? "bg-verde/10 text-verde-texto font-bold"
                                 : "bg-branco text-azul/80"
                             }`}
                           >

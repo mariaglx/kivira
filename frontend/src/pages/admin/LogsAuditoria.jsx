@@ -14,12 +14,13 @@ import { OPCOES_PAPEL, BADGE_POR_PAPEL, LABEL_POR_PAPEL } from "../../utils/pape
 import {
   CATEGORIAS, TELA_DE_LOGIN, categoriaDaAcao, descreverAparelho, descreverLog, detalhesExtras,
 } from "../../utils/auditoria";
+import { Alerta } from "../../components/ui/Alerta";
 
 const ESTILO_CATEGORIA = {
-  acessos: { Icone: LogIn, cor: "bg-green-100 text-green-600" },
-  falhas: { Icone: ShieldAlert, cor: "bg-red-100 text-red-500" },
-  turmas: { Icone: Users, cor: "bg-blue-100 text-blue-600" },
-  atividades: { Icone: BookOpen, cor: "bg-amber-100 text-amber-600" },
+  acessos: { Icone: LogIn, cor: "bg-verde/10 text-verde-texto" },
+  falhas: { Icone: ShieldAlert, cor: "bg-vermelho/10 text-vermelho" },
+  turmas: { Icone: Users, cor: "bg-azul/10 text-azul" },
+  atividades: { Icone: BookOpen, cor: "bg-ouro-bg text-ouro-fg" },
   jogo: { Icone: Gamepad2, cor: "bg-coral/15 text-coral-texto" },
   contas: { Icone: UserCog, cor: "bg-azul/10 text-azul" },
   outros: { Icone: KeyRound, cor: "bg-cinza-claro text-azul/80" },
@@ -47,7 +48,7 @@ function LinhaLog({ log }) {
   const identificador = log.usuario?.identificador;
 
   return (
-    <li className={`p-4 flex gap-3 sm:gap-4 ${log.acao === "LOGIN_FALHOU" ? "bg-red-50/60" : ""}`}>
+    <li className={`p-4 flex gap-3 sm:gap-4 ${log.acao === "LOGIN_FALHOU" ? "bg-vermelho/5" : ""}`}>
       <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cor}`}>
         <IconeFinal size={18} />
       </span>
@@ -64,11 +65,11 @@ function LinhaLog({ log }) {
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-azul/80">
           {log.usuario ? (
-            <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/80"}`}>
+            <span className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/80"}`}>
               {LABEL_POR_PAPEL[log.papel_usuario] || log.papel_usuario}
             </span>
           ) : (
-            <span className="badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-500">Sem conta</span>
+            <span className="badge border-none rounded-md px-2 py-0.5 text-xs font-bold bg-vermelho/10 text-vermelho">Sem conta</span>
           )}
           {identificador && identificador !== quem && <span>{identificador}</span>}
           {log.usuario?.turmas?.length > 0 && <span>· {log.usuario.turmas.join(", ")}</span>}
@@ -86,7 +87,7 @@ function LinhaLog({ log }) {
             <button
               type="button"
               onClick={() => setAberto((v) => !v)}
-              className="text-xs font-bold text-coral-texto flex items-center gap-1"
+              className="alvo-toque text-xs font-bold text-coral-texto flex items-center gap-1"
               aria-expanded={aberto}
             >
               Detalhes <ChevronDown size={14} className={`transition-transform ${aberto ? "rotate-180" : ""}`} />
@@ -143,7 +144,7 @@ export function LogsAuditoria() {
             <Indicador rotulo="Tentativas falhas" valor={resumo.falhas} />
           </div>
           {resumo.suspeitos.map((s) => (
-            <div key={s.identificador} className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-sm text-red-700">
+            <div key={s.identificador} className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-vermelho/5 border border-vermelho/40 text-sm text-vermelho">
               <AlertTriangle size={18} className="shrink-0" />
               <p className="flex-1 min-w-0">
                 <span className="font-bold">{s.identificador}</span> teve {s.tentativas} tentativas de login que falharam.
@@ -208,14 +209,14 @@ export function LogsAuditoria() {
           </label>
         </div>
         {temFiltro && (
-          <button type="button" onClick={limparFiltros} className="text-xs font-bold text-coral-texto w-fit">
+          <button type="button" onClick={limparFiltros} className="alvo-toque text-xs font-bold text-coral-texto w-fit">
             Limpar filtros
           </button>
         )}
       </section>
 
       {erro && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">{erro}</div>
+        <Alerta>{erro}</Alerta>
       )}
 
       {carregando ? (

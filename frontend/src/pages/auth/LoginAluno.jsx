@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { LogoKivira } from "../../components/LogoKivira";
 import { apiRequest } from "../../services/api";
+import { Alerta } from "../../components/ui/Alerta";
 
 export function LoginAluno() {
   const location = useLocation();
@@ -61,7 +62,7 @@ export function LoginAluno() {
       <div className="bg-white py-10 px-6 sm:px-10 rounded-3xl shadow-lg w-full max-w-md md:max-w-lg">
         <div className="flex flex-col items-center gap-3 mb-6">
           <LogoKivira className="h-16 md:h-20 w-auto animate__animated animate__bounceIn" />
-          <h2 className="text-xl md:text-2xl font-bold text-gray-700">
+          <h2 className="text-xl md:text-2xl font-bold text-azul">
             {turmaNome ? "Entrar na turma" : "Entrar no Kivira"}
           </h2>
           {turmaNome && (
@@ -70,17 +71,17 @@ export function LoginAluno() {
         </div>
 
         {erro && (
-          <div className="mb-4 p-2.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg text-center font-medium">
+          <Alerta className="mb-4 text-center justify-center">
             {erro}
-          </div>
+          </Alerta>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="campo-insira-seu-nome-de-usuario" className="text-start text-azul/80 text-base font-medium">
               Insira seu nome de usuário
             </label>
-            <Input
+            <Input id="campo-insira-seu-nome-de-usuario"
               type="text"
               placeholder="Ex: joao.silva"
               value={username}
@@ -97,9 +98,9 @@ export function LoginAluno() {
           <div className="flex flex-col gap-2 mt-2">
             {/* Aluno não se cadastra: a conta é criada pelo professor, e a
                 primeira entrada é pelo código da turma (card da Home) */}
-            <p className="text-center text-gray-600 text-base">
+            <p className="text-center text-azul/80 text-base">
               Primeira vez?{" "}
-              <Link to="/" className="text-azul font-bold hover:underline">
+              <Link to="/" className="alvo-toque text-azul font-bold hover:underline">
                 Entre com o código da turma
               </Link>
             </p>

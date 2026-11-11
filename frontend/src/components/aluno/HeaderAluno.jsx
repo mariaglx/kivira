@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LogoKivira } from "../LogoKivira";
 import { BarraProgresso } from "../ui/BarraProgresso";
@@ -6,6 +6,7 @@ import { Avatar } from "../ui/Avatar";
 import { progressoNivel } from "../../utils/xp";
 import { apiRequest } from "../../services/api";
 import { limparSessao } from "../../services/sessao";
+import { useFecharComEsc } from "../../controllers/useFecharComEsc";
 import { MapPin, Sparkles, Users, Settings, Star, Smile } from "lucide-react";
 
 const ABAS = [
@@ -24,6 +25,8 @@ const ABA_FEEDBACK = { to: "/aluno/feedback", Icone: Smile, rotulo: "Opinião" }
 export function HeaderAluno({ aluno }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+  const refBotaoPerfil = useRef(null);
+  useFecharComEsc(menuAberto, () => setMenuAberto(false), refBotaoPerfil);
   const progresso = progressoNivel(aluno?.xp_total);
 
   // "já sei que não respondeu", não "não respondeu": com aluno ainda null no
@@ -51,7 +54,7 @@ export function HeaderAluno({ aluno }) {
             to={to}
             aria-label={rotulo}
             className={({ isActive }) =>
-              `shrink-0 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] sm:text-sm font-bold transition-colors ${
+              `shrink-0 min-h-11 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-xs sm:text-sm font-bold transition-colors ${
                 isActive
                   ? "bg-coral text-azul-escuro"
                   : "text-azul/80 hover:bg-bege sm:bg-bege/70"
@@ -73,7 +76,7 @@ export function HeaderAluno({ aluno }) {
           Nível {progresso.nivel}
         </span>
         <div className="hidden sm:flex flex-col gap-1 w-36">
-          <div className="flex items-baseline justify-between text-[11px] font-bold leading-tight">
+          <div className="flex items-baseline justify-between text-xs font-bold leading-tight">
             <span className="text-coral-texto">Nível {progresso.nivel}</span>
             <span className="text-azul/80">
               {progresso.xpNoNivel}/{progresso.xpDoNivel} XP
@@ -88,9 +91,12 @@ export function HeaderAluno({ aluno }) {
 
         <div className="relative">
           <button
+            ref={refBotaoPerfil}
             type="button"
             onClick={() => setMenuAberto((v) => !v)}
             aria-label="Abrir menu do perfil"
+            aria-expanded={menuAberto}
+            className="alvo-toque rounded-xl"
           >
             <Avatar
               arquivo={aluno?.avatar_url}

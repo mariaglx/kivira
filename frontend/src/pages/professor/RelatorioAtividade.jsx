@@ -26,7 +26,7 @@ export function RelatorioAtividade() {
   return (
     <main className="pagina flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-2">
-        <Link to="/professor/atividades" className="text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
+        <Link to="/professor/atividades" className="alvo-toque text-sm text-azul/80 font-semibold flex items-center gap-1 w-fit">
           <ArrowLeft size={14} /> Atividades
         </Link>
         <h1 className="text-sm font-bold text-azul uppercase tracking-wider opacity-70">Relatório</h1>
@@ -98,7 +98,7 @@ export function RelatorioAtividade() {
                 {alunos.map((a) => (
                   <tr key={a.aluno_id}>
                     <td className="p-3 font-semibold">
-                      <Link to={`/professor/turmas/${relatorio.turma_id}/alunos/${a.aluno_id}`} className="hover:text-coral-texto underline-offset-2 hover:underline">
+                      <Link to={`/professor/turmas/${relatorio.turma_id}/alunos/${a.aluno_id}`} className="alvo-toque hover:text-coral-texto underline-offset-2 hover:underline">
                         {a.nome}
                       </Link>
                     </td>

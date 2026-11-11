@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Lock, Blocks } from "lucide-react";
 import { DIFICULDADE_ESTRELAS } from "../../utils/dificuldade";
 import { iconeDisciplina } from "../../utils/disciplina";
+import { useFecharComEsc } from "../../controllers/useFecharComEsc";
 
 const ALTURA_LINHA = 148; // px entre o centro de uma fase e a próxima
 const TAMANHO_NO = 76; // px, fase concluída/bloqueada
@@ -57,7 +58,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
       <p className="text-xs text-azul/80 font-medium mb-2">
         {iconeDisciplina(atividade.disciplina)} {atividade.disciplina}
       </p>
-      <p className="text-amber-500 text-sm mb-3">
+      <p className="text-sm mb-3">
         {"⭐".repeat(estrelas)}
         <span className="opacity-25">{"⭐".repeat(3 - estrelas)}</span>
       </p>
@@ -78,6 +79,8 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
 // por um caminho pontilhado sinuoso desenhado em SVG.
 export function TrilhaFases({ atividades, onJogar }) {
   const [faseAberta, setFaseAberta] = useState(null);
+  const refFaseAberta = useRef(null);
+  useFecharComEsc(faseAberta !== null, () => setFaseAberta(null), refFaseAberta);
   const indiceAtual = atividades.findIndex((a) => !a.concluida);
   const alturaTotal = atividades.length * ALTURA_LINHA;
 
@@ -126,8 +129,12 @@ export function TrilhaFases({ atividades, onJogar }) {
             <button
               type="button"
               disabled={estado === "bloqueada"}
-              onClick={() => setFaseAberta(aberta ? null : atividade.id)}
+              onClick={(e) => {
+                refFaseAberta.current = e.currentTarget;
+                setFaseAberta(aberta ? null : atividade.id);
+              }}
               aria-label={`Fase ${indice + 1}: ${atividade.titulo}`}
+              aria-expanded={aberta}
               style={{ width: tamanho, height: tamanho }}
               className={`relative rounded-full flex items-center justify-center shadow-lg border-4 border-branco transition-transform ${corNo} ${
                 estado === "bloqueada" ? "cursor-not-allowed opacity-60" : "hover:scale-105"
@@ -135,15 +142,15 @@ export function TrilhaFases({ atividades, onJogar }) {
             >
               {estado === "concluida" && <Check size={30} className="text-branco" />}
               {estado === "atual" && <Blocks size={34} className="text-azul-escuro" />}
-              {estado === "bloqueada" && <Lock size={26} className="text-gray-400" />}
+              {estado === "bloqueada" && <Lock size={26} className="text-azul/80" />}
 
-              <span className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-branco text-azul text-[11px] font-black flex items-center justify-center shadow border border-cinza-claro/30">
+              <span className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-branco text-azul text-xs font-black flex items-center justify-center shadow border border-cinza-claro/30">
                 {indice + 1}
               </span>
             </button>
 
             {estado === "concluida" && (
-              <p className="text-center text-amber-500 text-xs mt-1">
+              <p className="text-center text-xs mt-1">
                 {"⭐".repeat(DIFICULDADE_ESTRELAS[atividade.dificuldade] || 1)}
               </p>
             )}

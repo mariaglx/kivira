@@ -52,7 +52,7 @@ export function Turmas() {
       <main className="pagina flex flex-col gap-6 lg:gap-8">
         <header className="flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight">Turmas</h2>
-          <Button onClick={() => navigate("/professor/turmas/nova")} className="px-5 py-2 text-sm">
+          <Button onClick={() => navigate("/professor/turmas/nova")} className="px-5 py-2 min-h-11 text-sm">
             + Nova Turma
           </Button>
         </header>
@@ -88,11 +88,11 @@ export function Turmas() {
                       )}
                     </div>
                     {turma.ativo ? (
-                      <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-xs font-bold">
                         Ativa
                       </span>
                     ) : (
-                      <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-vermelho/10 text-vermelho border-none rounded-md px-2.5 py-1 text-xs font-bold">
                         Inativa
                       </span>
                     )}
@@ -103,11 +103,11 @@ export function Turmas() {
                   <div className="flex items-end gap-8">
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.alunos_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Alunos</div>
+                      <div className="rotulo">Alunos</div>
                     </div>
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.atividades_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Atividades</div>
+                      <div className="rotulo">Atividades</div>
                     </div>
                     <span className="ml-auto text-sm font-bold text-coral-texto flex items-center gap-1">
                       Abrir <ChevronRight size={16} />

@@ -112,6 +112,7 @@ class TestRbac(unittest.TestCase):
         cls.prof_id, cls.opcao_id, cls.questao_id, cls.turma_id = prof.id, opcao.id, questao.id, turma.id
         cls.aluno_id, cls.aluno2_id, cls.aluno3_id = alunos[0].id, alunos[1].id, alunos[2].id
         cls.prof3_id = prof3.id
+        cls.atividade_id = atividade.id
         cls.prof3 = bearer(criar_token(usuarios["prof3"]))
         cls.admin = bearer(criar_token(usuarios["admin"], extras={"mfa": True}))
         cls.admin_sem_mfa = bearer(criar_token(usuarios["admin"]))
@@ -246,6 +247,20 @@ class TestRbac(unittest.TestCase):
         self.assertEqual(self.client.post("/auth_kivira/login", json={"email": "prof3@k.com", "senha": "senha123"}).status_code, 403)
         self.assertEqual(self.client.patch(url, json={"ativo": True}, headers=self.admin).status_code, 200)
         self.assertEqual(self.client.get("/professor/me", headers=self.prof3).status_code, 200)
+
+    def test_editar_atividade_tira_a_turma_so_com_null_explicito(self):
+        url = f"/atividade/{self.atividade_id}"
+        def turma_atual():
+            return self.client.get(url, headers=self.prof).json()["turma_id"]
+
+        self.assertEqual(self.client.patch(url, json={"turma_id": self.turma_id}, headers=self.prof).status_code, 200)
+        self.assertEqual(turma_atual(), self.turma_id)
+        # Campo ausente não mexe na turma
+        self.client.patch(url, json={"titulo": "Somas"}, headers=self.prof)
+        self.assertEqual(turma_atual(), self.turma_id)
+        # null explícito = "Nenhuma (opcional)" no select da tela
+        self.client.patch(url, json={"turma_id": None}, headers=self.prof)
+        self.assertIsNone(turma_atual())
 
     def test_professor_nao_ve_questao_de_outro(self):
         self.assertEqual(self.client.get(f"/opcao_questao/{self.opcao_id}", headers=self.outro).status_code, 403)

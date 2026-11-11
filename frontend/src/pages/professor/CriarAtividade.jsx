@@ -9,7 +9,8 @@ import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Animacao";
 import { Carregando } from "../../components/ui/Carregando";
 import { comemorar } from "../../utils/comemorar";
-import { Search, Trash2, X } from "lucide-react";
+import { Search, Sparkles, Trash2, X } from "lucide-react";
+import { Alerta } from "../../components/ui/Alerta";
 
 // Um card de questão arrastável — precisa ser seu próprio componente pra cada
 // um ter seu próprio useDragControls (o "cabo" que a alcinha de arrastar aciona,
@@ -42,7 +43,7 @@ function QuestaoCard({
         key={erro ? `erro-${tentativaInvalida}` : "ok"}
         className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
           erro
-            ? "border-red-300 animate-tremida-leve"
+            ? "border-vermelho/40 animate-tremida-leve"
             : "border-cinza-claro/10"
         }`}
       >
@@ -73,7 +74,7 @@ function QuestaoCard({
               type="button"
               onClick={() => onRemover(index)}
               disabled={!podeRemover}
-              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-red-500 disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
+              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-vermelho disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
             >
               ×
             </button>
@@ -81,43 +82,47 @@ function QuestaoCard({
         </div>
 
         {erro && (
-          <p className="text-xs font-bold text-red-500 -mt-1.5">
+          <p id={`erro-${questao.localId}`} className="text-xs font-bold text-vermelho -mt-1.5">
             Questão não pode estar em branco
           </p>
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+          <label htmlFor={`pergunta-${questao.localId}`} className="rotulo">
             Texto da pergunta
           </label>
-          <input
+          <input id={`pergunta-${questao.localId}`}
             ref={(el) => registrarInputRef(`${questao.localId}-texto`, el)}
             type="text"
+            aria-invalid={!!erro?.texto}
+            aria-describedby={erro?.texto ? `erro-${questao.localId}` : undefined}
             value={questao.texto_questao}
             onChange={(e) => onMudarBloco(index, "texto_questao", e.target.value)}
             placeholder="Ex: Qual o som que a vaca faz?"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
               erro?.texto
-                ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
+                ? "border-vermelho/40 focus:border-vermelho"
+                : "border-cinza-claro/30"
             }`}
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+          <label htmlFor={`resposta-${questao.localId}`} className="rotulo">
             Resposta certa
           </label>
-          <input
+          <input id={`resposta-${questao.localId}`}
             ref={(el) => registrarInputRef(`${questao.localId}-resposta`, el)}
             type="text"
+            aria-invalid={!!erro?.resposta}
+            aria-describedby={erro?.resposta ? `erro-${questao.localId}` : undefined}
             value={questao.resposta_certa}
             onChange={(e) => onMudarBloco(index, "resposta_certa", e.target.value)}
             placeholder="Ex: Muuuu"
-            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 shadow-sm transition-all text-sm ${
+            className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
               erro?.resposta
-                ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                : "border-cinza-claro/30 focus:ring-coral/20 focus:border-coral/50"
+                ? "border-vermelho/40 focus:border-vermelho"
+                : "border-cinza-claro/30"
             }`}
           />
         </div>
@@ -551,7 +556,7 @@ export function CriarAtividade() {
         <header className="flex items-center gap-3">
           <Link
             to="/professor/atividades"
-            className="text-azul/80 hover:text-azul text-sm font-bold"
+            className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
           >
             ← Atividades
           </Link>
@@ -581,31 +586,31 @@ export function CriarAtividade() {
           {/* COLUNA ESQUERDA — dados da atividade */}
           <div className="w-full lg:max-w-sm bg-branco rounded-2xl p-5 sm:p-6 shadow-sm border border-cinza-claro/10 flex flex-col gap-5 shrink-0 lg:sticky lg:top-8 lg:mt-7">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <label htmlFor="campo-titulo" className="rotulo">
                 Título
               </label>
-              <input
+              <input id="campo-titulo"
                 type="text"
                 name="titulo"
                 value={formData.titulo}
                 onChange={handleChange}
                 placeholder="Ex: Sons dos Animais"
-                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-disciplina" className="rotulo">
                   Disciplina
                 </label>
-                <input
+                <input id="campo-disciplina"
                   type="text"
                   name="disciplina"
                   value={formData.disciplina}
                   onChange={handleChange}
                   placeholder="Ex: Ciências"
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
                 />
               </div>
 
@@ -622,7 +627,7 @@ export function CriarAtividade() {
                   }))}
                 />
                 {erroTurmas && (
-                  <p className="text-[11px] text-red-500">
+                  <p role="alert" className="text-xs text-vermelho">
                     Não foi possível carregar: {erroTurmas}
                   </p>
                 )}
@@ -660,9 +665,9 @@ export function CriarAtividade() {
             <hr className="m-0 border-t border-cinza-claro/60" />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <span className="rotulo">
                 Imagem da atividade
-              </label>
+              </span>
               <div className="flex gap-2 items-center">
                 {formData.imagem_atividade_url ? (
                   <div className="relative group w-11 h-11 shrink-0">
@@ -677,7 +682,7 @@ export function CriarAtividade() {
                       onClick={() =>
                         setFormData((atual) => ({ ...atual, imagem_atividade_url: "" }))
                       }
-                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 rounded-xl bg-azul/50 text-branco flex items-center justify-center [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                     >
                       <X size={16} />
                     </button>
@@ -726,9 +731,9 @@ export function CriarAtividade() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <span className="rotulo">
                 Código da atividade
-              </label>
+              </span>
               {codigoAtividade ? (
                 <button
                   type="button"
@@ -743,17 +748,12 @@ export function CriarAtividade() {
                   </span>
                 </button>
               ) : (
-                <div className="relative group">
-                  <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
-                    <span className="font-mono font-extrabold tracking-widest text-sm">
-                      ••••••••
-                    </span>
-                    <span className="text-xs font-bold">Copiar</span>
-                  </div>
-                  <div className="pointer-events-none absolute bottom-full left-0 mb-2 hidden group-hover:block whitespace-nowrap rounded-lg bg-azul text-branco text-xs font-medium px-3 py-2 shadow-lg z-10">
-                    Salve a atividade pra gerar o código
-                    <div className="absolute top-full left-4 w-0 h-0 border-4 border-transparent border-t-azul"></div>
-                  </div>
+                <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-cinza-claro/10 text-azul/30 shadow-sm cursor-not-allowed">
+                  <span className="font-mono font-extrabold tracking-widest text-sm">
+                    ••••••••
+                  </span>
+                  {/* Texto fixo em vez de tooltip: tooltip não aparece no toque */}
+                  <span className="text-xs font-bold text-azul/75">Gerado ao salvar</span>
                 </div>
               )}
             </div>
@@ -763,7 +763,8 @@ export function CriarAtividade() {
             <button
               type="button"
               onClick={() => setMostrarDetalhes((atual) => !atual)}
-              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azul/80 hover:text-azul/80 transition-colors"
+              aria-expanded={mostrarDetalhes}
+              className="flex items-center gap-1.5 rotulo transition-colors"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -782,16 +783,16 @@ export function CriarAtividade() {
             {mostrarDetalhes && (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <label htmlFor="campo-descricao" className="rotulo">
                     Descrição
                   </label>
-                  <textarea
+                  <textarea id="campo-descricao"
                     name="descricao"
                     value={formData.descricao}
                     onChange={handleChange}
                     placeholder="Uma breve descrição da atividade (opcional)"
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm resize-none"
                   />
                 </div>
               </>
@@ -799,31 +800,31 @@ export function CriarAtividade() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-blocos" className="rotulo">
                   Blocos
                 </label>
-                <input
+                <input id="campo-blocos"
                   type="number"
                   name="quantidade_blocos"
                   value={formData.quantidade_blocos}
                   onChange={handleChange}
                   min={1}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <label htmlFor="campo-tempo-seg" className="rotulo">
                   Tempo (seg)
                 </label>
-                <input
+                <input id="campo-tempo-seg"
                   type="number"
                   name="tempo_limite_seg"
                   value={formData.tempo_limite_seg}
                   onChange={handleChange}
                   placeholder="Sem limite"
                   min={0}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -832,17 +833,20 @@ export function CriarAtividade() {
           {/* COLUNA DIREITA — questões da atividade, uma por bloco */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-azul/80">
+              <h4 className="rotulo">
                 Questões ({questoes.length}{" "}
                 {questoes.length === 1 ? "bloco" : "blocos"})
               </h4>
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
-                <button
+                {/* Contorno (fundo branco) como o "Ver ranking": o coral/10
+                    de antes se confundia com o bege da página */}
+                <Button
                   type="button"
+                  variante="contorno"
                   onClick={gerarQuestoesComIA}
                   disabled={gerandoIA}
-                  className="rounded-xl px-5 py-2.5 font-bold text-sm text-coral-texto bg-coral/10 hover:bg-coral/20 disabled:opacity-50 disabled:cursor-not-allowed border-none transition-all inline-flex items-center justify-center gap-2"
+                  className="px-5 py-2.5 text-sm font-bold gap-2"
                 >
                   {gerandoIA ? (
                     <>
@@ -850,9 +854,12 @@ export function CriarAtividade() {
                       Gerando...
                     </>
                   ) : (
-                    <>✨ Gerar com IA</>
+                    <>
+                      <Sparkles size={16} className="text-coral-texto" />
+                      Gerar com IA
+                    </>
                   )}
-                </button>
+                </Button>
 
               {/* Um lugar só, duas funções que nunca coexistem: com alteração
                   pendente aparecem Cancelar/Atualizar; sem ela, a
@@ -880,7 +887,7 @@ export function CriarAtividade() {
                   </Button>
                 </>
               ) : (
-              <div className="relative group">
+              <div>
                 {idAtividadeCriada ? (
                   <Button
                     as={Link}
@@ -911,15 +918,8 @@ export function CriarAtividade() {
                     >
                       <path d="M4 2.5v11l10-5.5-10-5.5z" />
                     </svg>
-                    Pré-visualizar atividade
+                    Salve para pré-visualizar
                   </button>
-                )}
-
-                {!idAtividadeCriada && (
-                  <div className="pointer-events-none absolute top-full right-0 mt-2 hidden group-hover:block whitespace-nowrap rounded-lg bg-azul text-branco text-xs font-medium px-3 py-2 shadow-lg z-10">
-                    Para pré-visualizar é necessário salvar a atividade primeiro
-                    <div className="absolute bottom-full right-4 w-0 h-0 border-4 border-transparent border-b-azul"></div>
-                  </div>
                 )}
               </div>
               )}
@@ -927,16 +927,17 @@ export function CriarAtividade() {
             </div>
 
             {erroIA && (
-              <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+              <Alerta className="flex items-center justify-between gap-3">
                 <span>{erroIA}</span>
                 <button
                   type="button"
                   onClick={() => setErroIA(null)}
-                  className="font-bold hover:text-red-800"
+                  aria-label="Fechar aviso"
+                  className="btn btn-ghost btn-sm btn-square text-base"
                 >
                   ×
                 </button>
-              </div>
+              </Alerta>
             )}
 
             <Reorder.Group
@@ -980,7 +981,7 @@ export function CriarAtividade() {
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
         <Modal aberto onFechar={() => setMostrarSucesso(false)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
+            <div className="w-28 h-28 rounded-full bg-verde/10 flex items-center justify-center text-6xl">
               ✅
             </div>
             <h3 className="text-xl font-extrabold text-azul">
@@ -995,7 +996,7 @@ export function CriarAtividade() {
 
             {codigoAtividade && (
               <div className="w-full flex flex-col gap-1.5 mt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                <span className="rotulo">
                   Código da atividade
                 </span>
                 <button
@@ -1035,7 +1036,7 @@ export function CriarAtividade() {
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
         <Modal aberto onFechar={() => setMensagemErro(null)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 flex items-center justify-center text-3xl">
               ⚠️
             </div>
             <h3 className="text-xl font-extrabold text-azul">
@@ -1090,7 +1091,7 @@ export function CriarAtividade() {
                     onChange={(e) => setTermoBuscaImagem(e.target.value)}
                     placeholder="Ex: gato, escola, números..."
                     autoFocus
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral/50 shadow-sm transition-all text-sm"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm"
                   />
                   <button
                     type="submit"
@@ -1106,16 +1107,17 @@ export function CriarAtividade() {
                 </form>
 
                 {erroBuscaImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
+                  <Alerta className="flex items-center justify-between gap-3 mb-4">
                     <span>{erroBuscaImagem}</span>
                     <button
                       type="button"
                       onClick={() => setErroBuscaImagem(null)}
-                      className="font-bold hover:text-red-800"
+                      aria-label="Fechar aviso"
+                      className="btn btn-ghost btn-sm btn-square text-base"
                     >
                       ×
                     </button>
-                  </div>
+                  </Alerta>
                 )}
 
                 <div className="grid grid-cols-3 gap-2 max-h-96 overflow-y-auto">
@@ -1154,9 +1156,9 @@ export function CriarAtividade() {
                   </p>
                 )}
                 {erroUploadImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mt-3">
+                  <Alerta className="flex items-center justify-between gap-3 mt-3">
                     <span>{erroUploadImagem}</span>
-                  </div>
+                  </Alerta>
                 )}
 
                 {totalPaginasImagens > 1 && (
@@ -1208,16 +1210,17 @@ export function CriarAtividade() {
             {abaImagem === "enviar" && (
               <div className="flex flex-col gap-4">
                 {erroUploadImagem && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+                  <Alerta className="flex items-center justify-between gap-3">
                     <span>{erroUploadImagem}</span>
                     <button
                       type="button"
                       onClick={() => setErroUploadImagem(null)}
-                      className="font-bold hover:text-red-800"
+                      aria-label="Fechar aviso"
+                      className="btn btn-ghost btn-sm btn-square text-base"
                     >
                       ×
                     </button>
-                  </div>
+                  </Alerta>
                 )}
 
                 <label
@@ -1264,7 +1267,7 @@ export function CriarAtividade() {
           permanente" (mesmo padrão do modal de excluir turma) */}
       {modalExclusaoAberto && (
         <Modal aberto onFechar={excluindo ? undefined : fecharExclusao} className="max-w-sm flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
 

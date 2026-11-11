@@ -10,9 +10,9 @@ import { Lista, Item } from "../../components/ui/Animacao";
 function Campo({ rotulo, children }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+      <span className="rotulo">
         {rotulo}
-      </label>
+      </span>
       <div className="px-4 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40 text-sm text-azul font-semibold">
         {children}
       </div>
@@ -44,7 +44,7 @@ export function TurmaDetalhe() {
           <header className="flex items-center gap-3">
             <Link
               to="/aluno/turmas"
-              className="text-azul/80 hover:text-azul text-sm font-bold"
+              className="alvo-toque text-azul/80 hover:text-azul text-sm font-bold"
             >
               ← Turmas
             </Link>
@@ -70,9 +70,9 @@ export function TurmaDetalhe() {
                 </Campo>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-azul/80">
+                  <span className="rotulo">
                     Professor(a)
-                  </label>
+                  </span>
                   <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-cinza-claro/30 bg-bege/40">
                     <Avatar
                       arquivo={turma.professor_avatar_url}
@@ -135,7 +135,7 @@ export function TurmaDetalhe() {
                       </button>
 
                       {colega.sou_eu && (
-                        <span className="text-[11px] font-bold text-coral-texto bg-coral/15 rounded-md px-2 py-0.5 shrink-0">
+                        <span className="text-xs font-bold text-coral-texto bg-coral/15 rounded-md px-2 py-0.5 shrink-0">
                           você
                         </span>
                       )}
