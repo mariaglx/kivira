@@ -14,7 +14,7 @@ function Aviso({ aviso }) {
   return (
     <p
       className={`text-sm font-semibold mt-3 ${
-        aviso.tipo === "ok" ? "text-green-600" : "text-vermelho"
+        aviso.tipo === "ok" ? "text-verde-texto" : "text-vermelho"
       }`}
     >
       {aviso.texto}

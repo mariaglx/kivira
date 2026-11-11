@@ -13,6 +13,7 @@
   --color-branco: #ffffff;
   --color-vermelho: #c0392b; /* ações destrutivas — excluir conta, turma, atividade */
   --color-verde: #30855d; /* acerto no jogo — escurecido de #3fae7a pra passar 4.5:1 com texto branco */
+  --color-verde-texto: #21793f; /* verde pra TEXTO sobre fundo verde/10 (badges "Publicada") — o #30855d dá 4.0:1 ali */
   --color-coral-escuro: #c45a48; /* sombra "tátil" dos botões coral */
   --color-laranja-escuro: #c98f5a; /* sombra "tátil" das peças */
   --color-azul-escuro: #15303b; /* sombra "tátil" dos botões azuis */

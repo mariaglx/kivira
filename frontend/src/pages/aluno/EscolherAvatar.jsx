@@ -23,7 +23,7 @@ export function EscolherAvatar() {
       <div className="bg-white py-10 px-6 sm:px-10 rounded-3xl shadow-lg w-full max-w-3xl">
         <div className="flex flex-col items-center gap-3 mb-6 text-center">
           <LogoKivira className="h-14 w-auto" />
-          <h2 className="text-xl md:text-2xl font-bold text-gray-700">
+          <h2 className="text-xl md:text-2xl font-bold text-azul">
             Escolha seu personagem! ✨
           </h2>
           <p className="text-sm text-azul/80">

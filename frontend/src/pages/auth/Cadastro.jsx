@@ -71,7 +71,7 @@ export function Cadastro() {
         <div className="flex justify-center mb-4">
           <LogoKivira className="h-15 md:h-11 w-auto" />
         </div>
-        <p className="text-center text-gray-400 text-sm mb-6">Crie sua conta</p>
+        <p className="text-center text-azul/80 text-sm mb-6">Crie sua conta</p>
 
         {erro && (
           <Alerta className="mb-4 text-center justify-center">
@@ -117,7 +117,7 @@ export function Cadastro() {
           </Button>
         </form>
 
-        <p className="text-center text-gray-600 text-sm mt-4">
+        <p className="text-center text-azul/80 text-sm mt-4">
           Já tem conta?{" "}
           <Link to="/login" className="alvo-toque text-azul font-semibold">
             Entrar

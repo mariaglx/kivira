@@ -532,8 +532,8 @@ export function TurmaForm() {
                           <span
                             className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${
                               atividade.publicado
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-100 text-gray-500"
+                                ? "bg-verde/10 text-verde-texto"
+                                : "bg-cinza-claro text-azul/80"
                             }`}
                           >
                             {atividade.publicado ? "Publicada" : "Rascunho"}
@@ -716,7 +716,7 @@ export function TurmaForm() {
                             disabled={linhasCadastro.length === 1}
                             aria-label="Remover esta linha"
                             title="Remover esta linha"
-                            className="w-7 h-7 rounded-lg text-azul/30 hover:text-red-500 hover:bg-red-50 disabled:opacity-0 disabled:pointer-events-none font-bold text-lg flex items-center justify-center shrink-0 transition-all"
+                            className="w-7 h-7 rounded-lg text-azul/30 hover:text-vermelho hover:bg-vermelho/5 disabled:opacity-0 disabled:pointer-events-none font-bold text-lg flex items-center justify-center shrink-0 transition-all"
                           >
                             ×
                           </button>
@@ -970,7 +970,7 @@ export function TurmaForm() {
           tinha espaço pra explicar que a conta do aluno não é apagada */}
       {alunoParaRemover && (
         <Modal aberto onFechar={cancelarRemocaoAluno} className="max-w-sm flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
 
@@ -1009,7 +1009,7 @@ export function TurmaForm() {
       {/* Modal de erro — mesmo padrão da tela de criar atividade */}
       {erroAcaoAluno && (
         <Modal aberto onFechar={fecharErroAcaoAluno} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 flex items-center justify-center text-3xl">
               ⚠️
             </div>
             <h3 className="text-xl font-extrabold text-azul">

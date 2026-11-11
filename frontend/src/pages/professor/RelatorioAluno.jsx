@@ -149,7 +149,7 @@ export function RelatorioAluno() {
 
                 {a.questoes_erradas.length > 0 && (
                   <div className="bg-bege/40 border border-bege rounded-xl p-3 flex flex-col gap-1.5">
-                    <span className="text-xs font-bold text-red-500">Errou de primeira</span>
+                    <span className="text-xs font-bold text-vermelho">Errou de primeira</span>
                     {a.questoes_erradas.map((q) => (
                       <p key={q.ordem} className="text-sm text-azul break-words">
                         <span className="font-bold text-azul/80 mr-1.5">{q.ordem}.</span>

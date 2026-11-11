@@ -40,7 +40,7 @@ function TrilhaPreview() {
             <div className="w-16 h-16 rounded-full bg-verde border-4 border-branco shadow-lg flex items-center justify-center">
               <Check size={26} className="text-branco" />
             </div>
-            <p className="text-center text-amber-500 text-xs mt-1">⭐⭐⭐</p>
+            <p className="text-center text-xs mt-1">⭐⭐⭐</p>
           </div>
 
           {/* Fase atual, liberada */}
@@ -53,7 +53,7 @@ function TrilhaPreview() {
           {/* Fase bloqueada */}
           <div className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: 240, left: "24%" }}>
             <div className="w-16 h-16 rounded-full bg-cinza-claro border-4 border-branco shadow-lg flex items-center justify-center opacity-70">
-              <Lock size={22} className="text-gray-400" />
+              <Lock size={22} className="text-azul/80" />
             </div>
           </div>
 
@@ -103,7 +103,7 @@ const PASSOS = [
   },
   {
     Icone: Trophy,
-    cor: "bg-amber-100 text-amber-500",
+    cor: "bg-ouro-bg text-ouro-fg",
     titulo: "Conquiste Medalhas e XP",
     texto: "A cada acerto, a ilustração é revelada e o aluno ganha recompensas no seu perfil!",
   },
@@ -345,7 +345,7 @@ export function Home() {
             {PASSOS.map(({ Icone, cor, titulo, texto }, i) => (
               <div
                 key={i}
-                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-orange-200/50"
+                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-laranja/30"
               >
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${cor}`}>
                   <Icone size={26} strokeWidth={2.25} />
@@ -372,7 +372,7 @@ export function Home() {
             {RECURSOS_PROFESSOR.map(({ Icone, cor, titulo, texto }, i) => (
               <div
                 key={i}
-                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-orange-200/50"
+                className="group flex flex-col items-center p-8 bg-branco rounded-3xl shadow-sm border border-cinza-claro/60 transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:border-laranja/30"
               >
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${cor}`}>
                   <Icone size={26} strokeWidth={2.25} />

@@ -35,7 +35,7 @@ export function PrimeiroAcesso() {
       <div className="bg-white py-10 px-8 sm:px-10 rounded-3xl shadow-lg w-full max-w-lg">
         <div className="flex flex-col items-center gap-3 mb-6">
           <LogoKivira className="h-16 w-auto animate__animated animate__bounceIn" />
-          <h2 className="text-xl md:text-2xl font-bold text-gray-700 text-center">
+          <h2 className="text-xl md:text-2xl font-bold text-azul text-center">
             Vamos criar sua senha especial! 🎉
           </h2>
           <p className="text-sm text-azul/80 text-center">
@@ -52,7 +52,7 @@ export function PrimeiroAcesso() {
 
         <form onSubmit={confirmar} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="campo-senha-temporaria-dada-pelo-professor" className="text-start text-gray-600 text-base font-medium">
+            <label htmlFor="campo-senha-temporaria-dada-pelo-professor" className="text-start text-azul/80 text-base font-medium">
               Senha temporária (dada pelo professor)
             </label>
             <Input id="campo-senha-temporaria-dada-pelo-professor"
@@ -66,7 +66,7 @@ export function PrimeiroAcesso() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-start text-gray-600 text-base font-medium">
+            <span className="text-start text-azul/80 text-base font-medium">
               Escolha 3 emojis pra sua nova senha
             </span>
             <SeletorEmoji selecionados={emojis} onAlternar={alternarEmoji} />

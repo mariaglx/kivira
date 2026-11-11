@@ -88,11 +88,11 @@ export function Turmas() {
                       )}
                     </div>
                     {turma.ativo ? (
-                      <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                         Ativa
                       </span>
                     ) : (
-                      <span className="badge bg-red-100 text-red-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-vermelho/10 text-vermelho border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                         Inativa
                       </span>
                     )}

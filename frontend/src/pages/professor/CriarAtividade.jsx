@@ -43,7 +43,7 @@ function QuestaoCard({
         key={erro ? `erro-${tentativaInvalida}` : "ok"}
         className={`bg-branco rounded-2xl p-5 shadow-sm border flex flex-col gap-3 ${
           erro
-            ? "border-red-300 animate-tremida-leve"
+            ? "border-vermelho/40 animate-tremida-leve"
             : "border-cinza-claro/10"
         }`}
       >
@@ -74,7 +74,7 @@ function QuestaoCard({
               type="button"
               onClick={() => onRemover(index)}
               disabled={!podeRemover}
-              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-red-500 disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
+              className="w-5 h-5 flex items-center justify-center text-azul/30 hover:text-vermelho disabled:opacity-30 disabled:hover:text-azul/30 transition-colors text-lg leading-none -translate-y-px"
             >
               ×
             </button>
@@ -101,7 +101,7 @@ function QuestaoCard({
             placeholder="Ex: Qual o som que a vaca faz?"
             className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
               erro?.texto
-                ? "border-red-300 focus:border-red-400"
+                ? "border-vermelho/40 focus:border-vermelho"
                 : "border-cinza-claro/30"
             }`}
           />
@@ -121,7 +121,7 @@ function QuestaoCard({
             placeholder="Ex: Muuuu"
             className={`w-full px-4 py-2.5 rounded-xl border bg-branco text-azul placeholder:text-azul/75 shadow-sm transition-all text-sm ${
               erro?.resposta
-                ? "border-red-300 focus:border-red-400"
+                ? "border-vermelho/40 focus:border-vermelho"
                 : "border-cinza-claro/30"
             }`}
           />
@@ -981,7 +981,7 @@ export function CriarAtividade() {
       {/* Modal de sucesso ao criar/atualizar a atividade */}
       {mostrarSucesso && (
         <Modal aberto onFechar={() => setMostrarSucesso(false)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center text-6xl">
+            <div className="w-28 h-28 rounded-full bg-verde/10 flex items-center justify-center text-6xl">
               ✅
             </div>
             <h3 className="text-xl font-extrabold text-azul">
@@ -1036,7 +1036,7 @@ export function CriarAtividade() {
       {/* Modal de erro — substitui o alert() nativo do navegador */}
       {mensagemErro && (
         <Modal aberto onFechar={() => setMensagemErro(null)} className="sm:p-8 flex flex-col items-center gap-3 max-w-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 flex items-center justify-center text-3xl">
               ⚠️
             </div>
             <h3 className="text-xl font-extrabold text-azul">
@@ -1267,7 +1267,7 @@ export function CriarAtividade() {
           permanente" (mesmo padrão do modal de excluir turma) */}
       {modalExclusaoAberto && (
         <Modal aberto onFechar={excluindo ? undefined : fecharExclusao} className="max-w-sm flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 text-vermelho flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-vermelho/10 text-vermelho flex items-center justify-center">
               <Trash2 size={28} />
             </div>
 

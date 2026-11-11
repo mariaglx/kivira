@@ -16,9 +16,9 @@ const TIPO_LABEL = {
 };
 
 const DIFICULDADE_STYLE = {
-  facil: "bg-green-100 text-green-600",
-  medio: "bg-amber-100 text-amber-600",
-  dificil: "bg-red-100 text-red-500",
+  facil: "bg-verde/10 text-verde-texto",
+  medio: "bg-ouro-bg text-ouro-fg",
+  dificil: "bg-vermelho/10 text-vermelho",
 };
 
 export function Atividades() {
@@ -137,11 +137,11 @@ export function Atividades() {
                   </span>
                 </div>
                 {atividade.publicado ? (
-                  <span className="badge bg-green-100 text-green-600 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                     Publicada
                   </span>
                 ) : (
-                  <span className="badge bg-gray-100 text-gray-500 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-cinza-claro text-azul/80 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
                     Rascunho
                   </span>
                 )}
@@ -288,7 +288,7 @@ export function Atividades() {
                             key={opcao.id}
                             className={`text-xs px-3 py-1.5 rounded-lg ${
                               opcao.correta
-                                ? "bg-green-100 text-green-700 font-bold"
+                                ? "bg-verde/10 text-verde-texto font-bold"
                                 : "bg-branco text-azul/80"
                             }`}
                           >

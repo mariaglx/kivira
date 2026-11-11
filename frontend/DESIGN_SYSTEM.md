@@ -13,6 +13,7 @@ Tokens e classes ficam em `src/index.css`; componentes em `src/components/ui/`.
 | `azul` | `#214a5a` | texto padrão, menu do professor, botão secundário |
 | `coral` | `#eb7561` | fundo da ação principal, aba ativa, fase liberada — texto/ícone **sobre** ele é `text-azul-escuro` |
 | `coral-texto` | `#a25143` | coral usado **como texto** (links, "Sair", destaques) sobre branco/bege |
+| `verde-texto` | `#21793f` | verde usado **como texto** sobre `bg-verde/10` (selos "Publicada", acertos) |
 | `laranja` / `laranja-claro` | `#eeb37f` / `#f0c6a1` | anéis de avatar, peças do jogo, item ativo do menu |
 | `bege` | `#f5e6d3` | fundo de todas as telas |
 | `branco` | `#ffffff` | superfícies (cards, header) |

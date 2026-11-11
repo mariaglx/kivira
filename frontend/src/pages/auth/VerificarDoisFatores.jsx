@@ -35,17 +35,17 @@ export function VerificarDoisFatores({ token, qrCode, segredo, onEntrar, onVolta
     <form onSubmit={enviar} className="flex flex-col gap-5">
       {qrCode ? (
         <div className="flex flex-col items-center gap-3 text-center">
-          <p className="text-gray-600 text-base">
+          <p className="text-azul/80 text-base">
             Admins entram com verificação em duas etapas. Escaneie o QR code com um app autenticador
             (Google Authenticator, Authy...) e digite o código que aparecer.
           </p>
           <img src={qrCode} alt="QR code para configurar o app autenticador" className="w-48 h-48" />
-          <p className="text-xs text-gray-500 break-all">
+          <p className="text-xs text-azul/80 break-all">
             Sem câmera? Digite a chave no app: <code className="font-mono">{segredo}</code>
           </p>
         </div>
       ) : (
-        <p className="text-gray-600 text-base text-center">Digite o código de 6 dígitos do seu app autenticador.</p>
+        <p className="text-azul/80 text-base text-center">Digite o código de 6 dígitos do seu app autenticador.</p>
       )}
 
       {erro && (
@@ -55,7 +55,7 @@ export function VerificarDoisFatores({ token, qrCode, segredo, onEntrar, onVolta
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="codigo-2fa" className="text-start text-gray-600 text-base font-medium">
+        <label htmlFor="codigo-2fa" className="text-start text-azul/80 text-base font-medium">
           Código
         </label>
         <Input
@@ -77,7 +77,7 @@ export function VerificarDoisFatores({ token, qrCode, segredo, onEntrar, onVolta
       <Button type="submit" disabled={enviando || codigo.length !== 6}>
         {enviando ? "Verificando..." : "Entrar"}
       </Button>
-      <button type="button" onClick={onVoltar} className="text-sm text-gray-500 hover:underline">
+      <button type="button" onClick={onVoltar} className="text-sm text-azul/80 hover:underline">
         Voltar
       </button>
     </form>

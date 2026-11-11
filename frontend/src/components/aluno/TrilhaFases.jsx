@@ -58,7 +58,7 @@ function CardPreview({ atividade, onJogar, alinhamento }) {
       <p className="text-xs text-azul/80 font-medium mb-2">
         {iconeDisciplina(atividade.disciplina)} {atividade.disciplina}
       </p>
-      <p className="text-amber-500 text-sm mb-3">
+      <p className="text-sm mb-3">
         {"⭐".repeat(estrelas)}
         <span className="opacity-25">{"⭐".repeat(3 - estrelas)}</span>
       </p>
@@ -142,7 +142,7 @@ export function TrilhaFases({ atividades, onJogar }) {
             >
               {estado === "concluida" && <Check size={30} className="text-branco" />}
               {estado === "atual" && <Blocks size={34} className="text-azul-escuro" />}
-              {estado === "bloqueada" && <Lock size={26} className="text-gray-400" />}
+              {estado === "bloqueada" && <Lock size={26} className="text-azul/80" />}
 
               <span className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-branco text-azul text-[11px] font-black flex items-center justify-center shadow border border-cinza-claro/30">
                 {indice + 1}
@@ -150,7 +150,7 @@ export function TrilhaFases({ atividades, onJogar }) {
             </button>
 
             {estado === "concluida" && (
-              <p className="text-center text-amber-500 text-xs mt-1">
+              <p className="text-center text-xs mt-1">
                 {"⭐".repeat(DIFICULDADE_ESTRELAS[atividade.dificuldade] || 1)}
               </p>
             )}
