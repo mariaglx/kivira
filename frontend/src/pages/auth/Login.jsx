@@ -125,9 +125,6 @@ export function Login() {
           </Button>
 
           <div className="flex flex-col gap-2 mt-2 text-center text-base">
-            <p className="text-sm text-gray-400 cursor-pointer hover:underline">
-              Esqueci minha senha
-            </p>
             <p className="text-gray-600">
               Não tem conta?{" "}
               <Link to="/cadastro" className="alvo-toque text-azul font-bold hover:underline">
