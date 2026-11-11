@@ -65,11 +65,11 @@ function LinhaLog({ log }) {
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-azul/80">
           {log.usuario ? (
-            <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/80"}`}>
+            <span className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${BADGE_POR_PAPEL[log.papel_usuario] || "bg-cinza-claro text-azul/80"}`}>
               {LABEL_POR_PAPEL[log.papel_usuario] || log.papel_usuario}
             </span>
           ) : (
-            <span className="badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold bg-vermelho/10 text-vermelho">Sem conta</span>
+            <span className="badge border-none rounded-md px-2 py-0.5 text-xs font-bold bg-vermelho/10 text-vermelho">Sem conta</span>
           )}
           {identificador && identificador !== quem && <span>{identificador}</span>}
           {log.usuario?.turmas?.length > 0 && <span>· {log.usuario.turmas.join(", ")}</span>}

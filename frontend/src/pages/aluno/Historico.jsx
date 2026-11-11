@@ -60,7 +60,7 @@ export function Historico() {
                     {sessao.atividade_titulo || "Atividade removida"}
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[11px] font-bold text-azul/80 bg-bege px-2.5 py-1 rounded-md">
+                    <span className="text-xs font-bold text-azul/80 bg-bege px-2.5 py-1 rounded-md">
                       {DIFICULDADE_EMOJI[sessao.dificuldade]} {DIFICULDADE_LABEL[sessao.dificuldade] || sessao.dificuldade}
                     </span>
                     <span className="text-xs text-azul/80 font-medium">

@@ -125,7 +125,7 @@ export function TurmaDetalhe() {
                       </span>
 
                       {colega.sou_eu && (
-                        <span className="text-[11px] font-bold text-coral-texto bg-coral/15 rounded-md px-2 py-0.5 shrink-0">
+                        <span className="text-xs font-bold text-coral-texto bg-coral/15 rounded-md px-2 py-0.5 shrink-0">
                           você
                         </span>
                       )}

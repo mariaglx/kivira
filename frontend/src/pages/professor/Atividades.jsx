@@ -137,11 +137,11 @@ export function Atividades() {
                   </span>
                 </div>
                 {atividade.publicado ? (
-                  <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-xs font-bold">
                     Publicada
                   </span>
                 ) : (
-                  <span className="badge bg-cinza-claro text-azul/80 border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                  <span className="badge bg-cinza-claro text-azul/80 border-none rounded-md px-2.5 py-1 text-xs font-bold">
                     Rascunho
                   </span>
                 )}
@@ -163,7 +163,7 @@ export function Atividades() {
                     Dificuldade
                   </span>
                   <span
-                    className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
+                    className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold ${DIFICULDADE_STYLE[atividade.dificuldade]}`}
                   >
                     {atividade.dificuldade}
                   </span>

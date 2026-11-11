@@ -172,7 +172,7 @@ export function Feedback() {
 
                 {/* Rótulos das pontas: é o que devolve a direção da escala, que
                     some quando as 5 opções ficam empilhadas na vertical */}
-                <div className="flex justify-between mt-2 text-[11px] font-semibold text-azul/80">
+                <div className="flex justify-between mt-2 text-xs font-semibold text-azul/80">
                   <span>{pergunta.opcoes[0]}</span>
                   <span>{pergunta.opcoes[pergunta.opcoes.length - 1]}</span>
                 </div>

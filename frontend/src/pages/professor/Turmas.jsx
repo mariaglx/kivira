@@ -88,11 +88,11 @@ export function Turmas() {
                       )}
                     </div>
                     {turma.ativo ? (
-                      <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-verde/10 text-verde-texto border-none rounded-md px-2.5 py-1 text-xs font-bold">
                         Ativa
                       </span>
                     ) : (
-                      <span className="badge bg-vermelho/10 text-vermelho border-none rounded-md px-2.5 py-1 text-[10px] font-bold">
+                      <span className="badge bg-vermelho/10 text-vermelho border-none rounded-md px-2.5 py-1 text-xs font-bold">
                         Inativa
                       </span>
                     )}
@@ -103,11 +103,11 @@ export function Turmas() {
                   <div className="flex items-end gap-8">
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.alunos_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Alunos</div>
+                      <div className="text-xs uppercase tracking-wider text-azul/80 font-bold">Alunos</div>
                     </div>
                     <div>
                       <div className="text-xl font-extrabold text-azul">{turma.atividades_count ?? 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-azul/80 font-bold">Atividades</div>
+                      <div className="text-xs uppercase tracking-wider text-azul/80 font-bold">Atividades</div>
                     </div>
                     <span className="ml-auto text-sm font-bold text-coral-texto flex items-center gap-1">
                       Abrir <ChevronRight size={16} />

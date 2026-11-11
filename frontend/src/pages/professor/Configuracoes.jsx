@@ -229,7 +229,7 @@ export function Configuracoes() {
                     <span className="block text-2xl font-black text-coral-texto leading-none tabular-nums">
                       {item.valor}
                     </span>
-                    <span className="block text-[11px] font-bold uppercase text-azul/80 mt-1.5">
+                    <span className="block text-xs font-bold uppercase text-azul/80 mt-1.5">
                       {item.rotulo}
                     </span>
                   </div>

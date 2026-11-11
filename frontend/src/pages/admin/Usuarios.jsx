@@ -164,7 +164,7 @@ export function Usuarios() {
         <div className="bg-branco rounded-2xl shadow-sm border border-cinza-claro/10 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-azul/80 font-bold border-b border-cinza-claro/20">
+              <tr className="text-left text-xs uppercase tracking-wider text-azul/80 font-bold border-b border-cinza-claro/20">
                 <th className="px-5 py-3">ID</th>
                 <th className="px-5 py-3">Nome</th>
                 <th className="px-5 py-3">Login</th>
@@ -186,11 +186,11 @@ export function Usuarios() {
                   </td>
                   <td className="px-5 py-3 text-azul/80">{usuario.identificador || "—"}</td>
                   <td className="px-5 py-3">
-                    <span className={`badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/80"}`}>
+                    <span className={`badge border-none rounded-md px-2.5 py-1 text-xs font-bold ${BADGE_POR_PAPEL[usuario.tipo] || "bg-cinza-claro/20 text-azul/80"}`}>
                       {LABEL_POR_PAPEL[usuario.tipo] || usuario.tipo}
                     </span>
                     {!usuario.ativo && (
-                      <span className="badge border-none rounded-md px-2.5 py-1 text-[10px] font-bold bg-vermelho/10 text-vermelho ml-1">
+                      <span className="badge border-none rounded-md px-2.5 py-1 text-xs font-bold bg-vermelho/10 text-vermelho ml-1">
                         Desativado
                       </span>
                     )}

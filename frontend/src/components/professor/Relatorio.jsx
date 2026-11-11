@@ -9,7 +9,7 @@ const STATUS = {
 
 export function SeloStatus({ status }) {
   return (
-    <span className={`badge border-none rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${STATUS[status].estilo}`}>
+    <span className={`badge border-none rounded-md px-2 py-0.5 text-xs font-bold whitespace-nowrap ${STATUS[status].estilo}`}>
       {STATUS[status].texto}
     </span>
   );

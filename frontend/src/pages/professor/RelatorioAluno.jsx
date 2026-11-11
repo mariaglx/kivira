@@ -21,7 +21,7 @@ function formatarData(valor) {
 function Metrica({ rotulo, valor }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-azul/80">{rotulo}</span>
+      <span className="text-xs font-bold uppercase tracking-wider text-azul/80">{rotulo}</span>
       <span className="text-sm font-semibold text-azul">{valor}</span>
     </div>
   );
@@ -75,12 +75,12 @@ export function RelatorioAluno() {
           )}
           <div className="flex flex-wrap gap-1.5 mt-1">
             {aluno.matricula && (
-              <span className="text-[10px] font-bold text-azul/80 bg-cinza-claro px-2 py-0.5 rounded-md">
+              <span className="text-xs font-bold text-azul/80 bg-cinza-claro px-2 py-0.5 rounded-md">
                 {aluno.matricula}
               </span>
             )}
             {aluno.turmas.map((turma) => (
-              <span key={turma} className="text-[10px] font-bold text-coral-texto bg-coral/10 px-2 py-0.5 rounded-md">
+              <span key={turma} className="text-xs font-bold text-coral-texto bg-coral/10 px-2 py-0.5 rounded-md">
                 {turma}
               </span>
             ))}

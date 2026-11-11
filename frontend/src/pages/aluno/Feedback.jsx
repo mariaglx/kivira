@@ -118,7 +118,7 @@ export function Feedback() {
                       {rosto}
                     </span>
                     <span
-                      className={`text-[11px] sm:text-sm font-bold text-center leading-tight ${
+                      className={`text-xs sm:text-sm font-bold text-center leading-tight ${
                         marcado ? "text-coral-texto" : "text-azul/80"
                       }`}
                     >
