@@ -74,9 +74,37 @@ def listar_atividades_do_professor(
         .all()
     ) if atividades else {}
 
+    # Blocos de verdade (questões cadastradas) e quantos alunos da turma
+    # concluíram cada atividade publicada — a barra de conclusão do card.
+    ids = [a.id for a in atividades]
+    questoes_por_atividade = dict(
+        session.query(Questao.atividade_id, func.count(Questao.id))
+        .filter(Questao.atividade_id.in_(ids)).group_by(Questao.atividade_id).all()
+    ) if ids else {}
+    alunos_por_turma = dict(
+        session.query(AlunoTurma.turma_id, func.count(AlunoTurma.id))
+        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1).group_by(AlunoTurma.turma_id).all()
+    ) if turma_ids else {}
+    matriculados = set(
+        session.query(AlunoTurma.turma_id, AlunoTurma.aluno_id)
+        .filter(AlunoTurma.turma_id.in_(turma_ids), AlunoTurma.ativo == 1).all()
+    ) if turma_ids else set()
+    concluidas = session.query(SessaoJogo.atividade_id, SessaoJogo.aluno_id).filter(
+        SessaoJogo.atividade_id.in_(ids), SessaoJogo.status == "concluido"
+    ).distinct().all() if ids else []
+    turma_da_atividade = {a.id: a.turma_id for a in atividades}
+    concluiram = {}
+    for atividade_id, aluno_id in concluidas:
+        if (turma_da_atividade[atividade_id], aluno_id) in matriculados:
+            concluiram[atividade_id] = concluiram.get(atividade_id, 0) + 1
+
     resultado = []
     for a in atividades:
         resultado.append({
+            "total_questoes": questoes_por_atividade.get(a.id, 0),
+            "alunos_turma": alunos_por_turma.get(a.turma_id, 0),
+            "alunos_concluiram": concluiram.get(a.id, 0),
+            "data_criacao": a.data_criacao,
             "id": a.id,
             "professor_nome": nome_professor.get(a.professor_id),
             "titulo": a.titulo,
@@ -660,7 +688,9 @@ def relatorio_da_atividade(id_atividade: int, session = Depends(pegar_sessao_kiv
     return {
         "atividade_id": atividade.id,
         "titulo": atividade.titulo,
+        "disciplina": atividade.disciplina,
         "turma_id": atividade.turma_id,
+        "turma_nome": session.query(Turma.nome).filter(Turma.id == atividade.turma_id).scalar() if atividade.turma_id else None,
         "total_questoes": len(questoes),
         "resumo": {
             "alunos_turma": len(alunos),

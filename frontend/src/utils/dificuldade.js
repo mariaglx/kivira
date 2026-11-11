@@ -18,3 +18,11 @@ export const DIFICULDADE_ESTRELAS = {
   medio: 2,
   dificil: 3,
 };
+
+// Rótulo e cor da dificuldade nas telas do professor (lá é "Difícil", não o
+// "Máximo" lúdico do aluno).
+export const DIFICULDADE_PROFESSOR = {
+  facil: { rotulo: "Fácil", estilo: "bg-cie-bg text-cie-fg-escuro" },
+  medio: { rotulo: "Médio", estilo: "bg-ouro-bg text-ouro-fg-escuro" },
+  dificil: { rotulo: "Difícil", estilo: "bg-por-bg text-coral-texto" },
+};

@@ -57,7 +57,7 @@ class TestRbac(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tabelas = ["usuario", "avatar", "professor", "turma", "aluno", "aluno_turma", "atividade",
-                   "questao", "opcao_questao", "log_auditoria", "perfil_admin", "dois_fatores", "feedback"]
+                   "questao", "opcao_questao", "log_auditoria", "perfil_admin", "dois_fatores", "feedback", "feedback_aluno", "sessao_jogo"]
         Base.metadata.create_all(engine, tables=[Base.metadata.tables[t] for t in tabelas])
         app.dependency_overrides[pegar_sessao_kivira] = sessao_teste
         cls.client = TestClient(app)

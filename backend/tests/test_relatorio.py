@@ -178,6 +178,22 @@ class TestRelatorioAtividade(unittest.TestCase):
         self.assertEqual({a["nome_completo"]: a["respondeu_feedback"] for a in dados["alunos"]}, {"Ana": True, "Bia": False, "Caio": False})
         self.assertEqual([(q["ordem"], q["taxa_acerto_primeira"]) for q in dados["questoes_dificeis"]], [(2, 0), (1, 50)])
 
+        self.assertEqual({a["nome_completo"]: a["comecou"] for a in dados["alunos"]}, {"Ana": True, "Bia": True, "Caio": False})
+
+    def test_lista_de_turmas_traz_estatisticas(self):
+        turmas = self.client.get("/turma/", headers={"Authorization": f"Bearer {self.token_dono}"}).json()
+        turma = turmas[0]
+        self.assertEqual(turma["codigo_acesso"], "ABC123")
+        # 3 alunos x 1 atividade: Ana e Bia concluíram, Caio nunca abriu
+        self.assertEqual((turma["entregas"], turma["total_entregas"], turma["alunos_parados"]), (2, 3, 1))
+        self.assertEqual(turma["feedback_respondido"], 1)
+        self.assertEqual([a["nome"] for a in turma["avatares"]], ["Ana", "Bia", "Caio"])
+
+    def test_minhas_atividades_traz_conclusao(self):
+        atividades = self.client.get("/atividade/professor/minhas", headers={"Authorization": f"Bearer {self.token_dono}"}).json()
+        a = atividades[0]
+        self.assertEqual((a["total_questoes"], a["alunos_turma"], a["alunos_concluiram"]), (2, 3, 2))
+
 
 if __name__ == "__main__":
     unittest.main()

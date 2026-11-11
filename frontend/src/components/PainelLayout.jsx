@@ -1,32 +1,39 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
-import { House, Users, Blocks, Settings, UserCog, ShieldCheck, MessageSquare } from "lucide-react";
+import { House, Users, LayoutGrid, Settings, UserCog, ShieldCheck, MessageSquare, MessageCircle } from "lucide-react";
 import { SidebarPainel } from "./SidebarPainel";
 import { AvisoVisualizacao } from "./AvisoVisualizacao";
 import { useProfessorAtual } from "../controllers/useProfessorAtual";
 import { useApi } from "../controllers/useApi";
 import { ehAdmin } from "../services/sessao";
 
-// Entra no fim do menu só enquanto o professor não respondeu o questionário.
-const ITEM_FEEDBACK = { to: "/professor/feedback", Icone: MessageSquare, rotulo: "Feedback" };
+// Entra no grupo de baixo só enquanto o professor não respondeu o questionário.
+const ITEM_FEEDBACK = { to: "/professor/feedback", Icone: MessageCircle, rotulo: "Enviar feedback", inferior: true };
 
-function montarItens(turmas, admin, professor) {
+function montarItens(turmas, atividades, admin, professor) {
   const turmasComSubmenu = {
     to: "/professor/turmas",
     Icone: Users,
     rotulo: "Turmas",
-    subitens: turmas.map((t) => ({ to: `/professor/turmas/${t.id}`, rotulo: t.nome })),
+    // Ponto laranja = o mesmo "aluno parado" do "Pra hoje" do Início
+    subitens: turmas.map((t) => ({ to: `/professor/turmas/${t.id}`, rotulo: t.nome, atencao: t.ativo && t.alunos_parados > 0 })),
   };
-  const atividades = { to: "/professor/atividades", Icone: Blocks, rotulo: "Atividades" };
+  const rascunhos = atividades.filter((a) => !a.publicado).length;
+  const itemAtividades = {
+    to: "/professor/atividades",
+    Icone: LayoutGrid,
+    rotulo: "Atividades",
+    selo: rascunhos ? `${rascunhos} ${rascunhos === 1 ? "rascunho" : "rascunhos"}` : null,
+  };
 
   // Admin usa as mesmas telas do professor (vendo turmas e atividades de todos)
   // mais as dele: usuários, auditoria e resultados do feedback. Não tem perfil próprio pra configurar.
   if (admin) {
     return [
-      { to: "/professor", Icone: House, rotulo: "Painel", end: true },
+      { to: "/professor", Icone: House, rotulo: "Início", end: true },
       turmasComSubmenu,
-      atividades,
+      itemAtividades,
       { to: "/admin", Icone: UserCog, rotulo: "Usuários", end: true },
       { to: "/admin/logs-auditoria", Icone: ShieldCheck, rotulo: "Auditoria" },
       { to: "/admin/feedback", Icone: MessageSquare, rotulo: "Feedback" },
@@ -37,11 +44,11 @@ function montarItens(turmas, admin, professor) {
   // tiraria em seguida na cara de quem já respondeu.
   const feedback = professor && !professor.respondeu_feedback ? [ITEM_FEEDBACK] : [];
   return [
-    { to: "/professor", Icone: House, rotulo: "Dashboard", end: true },
+    { to: "/professor", Icone: House, rotulo: "Início", end: true },
     turmasComSubmenu,
-    atividades,
-    { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações" },
+    itemAtividades,
     ...feedback,
+    { to: "/professor/configuracoes", Icone: Settings, rotulo: "Configurações", inferior: true },
   ];
 }
 
@@ -60,6 +67,8 @@ export function PainelLayout() {
   // Turmas do submenu de "Turmas". Rebusca a cada navegação (sai do cache do
   // apiRequest) pra turma recém-criada aparecer sem recarregar a página.
   const { dados: turmas } = useApi("/turma/", pathname);
+  // Só pra contar os rascunhos do selo em "Atividades"
+  const { dados: atividades } = useApi("/atividade/professor/minhas", pathname);
   // Avatar do admin (perfil_admin); a tela de perfil troca e avisa por aqui
   const { dados: perfilAdmin } = useApi(admin ? "/admin/me" : null);
   const [avatarAdminNovo, setAvatarAdmin] = useState(null);
@@ -70,15 +79,16 @@ export function PainelLayout() {
     <AvisoVisualizacao />
     <div className="lg:flex min-h-screen bg-bege text-azul font-sans">
       <SidebarPainel
-        titulo={admin ? "Administração" : "Menu"}
-        itens={montarItens(turmas ?? [], admin, professor)}
+        titulo={admin ? "Administração" : null}
+        acao={admin ? null : { to: "/professor/atividades/criar", rotulo: "Nova atividade" }}
+        itens={montarItens(turmas ?? [], atividades ?? [], admin, professor)}
         usuario={
           admin
             ? { nome: "Administrador", avatar: avatarAdmin, perfilUrl: "/admin/perfil" }
             : {
                 nome: professor?.apelido || "Professor(a)",
                 avatar: professor?.avatar_url,
-                perfilUrl: "/professor/configuracoes",
+                subtitulo: professor?.escola,
               }
         }
       />
