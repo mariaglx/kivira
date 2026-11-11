@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { comemorar } from "../utils/comemorar";
+import { lerArquivoDeAlunos, parseAlunosColados } from "../utils/turma";
 import { ehAdmin } from "../services/sessao";
 import { useApi } from "./useApi";
 
@@ -224,6 +225,44 @@ export function useTurmaForm() {
 
   const adicionarLinhaCadastro = () => {
     setLinhasCadastro((atual) => [...atual, linhaVazia()]);
+  };
+
+  // Cola de planilha: cada linha do texto colado vira um aluno (o parser está
+  // em utils/turma.js, testado lá). Devolve quantas linhas entraram pra quem
+  // chamou saber se a cola foi aproveitada (0 = deixa o navegador colar normal
+  // no campo).
+  const [lendoArquivo, setLendoArquivo] = useState(false);
+
+  const acrescentarLinhas = (alunos) => {
+    const novas = alunos.map((aluno) => ({ ...linhaVazia(), ...aluno }));
+    if (!novas.length) return 0;
+
+    // Descarta as linhas em branco que estavam na tela (normalmente só a
+    // primeira, vazia) pra cola numa lista nova não deixar um buraco no topo
+    setLinhasCadastro((atual) => [
+      ...atual.filter((linha) => linha.nome.trim() || linha.sobrenome.trim() || linha.matricula.trim()),
+      ...novas,
+    ]);
+    return novas.length;
+  };
+
+  const colarLinhasCadastro = (texto) => acrescentarLinhas(parseAlunosColados(texto));
+
+  // Arquivo solto na janela ou escolhido pelo botão. O erro vai pro mesmo
+  // Alerta que o cadastro já usa, em vez de inventar um lugar novo pra falha.
+  const importarArquivoDeAlunos = async (arquivo) => {
+    if (!arquivo) return;
+    try {
+      setErroCadastroLote(null);
+      // .xlsx e .docx só baixam a biblioteca na hora do uso, então o primeiro
+      // arquivo desses demora um pouco — sem o aviso parece que não fez nada
+      setLendoArquivo(true);
+      acrescentarLinhas(await lerArquivoDeAlunos(arquivo));
+    } catch (erro) {
+      setErroCadastroLote(erro.message);
+    } finally {
+      setLendoArquivo(false);
+    }
   };
 
   // Nunca deixa a lista vazia — sem nenhuma linha não tem onde digitar o próximo
@@ -483,6 +522,9 @@ export function useTurmaForm() {
     linhasCadastro,
     alterarLinhaCadastro,
     adicionarLinhaCadastro,
+    colarLinhasCadastro,
+    importarArquivoDeAlunos,
+    lendoArquivo,
     removerLinhaCadastro,
     itensLote,
     cadastrandoLote,
